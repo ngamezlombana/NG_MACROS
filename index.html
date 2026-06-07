@@ -1150,8 +1150,12 @@
             if (token) {
                 // Guardar token en localStorage y limpiar la URL para que quede estético
                 localStorage.setItem('ng_cnc_active_token', token);
-                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                window.history.replaceState({ path: newUrl }, '', newUrl);
+                try {
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.replaceState({ path: newUrl }, '', newUrl);
+                } catch (e) {
+                    console.warn("No se pudo limpiar la URL usando replaceState (puede ocurrir en file://):", e);
+                }
             } else {
                 token = localStorage.getItem('ng_cnc_active_token');
             }
@@ -1392,6 +1396,8 @@
 
         /* --- INICIALIZACIÓN --- */
         document.addEventListener('DOMContentLoaded', () => {
+            checkLicensing(); // Validar licencia antes de inicializar la app
+
             if (typeof MACROS_DATA === 'undefined') {
                 console.error("No se pudo cargar MACROS_DATA. Asegúrate de haber ejecutado parse_macros.py.");
                 return;
