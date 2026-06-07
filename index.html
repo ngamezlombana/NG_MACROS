@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NG CNC - Generador de Macros CNC</title>
+    <!-- Google Fonts: Inter para UI, Fira Code para G-Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- DISEÑO DE SISTEMA Y VARIABLES --- */
+        :root {
+            --bg-primary: #121316;
+            --bg-secondary: #1a1d21;
+            --bg-tertiary: #23272d;
+            --accent-orange: #ff7a00;
+            --accent-orange-hover: #e06b00;
+            --accent-blue: #007acc;
+            --accent-blue-hover: #0062a3;
+            --text-main: #f5f6f8;
+            --text-muted: #8e95a2;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --danger-color: #ff3b30;
+            --success-color: #34c759;
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --glass-bg: rgba(26, 29, 33, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.03);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* --- LAYOUT PRINCIPAL --- */
+        .app-container {
+            display: grid;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+        }
+
+        /* --- CABECERA --- */
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 10;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            fill: var(--accent-orange);
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-main);
+        }
+
+        .logo-text span {
+            color: var(--accent-orange);
+        }
+
+        nav.header-nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav.header-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        nav.header-nav a:hover, nav.header-nav a.active {
+            color: var(--text-main);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-execute {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-execute:hover {
+            background-color: var(--accent-orange-hover);
+        }
+
+        .btn-execute:active {
+            transform: scale(0.98);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            color: var(--text-main);
+        }
+
+        /* --- CUERPO PRINCIPAL --- */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 440px;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* --- BARRA LATERAL (MENU DE MACROS) --- */
+        aside.sidebar {
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 20px 16px;
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding-left: 8px;
+        }
+
+        .status-card {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .status-value {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .macro-menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .macro-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .macro-menu-item svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        .macro-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+        }
+
+        .macro-menu-item.active {
+            background: linear-gradient(90deg, rgba(255, 122, 0, 0.15) 0%, rgba(255, 122, 0, 0.02) 100%);
+            color: var(--accent-orange);
+            border-left: 3px solid var(--accent-orange);
+            padding-left: 9px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-estop {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-estop:hover {
+            background-color: #e03228;
+        }
+
+        .btn-estop:active {
+            transform: scale(0.98);
+        }
+
+        .btn-estop.active {
+            animation: estop-flash 0.5s infinite alternate;
+        }
+
+        /* --- PANEL CENTRAL (EDICION DE VARIABLES) --- */
+        main.editor-panel {
+            padding: 24px;
+            overflow-y: auto;
+            background-color: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .macro-info-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .macro-info-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .macro-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .macro-filename {
+            font-size: 13px;
+            color: var(--accent-orange);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* --- CARD DE RESUMEN DE SELECCIONES --- */
+        .summary-card {
+            background: linear-gradient(135deg, rgba(255, 122, 0, 0.04) 0%, rgba(255, 122, 0, 0.01) 100%);
+            border: 1px solid rgba(255, 122, 0, 0.12);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-orange);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 122, 0, 0.08);
+            padding-bottom: 6px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .summary-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .summary-col-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .summary-col-content {
+            font-size: 12px;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .summary-col-content strong {
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section-title svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--accent-orange);
+        }
+
+        .inputs-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .input-var-tag {
+            position: absolute;
+            left: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-orange);
+            font-family: 'Fira Code', monospace;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .input-field {
+            width: 100%;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 10px 10px 42px;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.15);
+        }
+
+        /* --- SOPORTE DROPDOWNS SELECT --- */
+        select.input-field {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%238e95a2' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 32px;
+            cursor: pointer;
+        }
+
+        select.input-field option {
+            background-color: var(--bg-secondary);
+            color: var(--text-main);
+            padding: 8px;
+        }
+
+        .input-field[type="number"]::-webkit-inner-spin-button,
+        .input-field[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .calculations-box {
+            background: linear-gradient(135deg, rgba(0, 122, 204, 0.08) 0%, rgba(0, 188, 255, 0.02) 100%);
+            border: 1px solid rgba(0, 122, 204, 0.2);
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .calc-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+        }
+
+        .calc-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calc-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #00bcff;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* --- COLUMNA DERECHA (TRAYECTORIA Y G-CODE) --- */
+        aside.preview-panel {
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel-card {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-card-title svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--accent-orange);
+        }
+
+        .btn-refresh {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .btn-refresh:hover {
+            color: var(--text-main);
+        }
+
+        /* --- VISUALIZACION TRAYECTORIA --- */
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 1;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas#toolpathCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-legend {
+            display: flex;
+            gap: 12px;
+            font-size: 10px;
+            justify-content: center;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.orange {
+            background-color: var(--accent-orange);
+            box-shadow: 0 0 6px var(--accent-orange);
+        }
+
+        .legend-dot.blue {
+            background-color: var(--accent-blue);
+        }
+
+        .legend-dot.green {
+            background-color: #00ffc4;
+            box-shadow: 0 0 6px #00ffc4;
+        }
+
+        .legend-dot.gray {
+            background-color: #4e545c;
+        }
+
+        .legend-dot.white {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* --- VISOR DE G-CODE --- */
+        .gcode-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-gcode {
+            flex: 1;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-gcode svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .btn-gcode:hover {
+            background-color: var(--bg-tertiary);
+            border-color: var(--text-muted);
+        }
+
+        .btn-gcode.accent {
+            background-color: var(--accent-orange);
+            border-color: var(--accent-orange);
+            color: white;
+        }
+
+        .btn-gcode.accent:hover {
+            background-color: var(--accent-orange-hover);
+            border-color: var(--accent-orange-hover);
+        }
+
+        .gcode-viewer-container {
+            position: relative;
+            flex-grow: 1;
+            min-height: 180px;
+        }
+
+        textarea#gcodeViewer {
+            width: 100%;
+            height: 100%;
+            min-height: 180px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: #d1d5db;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow: auto;
+        }
+
+        textarea#gcodeViewer:focus {
+            border-color: rgba(255, 122, 0, 0.3);
+        }
+
+        /* --- MONITOR DE SEGURIDAD --- */
+        .safety-monitor {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .safety-monitor.success {
+            background-color: rgba(52, 199, 89, 0.08);
+            border: 1px solid rgba(52, 199, 89, 0.2);
+            color: #30d158;
+        }
+
+        .safety-monitor.error {
+            background-color: rgba(255, 59, 48, 0.08);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            color: #ff453a;
+        }
+
+        .safety-icon {
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            margin-top: 1px;
+        }
+
+        /* --- ANIMACIONES --- */
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(52, 199, 89, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(52, 199, 89, 0);
+            }
+        }
+
+        @keyframes estop-flash {
+            from {
+                background-color: var(--danger-color);
+                box-shadow: 0 0 8px var(--danger-color);
+            }
+            to {
+                background-color: #9c120c;
+                box-shadow: 0 0 0px transparent;
+            }
+        }
+
+        /* --- MODAL PARA ESTOP --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-card {
+            background-color: var(--bg-secondary);
+            border: 2px solid var(--danger-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(255, 59, 48, 0.2);
+            animation: modal-shake 0.4s ease-in-out;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            fill: var(--danger-color);
+            margin-bottom: 16px;
+            animation: flash-warning 0.5s infinite alternate;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--danger-color);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .btn-modal-reset {
+            background-color: var(--text-main);
+            color: var(--bg-primary);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-modal-reset:hover {
+            background-color: #fff;
+            transform: scale(1.02);
+        }
+
+        @keyframes modal-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes flash-warning {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0.4; transform: scale(0.95); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- CABECERA -->
+        <header>
+            <div class="logo-section">
+                <!-- Icono de Engrane/CNC SVG -->
+                <svg class="logo-icon" viewBox="0 0 24 24">
+                    <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+                </svg>
+                <div class="logo-text">NG <span>CNC</span></div>
+            </div>
+            <nav class="header-nav">
+                <a href="#" class="active">Macros</a>
+                <a href="#">Simulación</a>
+                <a href="#">Herramientas</a>
+                <a href="#">Historial</a>
+            </nav>
+            <div class="header-actions">
+                <button class="btn-execute" onclick="showExecuteAlert()">Ejecutar G-Code</button>
+                <button class="icon-btn" title="Configuración">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- CUERPO DE LA APLICACION -->
+        <div class="main-layout">
+            <!-- BARRA LATERAL (LISTA DE MACROS) -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <!-- Estado de CNC simulado -->
+                    <div class="status-card">
+                        <div class="status-dot"></div>
+                        <div class="status-info">
+                            <span class="status-label">ESTADO DE MAQUINA</span>
+                            <span class="status-value">CNC-01 READY</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section-title">SELECCIONAR MACRO</div>
+                    <ul class="macro-menu-list" id="macroMenuList">
+                        <!-- Generado dinámicamente por JS -->
+                    </ul>
+                </div>
+                
+                <div class="sidebar-footer">
+                    <button class="btn-estop" id="estopBtn" onclick="triggerEmergencyStop()">EMERGENCY STOP</button>
+                </div>
+            </aside>
+
+            <!-- EDITORES DE VARIABLES -->
+            <main class="editor-panel">
+                <div class="macro-info-card">
+                    <div class="macro-info-left">
+                        <h2 class="macro-title" id="activeMacroTitle">Nombre de la Macro</h2>
+                        <span class="macro-filename" id="activeMacroFilename">archivo.nc</span>
+                    </div>
+                </div>
+
+                <!-- CARD RESUMEN DE LAS SELECCIONES -->
+                <div class="summary-card" id="macroSummaryCard">
+                    <div class="summary-title">Resumen de Parámetros Seleccionados</div>
+                    <div class="summary-grid">
+                        <div class="summary-col">
+                            <span class="summary-col-title">Dimensiones de la Pieza</span>
+                            <div class="summary-col-content" id="summaryDim">Cargando...</div>
+                        </div>
+                        <div class="summary-col">
+                            <span class="summary-col-title">Herramienta y Corte</span>
+                            <div class="summary-col-content" id="summaryTool">Cargando...</div>
+                        </div>
+                        <div class="summary-col">
+                            <span class="summary-col-title">Estrategia y Tolerancias</span>
+                            <div class="summary-col-content" id="summaryStrat">Cargando...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid" id="macroFormGrid">
+                    <!-- Los inputs agrupados se generarán dinámicamente aquí -->
+                </div>
+            </main>
+
+            <!-- VISUALIZACION Y LIVE G-CODE -->
+            <aside class="preview-panel">
+                <!-- Panel de trayectoria -->
+                <div class="panel-card">
+                    <div class="panel-card-header">
+                        <div class="panel-card-title">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            Plano Técnico a Escala
+                        </div>
+                        <button class="btn-refresh" onclick="drawToolpath()">
+                            <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                            Reajustar
+                        </button>
+                    </div>
+                    
+                    <div class="canvas-container">
+                        <canvas id="toolpathCanvas"></canvas>
+                    </div>
+
+                    <div class="canvas-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot orange"></span>
+                            <span>Trayectoria Hta</span>
+                        </div>
+                        <div class="legend-item" id="legendFinishing">
+                            <span class="legend-dot green"></span>
+                            <span>Acabado</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot blue"></span>
+                            <span>Corte / Límite</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot gray"></span>
+                            <span>Bruto / Stock</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot white"></span>
+                            <span>Cotas (Medidas)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de G-code -->
+                <div class="panel-card" style="flex-grow: 1;">
+                    <div class="panel-card-header">
+                        <div class="panel-card-title">
+                            <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                            G-Code Generado
+                        </div>
+                    </div>
+
+                    <div class="gcode-viewer-container">
+                        <textarea id="gcodeViewer" readonly></textarea>
+                    </div>
+
+                    <div class="gcode-actions">
+                        <button class="btn-gcode" onclick="copyGCode()">
+                            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                            Copiar
+                        </button>
+                        <button class="btn-gcode accent" onclick="downloadGCode()">
+                            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                            Descargar .NC
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monitor de seguridad -->
+                <div class="safety-monitor success" id="safetyMonitor">
+                    <svg class="safety-icon" viewBox="0 0 24 24" id="safetyIcon">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <span id="safetyMessage">Todos los parámetros dentro de límites de seguridad.</span>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE PARADA DE EMERGENCIA MODAL -->
+    <div class="modal-overlay" id="estopModal">
+        <div class="modal-card">
+            <!-- Icono de Advertencia SVG -->
+            <svg class="modal-icon" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <div class="modal-title">EMERGENCY STOP ACTIVE</div>
+            <div class="modal-body">
+                Se ha activado la parada de emergencia. Todos los husillos, motores y refrigerantes del sistema simulado han sido bloqueados.
+            </div>
+            <button class="btn-modal-reset" onclick="resetEmergencyStop()">Restablecer Sistema</button>
+        </div>
+    </div>
+
+    <!-- CARGA DE DATOS DE LAS MACROS -->
+    <script src="macros_data.js"></script>
+    <script>
+        /* --- ESTADO DE LA APLICACION --- */
+        const COLOR_BG_PRIMARY = '#121316';
+        const COLOR_ACCENT_ORANGE = '#ff7a00';
+        const COLOR_ACCENT_BLUE = '#007acc';
+
+        let activeMacroIdx = 0;
+        let activeMacro = null;
+        let isEmergencyStop = false;
+
+        // Elementos DOM
+        const macroMenuList = document.getElementById('macroMenuList');
+        const activeMacroTitle = document.getElementById('activeMacroTitle');
+        const activeMacroFilename = document.getElementById('activeMacroFilename');
+        const macroFormGrid = document.getElementById('macroFormGrid');
+        const gcodeViewer = document.getElementById('gcodeViewer');
+        const safetyMonitor = document.getElementById('safetyMonitor');
+        const safetyMessage = document.getElementById('safetyMessage');
+        const safetyIcon = document.getElementById('safetyIcon');
+        const canvas = document.getElementById('toolpathCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Configuración para el redimensionamiento automático y robusto del canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            
+            if (container.clientWidth > 0 && container.clientHeight > 0) {
+                canvas.width = container.clientWidth * window.devicePixelRatio;
+                canvas.height = container.clientHeight * window.devicePixelRatio;
+                
+                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                drawToolpath();
+            }
+        }
+
+        // Usar ResizeObserver para detectar cambios de tamaño del contenedor de forma asíncrona y robusta
+        const resizeObserver = new ResizeObserver(entries => {
+            resizeCanvas();
+        });
+        resizeObserver.observe(canvas.parentElement);
+
+        /* --- INICIALIZACIÓN --- */
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof MACROS_DATA === 'undefined') {
+                console.error("No se pudo cargar MACROS_DATA. Asegúrate de haber ejecutado parse_macros.py.");
+                return;
+            }
+            buildMenu();
+            loadMacro(0);
+        });
+
+        /* --- CONSTRUCCIÓN DEL MENÚ --- */
+        function buildMenu() {
+            macroMenuList.innerHTML = '';
+            MACROS_DATA.forEach((macro, idx) => {
+                const li = document.createElement('li');
+                const cleanName = macro.filename.replace('.nc', '').replace('Desbaste_Acabado_', 'Desbaste/Acabado ').replace('_', ' ');
+                
+                li.innerHTML = `
+                    <a class="macro-menu-item ${idx === activeMacroIdx ? 'active' : ''}" onclick="loadMacro(${idx})">
+                        <!-- Icono de Archivo G-code SVG -->
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                        </svg>
+                        ${cleanName}
+                    </a>
+                `;
+                macroMenuList.appendChild(li);
+            });
+        }
+
+        /* --- CARGAR UNA MACRO --- */
+        function loadMacro(idx) {
+            activeMacroIdx = idx;
+            activeMacro = JSON.parse(JSON.stringify(MACROS_DATA[idx])); // Deep copy
+
+            // Actualizar menú
+            const items = macroMenuList.querySelectorAll('.macro-menu-item');
+            items.forEach((item, i) => {
+                if (i === idx) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+
+            // Actualizar encabezados
+            const cleanTitle = activeMacro.title.replace('O1003', '').replace('O1004', '').replace('O1005', '').replace('O1006', '').replace('O1008', '').replace('O1002', '').replace('(', '').replace(')', '').trim();
+            activeMacroTitle.textContent = cleanTitle;
+            activeMacroFilename.textContent = activeMacro.filename;
+
+            // Construir formulario
+            buildForm();
+            
+            // Generar código G-code, actualizar resumen y dibujar trayectoria
+            generateGCode();
+            updateSummary();
+            drawToolpath();
+        }
+
+        /* --- PARSEADOR DE OPCIONES EN COMENTARIOS --- */
+        function parseOptions(comment) {
+            if (!comment || !comment.includes('=')) return null;
+            
+            // Buscar patrones como 0=AMBOS, 1=SOLO DESBASTE
+            const optionRegex = /(\d+)\s*=\s*([^,()]+)/g;
+            const options = [];
+            let match;
+            
+            while ((match = optionRegex.exec(comment)) !== null) {
+                options.push({
+                    value: parseFloat(match[1]),
+                    text: match[2].trim()
+                });
+            }
+            
+            return options.length > 0 ? options : null;
+        }
+
+        /* --- CONSTRUCCIÓN DEL FORMULARIO DINÁMICO --- */
+        function buildForm() {
+            macroFormGrid.innerHTML = '';
+
+            // Agrupar variables de forma ordenada y sin solapamientos
+            const geomVars = [];
+            const cuttingVars = [];
+            const strategyVars = [];
+            const generalVars = [];
+
+            activeMacro.variables.forEach(v => {
+                const commentUpper = v.comment.toUpperCase();
+                
+                // 1. CONDICIONES DE CORTE Y HERRAMIENTAS (Cutting & Tool)
+                if (commentUpper.includes("HERRAMIENTA") || commentUpper.includes("FRESA") || commentUpper.includes("BROCA") || commentUpper.includes("HTA") ||
+                    commentUpper.includes("VC") || commentUpper.includes("RPM") || commentUpper.includes("AVANCE") || 
+                    commentUpper.includes("INSERTO") || commentUpper.includes("LABIO") || commentUpper.includes("DIENTES") || 
+                    commentUpper.includes("TEETH") || commentUpper.includes("LIPS") || commentUpper.includes("FZ") || 
+                    commentUpper.includes("SPEED") || commentUpper.includes("FEED")) {
+                    
+                    cuttingVars.push(v);
+                }
+                // 2. ESTRATEGIA Y TOLERANCIAS (Strategy & Tolerances)
+                else if (commentUpper.includes("ESTRATEGIA") || commentUpper.includes("PICOTEO") || commentUpper.includes("PASADA") || 
+                         commentUpper.includes("PASO") || commentUpper.includes("SOBREMATERIAL") || commentUpper.includes("OPCION") || 
+                         commentUpper.includes("CICLO") || commentUpper.includes("RADIAL") || commentUpper.includes("PITCH")) {
+                    
+                    strategyVars.push(v);
+                }
+                // 3. GEOMETRÍA Y COORDENADAS (Geometry & Coordinates)
+                else if (commentUpper.includes("DIAMETRO") || commentUpper.includes("ANCHO") || commentUpper.includes("LONGITUD") || 
+                         commentUpper.includes("CENTRO") || commentUpper.includes("RADIO") || commentUpper.includes("PROFUNDIDAD") || 
+                         commentUpper.includes("ANGULO") || commentUpper.includes("ESQUINA") || commentUpper.includes("INICIAL") || 
+                         commentUpper.includes("FINAL") || commentUpper.includes("SEGURIDAD") || commentUpper.includes("FONDO") || 
+                         commentUpper.includes("MARCO") || commentUpper.includes("PIEZA") ||
+                         /\b(X|Y|Z)\b/.test(commentUpper)) {
+                    
+                    geomVars.push(v);
+                }
+                // 4. OTROS PARÁMETROS (Other Parameters)
+                else {
+                    generalVars.push(v);
+                }
+            });
+
+            // Generar secciones de formulario
+            if (geomVars.length > 0) createFormSection("Geometría y Coordenadas de la Pieza", geomVars, "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z");
+            if (cuttingVars.length > 0) {
+                createFormSection("Herramientas y Condiciones de Corte", cuttingVars, "M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z");
+                
+                const calcBox = document.createElement('div');
+                calcBox.className = "calculations-box";
+                calcBox.innerHTML = `
+                    <div class="calc-item">
+                        <span class="calc-label">RPM Calculadas</span>
+                        <span class="calc-value" id="calcRPM">0</span>
+                    </div>
+                    <div class="calc-item">
+                        <span class="calc-label">Avance Lineal (F)</span>
+                        <span class="calc-value" id="calcFeed">0</span>
+                    </div>
+                `;
+                macroFormGrid.lastChild.appendChild(calcBox);
+            }
+            if (strategyVars.length > 0) createFormSection("Estrategia de Fresado y Tolerancias", strategyVars, "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z");
+            if (generalVars.length > 0) createFormSection("Otros Parámetros", generalVars, "M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z");
+
+            calculateCuttingData();
+        }
+
+        function createFormSection(title, vars, iconPath) {
+            const section = document.createElement('div');
+            section.className = "form-section";
+            
+            section.innerHTML = `
+                <div class="form-section-title">
+                    <svg viewBox="0 0 24 24"><path d="${iconPath}"/></svg>
+                    ${title}
+                </div>
+                <div class="inputs-container"></div>
+            `;
+            
+            const container = section.querySelector('.inputs-container');
+            vars.forEach(v => {
+                const group = document.createElement('div');
+                group.className = "input-group";
+                
+                const labelText = v.comment ? v.comment.split('-')[0].trim() : `Variable #${v.num}`;
+                
+                // Detectar si tiene opciones para renderizar un Select
+                const options = parseOptions(v.comment);
+
+                let inputHtml = "";
+                if (options) {
+                    inputHtml = `
+                        <select class="input-field" data-num="${v.num}" onchange="onVarChange(this)">
+                            ${options.map(opt => `<option value="${opt.value}" ${opt.value === v.value ? 'selected' : ''}>${opt.text}</option>`).join('')}
+                        </select>
+                    `;
+                } else {
+                    inputHtml = `
+                        <input type="number" step="any" class="input-field" value="${v.value}" data-num="${v.num}" oninput="onVarChange(this)">
+                    `;
+                }
+
+                group.innerHTML = `
+                    <label class="input-label" title="${v.comment}">${labelText}</label>
+                    <div class="input-wrapper">
+                        <span class="input-var-tag">#${v.num}</span>
+                        ${inputHtml}
+                    </div>
+                `;
+                container.appendChild(group);
+            });
+
+            macroFormGrid.appendChild(section);
+        }
+
+        /* --- MANEJO DE CAMBIOS EN LAS VARIABLES --- */
+        function onVarChange(input) {
+            const varNum = parseInt(input.getAttribute('data-num'));
+            const value = parseFloat(input.value) || 0.0;
+
+            const variable = activeMacro.variables.find(v => v.num === varNum);
+            if (variable) {
+                variable.value = value;
+            }
+
+            validateParameters();
+            calculateCuttingData();
+            generateGCode();
+            updateSummary();
+            drawToolpath();
+        }
+
+        /* --- CÁLCULO DE RPM Y AVANCE --- */
+        function calculateCuttingData() {
+            let vc = 0, toolDiam = 0, teeth = 0, fz = 0;
+            
+            activeMacro.variables.forEach(v => {
+                const commentUpper = v.comment.toUpperCase();
+                if (commentUpper.includes("VC")) vc = v.value;
+                if (commentUpper.includes("DIAMETRO DE LA HERRAMIENTA") || commentUpper.includes("DIAMETRO DE LA BROCA") || 
+                    commentUpper.includes("DIAMETRO DE LA FRESA") || commentUpper.includes("HTA") || 
+                    commentUpper.includes("HERRAMIENTA")) {
+                    toolDiam = v.value;
+                }
+                if (commentUpper.includes("INSERTOS") || commentUpper.includes("LABIOS") || 
+                    commentUpper.includes("DIENTES") || commentUpper.includes("LIPS") || commentUpper.includes("TEETH")) {
+                    teeth = v.value;
+                }
+                if (commentUpper.includes("FZ") || commentUpper.includes("AVANCE POR INSERTO") || commentUpper.includes("AVANCE POR LABIO")) {
+                    fz = v.value;
+                }
+            });
+
+            const rpmSpan = document.getElementById('calcRPM');
+            const feedSpan = document.getElementById('calcFeed');
+
+            if (rpmSpan && feedSpan) {
+                if (vc > 0 && toolDiam > 0) {
+                    const rpm = Math.round((vc * 1000) / (3.14159 * toolDiam));
+                    rpmSpan.textContent = rpm;
+                    
+                    if (teeth > 0 && fz > 0) {
+                        const feed = Math.round(rpm * teeth * fz);
+                        feedSpan.textContent = feed;
+                    } else {
+                        feedSpan.textContent = "N/A";
+                    }
+                } else {
+                    rpmSpan.textContent = "N/A";
+                    feedSpan.textContent = "N/A";
+                }
+            }
+        }
+
+        /* --- ACTUALIZACIÓN DE RESUMEN DE SELECCIONES --- */
+        function updateSummary() {
+            const vars = {};
+            activeMacro.variables.forEach(v => {
+                vars[v.num] = v.value;
+            });
+
+            const fname = activeMacro.filename;
+            let dimStr = "";
+            let toolStr = "";
+            let stratStr = "";
+
+            // 1. Resumen de Dimensiones
+            if (fname.includes("cajera_circular") || fname.includes("circular central") || fname.includes("oring") || fname.includes("Roscas")) {
+                const diam = vars[1];
+                const depth = vars[3] || vars[4] || vars[8] || 0;
+                const zStart = vars[14] || vars[15] || vars[12] || 0;
+                dimStr = `Límite/Stock: <strong>Ø${diam.toFixed(1)} mm</strong><br>Profundidad Z: <strong>${depth.toFixed(1)} mm</strong><br>Z Inicial: <strong>${zStart.toFixed(1)} mm</strong>`;
+            } else if (fname.includes("cajera_rectangular") || fname.includes("Patron Rectangular")) {
+                const lenX = vars[1];
+                const lenY = vars[2];
+                const depth = vars[5] || vars[7] || 0;
+                dimStr = `Dimensiones: <strong>${lenX.toFixed(1)} x ${lenY.toFixed(1)} mm</strong><br>Profundidad Z: <strong>${depth.toFixed(1)} mm</strong>`;
+                if (vars[3] && fname.includes("cajera_rectangular")) {
+                    dimStr += `<br>Radio Esquina: <strong>R${vars[3].toFixed(1)} mm</strong>`;
+                }
+            } else if (fname.includes("Ranura Cerrada")) {
+                dimStr = `Largo Centros: <strong>${vars[1].toFixed(1)} mm</strong><br>Ancho Ranura: <strong>${(2 * vars[2]).toFixed(1)} mm</strong><br>Ángulo Inclin.: <strong>${vars[3].toFixed(1)}°</strong>`;
+            } else if (fname.includes("Arreglo Circular")) {
+                dimStr = `Círculo Patrón: <strong>Ø${vars[1].toFixed(1)} mm</strong><br>Cant. Agujeros: <strong>${vars[2]}</strong><br>Paso Ángulo: <strong>${(360 / vars[2]).toFixed(1)}°</strong>`;
+            }
+
+            // 2. Resumen de Herramientas
+            let toolDiam = vars[2] || vars[3] || vars[4] || 0;
+            if (fname.includes("Arreglo Circular")) toolDiam = vars[3];
+            
+            let vc = 0, teeth = 0, fz = 0;
+            activeMacro.variables.forEach(v => {
+                const commentUpper = v.comment.toUpperCase();
+                if (commentUpper.includes("VC")) vc = v.value;
+                if (commentUpper.includes("INSERTOS") || commentUpper.includes("LABIOS") || commentUpper.includes("TEETH") || commentUpper.includes("LIPS")) teeth = v.value;
+                if (commentUpper.includes("FZ")) fz = v.value;
+            });
+
+            const rpm = vc > 0 && toolDiam > 0 ? Math.round((vc * 1000) / (3.14159 * toolDiam)) : 0;
+            const feed = rpm > 0 && teeth > 0 && fz > 0 ? Math.round(rpm * teeth * fz) : 0;
+
+            toolStr = `Fresa/Broca: <strong>Ø${toolDiam.toFixed(1)} mm</strong>`;
+            if (rpm > 0) toolStr += `<br>Velocidad: <strong>${rpm} RPM</strong>`;
+            if (feed > 0) toolStr += `<br>Avance Corte: <strong>${feed} mm/min</strong>`;
+            if (teeth > 0) toolStr += `<br>Filos/Insertos: <strong>${teeth}</strong>`;
+
+            // 3. Resumen de Estrategia
+            let option = vars[16] || vars[17] || 0;
+            let optionText = "Desbaste y Acabado";
+            if (option == 1) optionText = "Solo Desbaste";
+            if (option == 2) optionText = "Solo Acabado";
+            if (fname.includes("Arreglo Circular")) {
+                optionText = vars[7] == 1 ? "Ciclo de Picoteo" : "Taladrado Directo";
+            }
+
+            let stepZ = vars[4] || vars[5] || vars[6] || vars[8] || 0;
+            let totalZ = vars[3] || vars[4] || vars[5] || vars[7] || 0;
+            let passes = stepZ > 0 ? Math.ceil(totalZ / stepZ) : 1;
+
+            stratStr = `Estrategia: <strong>${optionText}</strong>`;
+            if (stepZ > 0 && !fname.includes("Arreglo Circular") && !fname.includes("Roscas")) {
+                stratStr += `<br>Pasada Prof.: <strong>${stepZ.toFixed(1)} mm</strong> (${passes} pasadas)`;
+            }
+            if (vars[12] && fname.includes("cajera_circular")) {
+                stratStr += `<br>Paso Radial: <strong>${vars[12].toFixed(1)} mm</strong>`;
+            }
+            if (vars[14] && (fname.includes("cajera_rectangular") || fname.includes("Ranura Cerrada"))) {
+                stratStr += `<br>Paso Radial: <strong>${vars[14].toFixed(1)} mm</strong>`;
+            }
+
+            document.getElementById('summaryDim').innerHTML = dimStr;
+            document.getElementById('summaryTool').innerHTML = toolStr;
+            document.getElementById('summaryStrat').innerHTML = stratStr;
+        }
+
+        /* --- VALIDACIONES DE SEGURIDAD --- */
+        function validateParameters() {
+            let hasError = false;
+            let errorMsg = "Todos los parámetros se encuentran dentro de límites seguros.";
+
+            const vars = {};
+            activeMacro.variables.forEach(v => {
+                vars[v.num] = v.value;
+            });
+
+            const fname = activeMacro.filename;
+            
+            if (fname.includes("cajera_circular") || fname.includes("circular central")) {
+                if (fname.includes("cajera_circular") && vars[2] >= vars[1]) {
+                    hasError = true;
+                    errorMsg = "ERROR: El diámetro de la herramienta (#2) no puede ser mayor o igual al diámetro final de la caja (#1).";
+                }
+                if (fname.includes("circular central") && vars[2] >= vars[1]) {
+                    hasError = true;
+                    errorMsg = "ERROR: El diámetro final del macho (#2) no puede ser mayor o igual al diámetro bruto inicial (#1).";
+                }
+            } else if (fname.includes("cajera_rectangular")) {
+                if (vars[4] >= vars[1] || vars[4] >= vars[2]) {
+                    hasError = true;
+                    errorMsg = "ERROR: El diámetro de la herramienta (#4) supera los límites de longitud o ancho de la caja.";
+                }
+                if (vars[4]/2 > vars[3]) {
+                    hasError = true;
+                    errorMsg = "ERROR: El radio de la herramienta (#4/2) no puede ser mayor que el radio de las esquinas (#3).";
+                }
+            } else if (fname.includes("Ranura Cerrada")) {
+                if (vars[4]/2 >= vars[2]) {
+                    hasError = true;
+                    errorMsg = "ERROR: El radio de la herramienta (#4/2) debe ser menor que el radio de la ranura (#2).";
+                }
+            } else if (fname.includes("Roscas")) {
+                if (vars[2] >= vars[1]) {
+                    hasError = true;
+                    errorMsg = "ERROR: El diámetro de la fresa de roscar (#2) debe ser menor que el diámetro nominal de la rosca (#1).";
+                }
+            }
+
+            activeMacro.variables.forEach(v => {
+                const commentUpper = v.comment.toUpperCase();
+                if (commentUpper.includes("PROFUNDIDAD") || commentUpper.includes("PASO") || commentUpper.includes("AVANCE")) {
+                    if (v.value < 0) {
+                        hasError = true;
+                        errorMsg = `ERROR: El parámetro #${v.num} (${v.comment.split('-')[0].trim()}) no puede ser negativo.`;
+                    }
+                }
+            });
+
+            if (hasError) {
+                safetyMonitor.className = "safety-monitor error";
+                safetyMessage.textContent = errorMsg;
+                safetyIcon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>';
+            } else {
+                safetyMonitor.className = "safety-monitor success";
+                safetyMessage.textContent = errorMsg;
+                safetyIcon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
+            }
+        }
+
+        /* --- GENERACIÓN DEL G-CODE --- */
+        function generateGCode() {
+            let lines = activeMacro.full_content.split('\n');
+            activeMacro.variables.forEach(v => {
+                const valStr = Number.isInteger(v.value) ? v.value.toString() : v.value.toFixed(2);
+                let newLine = `#${v.num} = ${valStr}`;
+                if (v.comment) {
+                    const spaces = "   ";
+                    newLine += `${spaces}(${v.comment})`;
+                }
+                lines[v.line_idx] = newLine;
+            });
+            gcodeViewer.value = lines.join('\n');
+        }
+
+        /* --- COPIAR Y DESCARGAR --- */
+        function copyGCode() {
+            gcodeViewer.select();
+            navigator.clipboard.writeText(gcodeViewer.value).then(() => {
+                alert("G-Code copiado al portapapeles con éxito.");
+            }).catch(err => {
+                console.error("Error al copiar: ", err);
+            });
+        }
+
+        function downloadGCode() {
+            const blob = new Blob([gcodeViewer.value], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = activeMacro.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* --- FUNCIÓN AUXILIAR PARA DIBUJAR COTAS (DIMENSION LINES) --- */
+        function drawDimension(ctx, x1, y1, x2, y2, offset, text) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.fillStyle = '#a6b0c2';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Vector director de la cota
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx*dx + dy*dy);
+            if (len < 0.001) return;
+            const ux = dx / len;
+            const uy = dy / len;
+
+            // Vector perpendicular
+            const px = -uy;
+            const py = ux;
+
+            // Líneas de referencia (extensiones)
+            const extS1_x = x1 + px * 3;
+            const extS1_y = y1 + py * 3;
+            const extE1_x = x1 + px * (offset + (offset > 0 ? 10 : -10));
+            const extE1_y = y1 + py * (offset + (offset > 0 ? 10 : -10));
+
+            const extS2_x = x2 + px * 3;
+            const extS2_y = y2 + py * 3;
+            const extE2_x = x2 + px * (offset + (offset > 0 ? 10 : -10));
+            const extE2_y = y2 + py * (offset + (offset > 0 ? 10 : -10));
+
+            ctx.beginPath();
+            ctx.moveTo(extS1_x, extS1_y);
+            ctx.lineTo(extE1_x, extE1_y);
+            ctx.moveTo(extS2_x, extS2_y);
+            ctx.lineTo(extE2_x, extE2_y);
+            ctx.stroke();
+
+            // Línea de cota paralela
+            const dim1_x = x1 + px * offset;
+            const dim1_y = y1 + py * offset;
+            const dim2_x = x2 + px * offset;
+            const dim2_y = y2 + py * offset;
+
+            ctx.beginPath();
+            ctx.moveTo(dim1_x, dim1_y);
+            ctx.lineTo(dim2_x, dim2_y);
+            ctx.stroke();
+
+            // Flechas de cota
+            function drawArrow(ctx, x, y, angle) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-6, -2.5);
+                ctx.lineTo(-6, 2.5);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            const arrowAngle = Math.atan2(dy, dx);
+            drawArrow(ctx, dim1_x, dim1_y, arrowAngle);
+            drawArrow(ctx, dim2_x, dim2_y, arrowAngle + Math.PI);
+
+            // Texto de cota (limpiar fondo para legibilidad)
+            const midX = (dim1_x + dim2_x) / 2;
+            const midY = (dim1_y + dim2_y) / 2;
+            const textWidth = ctx.measureText(text).width + 6;
+            
+            ctx.fillStyle = COLOR_BG_PRIMARY;
+            ctx.fillRect(midX - textWidth/2, midY - 6, textWidth, 12);
+
+            ctx.fillStyle = '#f5f6f8';
+            ctx.fillText(text, midX, midY);
+
+            ctx.restore();
+        }
+
+        function drawArrow(x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-6, -2.5);
+            ctx.lineTo(-6, 2.5);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        /* --- MOTOR DE DIBUJO DE TRAYECTORIA A ESCALA CON COTAS --- */
+        function drawToolpath() {
+            
+            if (!canvas.width || !activeMacro) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // Fondo cuadrícula
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+            ctx.lineWidth = 1;
+            const gridSize = 20;
+            for (let x = 0; x < w; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0); ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y); ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            // Ejes cartesianos
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.beginPath();
+            ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+            ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+            ctx.stroke();
+
+            // Mapear variables
+            const vars = {};
+            activeMacro.variables.forEach(v => {
+                vars[v.num] = v.value;
+            });
+
+            const fname = activeMacro.filename;
+            
+            const legendFinishing = document.getElementById('legendFinishing');
+            const hasFinishing = fname.includes("Acabado") || fname.includes("acabado");
+            if (legendFinishing) {
+                legendFinishing.style.display = hasFinishing ? "flex" : "none";
+            }
+
+            ctx.save();
+            
+            if (fname.includes("Arreglo Circular")) {
+                // #1=D círculo, #2=Agujeros, #3=D broca, #10=Centro X, #11=Centro Y, #13=Ángulo inicial
+                const maxDim = vars[1] + vars[3];
+                // Escalamiento automático ajustado para dejar margen a las cotas
+                const scale = Math.min((w - 120) / maxDim, (h - 120) / maxDim);
+                
+                const rPatron = (vars[1] / 2) * scale;
+                const rBroca = (vars[3] / 2) * scale;
+                const cX = cx + vars[10] * scale;
+                const cY = cy - vars[11] * scale;
+                const nAgujeros = vars[2];
+                const angInicial = vars[13] * Math.PI / 180;
+
+                // Círculo patrón (Doble trazo gris)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.arc(cX, cY, rPatron, 0, 2*Math.PI);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Trayectoria rápidos
+                ctx.strokeStyle = 'rgba(255, 122, 0, 0.25)';
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                for (let i = 0; i < nAgujeros; i++) {
+                    const angle = angInicial + (i * 2 * Math.PI / nAgujeros);
+                    const hx = cX + rPatron * Math.cos(angle);
+                    const hy = cY - rPatron * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(hx, hy);
+                    else ctx.lineTo(hx, hy);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Taladros
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.fillStyle = 'rgba(255, 122, 0, 0.1)';
+                ctx.lineWidth = 1.5;
+                let firstHole = null;
+
+                for (let i = 0; i < nAgujeros; i++) {
+                    const angle = angInicial + (i * 2 * Math.PI / nAgujeros);
+                    const hx = cX + rPatron * Math.cos(angle);
+                    const hy = cY - rPatron * Math.sin(angle);
+                    if (i === 0) firstHole = { x: hx, y: hy };
+
+                    ctx.beginPath();
+                    ctx.arc(hx, hy, rBroca, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(hx - 3, hy); ctx.lineTo(hx + 3, hy);
+                    ctx.moveTo(hx, hy - 3); ctx.lineTo(hx, hy + 3);
+                    ctx.stroke();
+                }
+
+                // Cota Diámetro del Patrón (#1)
+                drawDimension(ctx, cX - rPatron, cY, cX + rPatron, cY, -rPatron - 20, `Ø ${vars[1].toFixed(1)}`);
+
+                // Cota Diámetro de la Broca (#3)
+                if (firstHole) {
+                    drawDimension(ctx, firstHole.x - rBroca, firstHole.y, firstHole.x + rBroca, firstHole.y, -rBroca - 12, `Ø ${vars[3].toFixed(1)}`);
+                }
+            } 
+            else if (fname.includes("circular central")) {
+                // #1=D stock, #2=D macho, #3=D hta, #6=Paso radial, #13=Centro X, #14=Centro Y
+                const scale = Math.min((w - 120) / vars[1], (h - 120) / vars[1]);
+                const rStock = (vars[1] / 2) * scale;
+                const rMacho = (vars[2] / 2) * scale;
+                const rHta = (vars[3] / 2) * scale;
+                const cX = cx + vars[13] * scale;
+                const cY = cy - vars[14] * scale;
+                const step = vars[6] * scale;
+
+                // Bruto (Gris)
+                ctx.strokeStyle = '#4e545c';
+                ctx.setLineDash([5, 4]);
+                ctx.beginPath();
+                ctx.arc(cX, cY, rStock, 0, 2*Math.PI);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Pasadas de Desbaste (Naranja)
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.lineWidth = 1;
+                let currentR = rStock - rHta;
+                const endR = rMacho + rHta + (vars[7] || 0.5) * scale;
+                while (currentR > endR) {
+                    ctx.beginPath();
+                    ctx.arc(cX, cY, currentR, 0, 2*Math.PI);
+                    ctx.stroke();
+                    currentR -= step;
+                }
+                ctx.beginPath();
+                ctx.arc(cX, cY, endR, 0, 2*Math.PI);
+                ctx.stroke();
+
+                // Acabado Macho (Azul)
+                ctx.strokeStyle = COLOR_ACCENT_BLUE;
+                ctx.fillStyle = 'rgba(0, 122, 204, 0.08)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cX, cY, rMacho, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.stroke();
+
+                // Pasada Acabado Hta (Verde)
+                ctx.strokeStyle = '#00ffc4';
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.arc(cX, cY, rMacho + rHta, 0, 2*Math.PI);
+                ctx.stroke();
+
+                // Cotas
+                drawDimension(ctx, cX - rStock, cY, cX + rStock, cY, -rStock - 25, `Stock Ø ${vars[1].toFixed(1)}`);
+                drawDimension(ctx, cX - rMacho, cY, cX + rMacho, cY, -rMacho - 10, `Macho Ø ${vars[2].toFixed(1)}`);
+            }
+            else if (fname.includes("cajera_circular")) {
+                // #1=D caja, #2=D hta, #10=Centro X, #11=Centro Y, #12=Paso radial
+                const scale = Math.min((w - 120) / vars[1], (h - 120) / vars[1]);
+                const rPocket = (vars[1] / 2) * scale;
+                const rHta = (vars[2] / 2) * scale;
+                const cX = cx + vars[10] * scale;
+                const cY = cy - vars[11] * scale;
+                const step = vars[12] * scale;
+
+                // Línea de la cajera (Azul)
+                ctx.strokeStyle = COLOR_ACCENT_BLUE;
+                ctx.fillStyle = 'rgba(0, 122, 204, 0.04)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cX, cY, rPocket, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.stroke();
+
+                // Desbaste espiral (Naranja)
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.lineWidth = 1;
+                let maxR = rPocket - rHta - (vars[5] || 0.5) * scale;
+                ctx.beginPath();
+                ctx.moveTo(cX, cY);
+                for (let r = 2; r <= maxR; r += 0.5) {
+                    const theta = r * 0.45;
+                    const px = cX + r * Math.cos(theta);
+                    const py = cY + r * Math.sin(theta);
+                    ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cX, cY, maxR, 0, 2*Math.PI);
+                ctx.stroke();
+
+                // Acabado Hta (Verde)
+                ctx.strokeStyle = '#00ffc4';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(cX, cY, rPocket - rHta, 0, 2*Math.PI);
+                ctx.stroke();
+
+                // Cotas
+                drawDimension(ctx, cX - rPocket, cY, cX + rPocket, cY, -rPocket - 20, `Caja Ø ${vars[1].toFixed(1)}`);
+            }
+            else if (fname.includes("cajera_rectangular")) {
+                // #1=Long X, #2=Ancho Y, #3=Rad esq, #4=Diam hta, #12=Centro X, #13=Centro Y, #14=Paso radial
+                const scale = Math.min((w - 130) / vars[1], (h - 130) / vars[2]);
+                const lenX = vars[1] * scale;
+                const lenY = vars[2] * scale;
+                const radCorner = vars[3] * scale;
+                const rHta = (vars[4] / 2) * scale;
+                const cX = cx + vars[12] * scale;
+                const cY = cy - vars[13] * scale;
+                const step = vars[14] * scale;
+
+                function drawRoundedRect(ctx, x, y, width, height, radius) {
+                    ctx.beginPath();
+                    ctx.moveTo(x - width/2 + radius, y - height/2);
+                    ctx.lineTo(x + width/2 - radius, y - height/2);
+                    ctx.arcTo(x + width/2, y - height/2, x + width/2, y - height/2 + radius, radius);
+                    ctx.lineTo(x + width/2, y + height/2 - radius);
+                    ctx.arcTo(x + width/2, y + height/2, x + width/2 - radius, y + height/2, radius);
+                    ctx.lineTo(x - width/2 + radius, y + height/2);
+                    ctx.arcTo(x - width/2, y + height/2, x - width/2, y + height/2 - radius, radius);
+                    ctx.lineTo(x - width/2, y - height/2 + radius);
+                    ctx.arcTo(x - width/2, y - height/2, x - width/2 + radius, y - height/2, radius);
+                    ctx.closePath();
+                }
+
+                // Límite cajera (Azul)
+                ctx.strokeStyle = COLOR_ACCENT_BLUE;
+                ctx.fillStyle = 'rgba(0, 122, 204, 0.04)';
+                ctx.lineWidth = 2;
+                drawRoundedRect(ctx, cX, cY, lenX, lenY, radCorner);
+                ctx.fill();
+                ctx.stroke();
+
+                // Trayectoria desbaste (Naranja)
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.lineWidth = 1;
+                const maxStepX = lenX - 2 * rHta - 2 * (vars[7] || 0.5) * scale;
+                const maxStepY = lenY - 2 * rHta - 2 * (vars[7] || 0.5) * scale;
+                const maxRad = Math.max(0, radCorner - rHta - (vars[7] || 0.5) * scale);
+
+                let currStep = step;
+                while (currStep < maxStepX / 2 && currStep < maxStepY / 2) {
+                    const ratio = (currStep * 2) / maxStepX;
+                    drawRoundedRect(ctx, cX, cY, maxStepX * ratio, maxStepY * ratio, maxRad * ratio);
+                    ctx.stroke();
+                    currStep += step;
+                }
+                drawRoundedRect(ctx, cX, cY, maxStepX, maxStepY, maxRad);
+                ctx.stroke();
+
+                // Acabado Hta (Verde)
+                ctx.strokeStyle = '#00ffc4';
+                ctx.lineWidth = 1.5;
+                drawRoundedRect(ctx, cX, cY, lenX - 2 * rHta, lenY - 2 * rHta, Math.max(0, radCorner - rHta));
+                ctx.stroke();
+
+                // Cota X (#1)
+                drawDimension(ctx, cX - lenX/2, cY + lenY/2, cX + lenX/2, cY + lenY/2, 25, `${vars[1].toFixed(1)} mm`);
+                
+                // Cota Y (#2)
+                drawDimension(ctx, cX - lenX/2, cY + lenY/2, cX - lenX/2, cY - lenY/2, -25, `${vars[2].toFixed(1)} mm`);
+
+                // Cota Radio Esquina (#3)
+                if (radCorner > 1) {
+                    const cxCorner = cX + lenX/2 - radCorner;
+                    const cyCorner = cY - lenY/2 + radCorner;
+                    const rx = cxCorner + radCorner * 0.707;
+                    const ry = cyCorner - radCorner * 0.707;
+                    
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+                    ctx.beginPath();
+                    ctx.moveTo(cxCorner, cyCorner);
+                    ctx.lineTo(rx + 12 * 0.707, ry - 12 * 0.707);
+                    ctx.stroke();
+                    drawArrow(rx, ry, -Math.PI/4 + Math.PI);
+                    
+                    ctx.fillStyle = '#f5f6f8';
+                    ctx.font = '10px Inter';
+                    ctx.fillText(`R${vars[3].toFixed(1)}`, rx + 18 * 0.707, ry - 15 * 0.707);
+                }
+            }
+            else if (fname.includes("Ranura Cerrada")) {
+                // #1=Long entre centros, #2=Rad ranura, #3=Ang, #4=Diam hta, #12=Centro X, #13=Centro Y, #14=Paso radial
+                const maxDim = vars[1] + 2 * vars[2];
+                const scale = Math.min((w - 120) / maxDim, (h - 120) / maxDim);
+                const lenC = vars[1] * scale;
+                const rSlot = vars[2] * scale;
+                const rHta = (vars[4] / 2) * scale;
+                const cX = cx + vars[12] * scale;
+                const cY = cy - vars[13] * scale;
+                const angle = vars[3] * Math.PI / 180;
+
+                ctx.translate(cX, cY);
+                ctx.rotate(-angle);
+
+                // Ranura (Azul)
+                ctx.strokeStyle = COLOR_ACCENT_BLUE;
+                ctx.fillStyle = 'rgba(0, 122, 204, 0.04)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(lenC/2, 0, rSlot, -Math.PI/2, Math.PI/2);
+                ctx.arc(-lenC/2, 0, rSlot, Math.PI/2, -Math.PI/2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Trayectoria central
+                ctx.strokeStyle = 'rgba(255, 122, 0, 0.4)';
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(-lenC/2, 0); ctx.lineTo(lenC/2, 0);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Desbaste (Naranja)
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.lineWidth = 1;
+                const maxOffset = rSlot - rHta - (vars[7] || 0.5) * scale;
+                let offset = vars[14] * scale;
+                while (offset < maxOffset) {
+                    ctx.beginPath();
+                    ctx.arc(lenC/2, 0, offset, -Math.PI/2, Math.PI/2);
+                    ctx.arc(-lenC/2, 0, offset, Math.PI/2, -Math.PI/2);
+                    ctx.closePath();
+                    ctx.stroke();
+                    offset += vars[14] * scale;
+                }
+                ctx.beginPath();
+                ctx.arc(lenC/2, 0, maxOffset, -Math.PI/2, Math.PI/2);
+                ctx.arc(-lenC/2, 0, maxOffset, Math.PI/2, -Math.PI/2);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Acabado Hta (Verde)
+                ctx.strokeStyle = '#00ffc4';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(lenC/2, 0, rSlot - rHta, -Math.PI/2, Math.PI/2);
+                ctx.arc(-lenC/2, 0, rSlot - rHta, Math.PI/2, -Math.PI/2);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Cota de Largo centros (#1)
+                drawDimension(ctx, -lenC/2, 0, lenC/2, 0, -rSlot - 20, `L = ${vars[1].toFixed(1)}`);
+
+                // Cota de Ancho total (2 * #2)
+                drawDimension(ctx, lenC/2, -rSlot, lenC/2, rSlot, 20, `W = ${(2 * vars[2]).toFixed(1)}`);
+            }
+            else if (fname.includes("Roscas")) {
+                // #1=D nominal, #2=D fresa, #10=Centro X, #11=Centro Y
+                const scale = Math.min((w - 120) / vars[1], (h - 120) / vars[1]);
+                const rNominal = (vars[1] / 2) * scale;
+                const rFresa = (vars[2] / 2) * scale;
+                const cX = cx + vars[10] * scale;
+                const cY = cy - vars[11] * scale;
+                const rEff = Math.max(0.1, rNominal - rFresa);
+
+                // Rosca nominal (Azul)
+                ctx.strokeStyle = COLOR_ACCENT_BLUE;
+                ctx.fillStyle = 'rgba(0, 122, 204, 0.04)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cX, cY, rNominal, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.stroke();
+
+                // Trayectoria interpolación helicoidal (Naranja)
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.lineWidth = 1.5;
+                const rEntrada = rEff / 2;
+                ctx.beginPath();
+                ctx.arc(cX + rEntrada, cY, rEntrada, Math.PI, 0, false);
+                ctx.arc(cX, cY, rEff, 0, 2*Math.PI);
+                ctx.arc(cX - rEntrada, cY, rEntrada, 0, Math.PI, false);
+                ctx.stroke();
+
+                // Cotas
+                drawDimension(ctx, cX - rNominal, cY, cX + rNominal, cY, -rNominal - 20, `Rosca M${vars[1].toFixed(1)}`);
+            }
+            else if (fname.includes("Patron Rectangular")) {
+                // #1=Long X, #2=Ancho Y, #3=Holes X, #4=Holes Y, #11=Centro X, #12=Centro Y
+                const scale = Math.min((w - 130) / vars[1], (h - 130) / vars[2]);
+                const lenX = vars[1] * scale;
+                const lenY = vars[2] * scale;
+                const cX = cx + vars[11] * scale;
+                const cY = cy - vars[12] * scale;
+                const qtyX = vars[3];
+                const qtyY = vars[4];
+
+                // Rectángulo límite (Gris)
+                ctx.strokeStyle = '#4e545c';
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(cX - lenX/2, cY - lenY/2, lenX, lenY);
+                ctx.setLineDash([]);
+
+                const points = [];
+                const stepX = lenX / (qtyX - 1);
+                const stepY = lenY / (qtyY - 1);
+                const startX = cX - lenX/2;
+                const startY = cY - lenY/2;
+
+                for (let i = 0; i < qtyX; i++) points.push({ x: startX + i * stepX, y: startY + lenY });
+                for (let i = 1; i < qtyY - 1; i++) points.push({ x: startX + lenX, y: startY + lenY - i * stepY });
+                for (let i = 0; i < qtyX; i++) points.push({ x: startX + lenX - i * stepX, y: startY });
+                for (let i = 1; i < qtyY - 1; i++) points.push({ x: startX, y: startY + i * stepY });
+
+                // Trayectoria rápidos
+                ctx.strokeStyle = 'rgba(255, 122, 0, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                points.forEach((p, idx) => {
+                    if (idx === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.closePath();
+                ctx.stroke();
+
+                // Taladros
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.fillStyle = 'rgba(255, 122, 0, 0.1)';
+                ctx.lineWidth = 1.5;
+                points.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 5, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(p.x - 3, p.y); ctx.lineTo(p.x + 3, p.y);
+                    ctx.moveTo(p.x, p.y - 3); ctx.lineTo(p.x, p.y + 3);
+                    ctx.stroke();
+                });
+
+                // Cotas
+                drawDimension(ctx, cX - lenX/2, cY + lenY/2, cX + lenX/2, cY + lenY/2, 25, `${vars[1].toFixed(1)} mm`);
+                drawDimension(ctx, cX - lenX/2, cY + lenY/2, cX - lenX/2, cY - lenY/2, -25, `${vars[2].toFixed(1)} mm`);
+            }
+            else if (fname.includes("oring") || fname.includes("orings")) {
+                // #1=Diam ranura centro, #2=Diam hta, #9=Centro X, #10=Centro Y
+                const scale = Math.min((w - 120) / (vars[1] + vars[2]), (h - 120) / (vars[1] + vars[2]));
+                const rGroove = (vars[1] / 2) * scale;
+                const rHta = (vars[2] / 2) * scale;
+                const cX = cx + vars[9] * scale;
+                const cY = cy - vars[10] * scale;
+
+                // Paredes ranura (Azul)
+                ctx.strokeStyle = COLOR_ACCENT_BLUE;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(cX, cY, rGroove - rHta, 0, 2*Math.PI);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(cX, cY, rGroove + rHta, 0, 2*Math.PI);
+                ctx.stroke();
+
+                // Trayectoria centro (Naranja)
+                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([3, 2]);
+                ctx.beginPath();
+                ctx.arc(cX, cY, rGroove, 0, 2*Math.PI);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Cotas
+                drawDimension(ctx, cX - rGroove, cY, cX + rGroove, cY, -rGroove - 20, `Ranura Ø ${vars[1].toFixed(1)}`);
+                drawDimension(ctx, cX + rGroove - rHta, cY, cX + rGroove + rHta, cY, 15, `W ${vars[2].toFixed(1)}`);
+            }
+
+            ctx.restore();
+        }
+
+        /* --- ACCIONES INTERACTIVAS --- */
+        function showExecuteAlert() {
+            if (isEmergencyStop) {
+                alert("ERROR: La máquina simulada está en parada de emergencia. Restablece el sistema primero.");
+                return;
+            }
+            alert(`Ejecutando G-Code en máquina simulada...\nArchivo: ${activeMacro.filename}\nConexión establecida con el controlador CNC-01.`);
+        }
+
+        function triggerEmergencyStop() {
+            const btn = document.getElementById('estopBtn');
+            const overlay = document.getElementById('estopModal');
+            isEmergencyStop = true;
+            btn.classList.add('active');
+            overlay.style.display = 'flex';
+        }
+
+        function resetEmergencyStop() {
+            const btn = document.getElementById('estopBtn');
+            const overlay = document.getElementById('estopModal');
+            isEmergencyStop = false;
+            btn.classList.remove('active');
+            overlay.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
