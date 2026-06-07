@@ -309,6 +309,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 20px;
+            flex-shrink: 0;
         }
 
         .macro-info-left {
@@ -336,6 +337,7 @@
             border-radius: 12px;
             padding: 16px;
             box-shadow: var(--shadow-lg);
+            flex-shrink: 0;
         }
 
         .summary-title {
@@ -388,6 +390,7 @@
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 18px;
+            flex-shrink: 0;
         }
 
         .form-section-title {
@@ -542,6 +545,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .panel-card-header {
@@ -1599,6 +1603,7 @@
         /* --- CÁLCULO DE RPM Y AVANCE --- */
         function calculateCuttingData() {
             let vc = 0, toolDiam = 0, teeth = 0, fz = 0;
+            let directRPM = 0, directFeed = 0;
             
             activeMacro.variables.forEach(v => {
                 const commentUpper = v.comment.toUpperCase();
@@ -1615,6 +1620,14 @@
                 if (commentUpper.includes("FZ") || commentUpper.includes("AVANCE POR INSERTO") || commentUpper.includes("AVANCE POR LABIO")) {
                     fz = v.value;
                 }
+                
+                // Fallback de RPM y avance directos (ej. para patrones de taladrado)
+                if (commentUpper === "RPM" || commentUpper.includes("VELOCIDAD RPM")) {
+                    directRPM = v.value;
+                }
+                if (commentUpper === "AVANCE F" || commentUpper === "AVANCE" || commentUpper === "AVANCE (F)") {
+                    directFeed = v.value;
+                }
             });
 
             const rpmSpan = document.getElementById('calcRPM');
@@ -1629,11 +1642,12 @@
                         const feed = Math.round(rpm * teeth * fz);
                         feedSpan.textContent = feed;
                     } else {
-                        feedSpan.textContent = "N/A";
+                        feedSpan.textContent = directFeed > 0 ? Math.round(directFeed) : "N/A";
                     }
                 } else {
-                    rpmSpan.textContent = "N/A";
-                    feedSpan.textContent = "N/A";
+                    // Si no se calcula con Vc pero se especifican directamente, mostrarlos
+                    rpmSpan.textContent = directRPM > 0 ? Math.round(directRPM) : "N/A";
+                    feedSpan.textContent = directFeed > 0 ? Math.round(directFeed) : "N/A";
                 }
             }
         }
@@ -1675,15 +1689,19 @@
             if (fname.includes("Arreglo Circular")) toolDiam = vars[3];
             
             let vc = 0, teeth = 0, fz = 0;
+            let directRPM = 0, directFeed = 0;
             activeMacro.variables.forEach(v => {
                 const commentUpper = v.comment.toUpperCase();
                 if (commentUpper.includes("VC")) vc = v.value;
                 if (commentUpper.includes("INSERTOS") || commentUpper.includes("LABIOS") || commentUpper.includes("TEETH") || commentUpper.includes("LIPS")) teeth = v.value;
                 if (commentUpper.includes("FZ")) fz = v.value;
+                
+                if (commentUpper === "RPM" || commentUpper.includes("VELOCIDAD RPM")) directRPM = v.value;
+                if (commentUpper === "AVANCE F" || commentUpper === "AVANCE" || commentUpper === "AVANCE (F)") directFeed = v.value;
             });
 
-            const rpm = vc > 0 && toolDiam > 0 ? Math.round((vc * 1000) / (3.14159 * toolDiam)) : 0;
-            const feed = rpm > 0 && teeth > 0 && fz > 0 ? Math.round(rpm * teeth * fz) : 0;
+            const rpm = vc > 0 && toolDiam > 0 ? Math.round((vc * 1000) / (3.14159 * toolDiam)) : (directRPM > 0 ? Math.round(directRPM) : 0);
+            const feed = vc > 0 && toolDiam > 0 && teeth > 0 && fz > 0 ? Math.round(rpm * teeth * fz) : (directFeed > 0 ? Math.round(directFeed) : 0);
 
             toolStr = `Fresa/Broca: <strong>Ø${toolDiam.toFixed(1)} mm</strong>`;
             if (rpm > 0) toolStr += `<br>Velocidad: <strong>${rpm} RPM</strong>`;
