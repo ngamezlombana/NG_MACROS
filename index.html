@@ -858,6 +858,11 @@
     </style>
 </head>
 <body>
+    <!-- BANNER DE TIEMPO RESTANTE DEMO -->
+    <div id="demoCountdownBanner" style="display: none; position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255, 122, 0, 0.9); backdrop-filter: blur(10px); color: white; padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; z-index: 9999; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; box-shadow: 0 0 8px #34c759; animation: pulse 2s infinite;"></span>
+        <span>⏱️ Demo Restante: <strong id="demoTimeRemaining" style="font-family: 'Fira Code', monospace; margin-left: 2px;">--:--:--</strong></span>
+    </div>
     <div class="app-container">
         <!-- CABECERA -->
         <header>
@@ -895,6 +900,15 @@
                         <div class="status-info">
                             <span class="status-label">ESTADO DE MAQUINA</span>
                             <span class="status-value">CNC-01 READY</span>
+                        </div>
+                    </div>
+
+                    <!-- Estado de Licencia Activa (Acceso Completo) -->
+                    <div class="status-card" id="licenseStatusCard" style="display: none; border-color: rgba(52, 199, 89, 0.2); background: rgba(52, 199, 89, 0.03); margin-top: -12px; margin-bottom: 20px;">
+                        <div class="status-dot" style="background-color: var(--success-color); box-shadow: 0 0 8px var(--success-color);"></div>
+                        <div class="status-info">
+                            <span class="status-label" style="color: var(--success-color); font-weight: 600;">LICENCIA ACTIVA</span>
+                            <span class="status-value" id="licenseStatusValue" style="color: var(--text-main); font-size: 11px;">Acceso Completo</span>
                         </div>
                     </div>
 
@@ -1036,9 +1050,302 @@
         </div>
     </div>
 
+    <!-- PANTALLA DE CONTROL DE ACCESO / DEMO EXPIRADA -->
+    <div class="modal-overlay" id="accessModal" style="display: none; z-index: 9998; backdrop-filter: blur(25px); background: rgba(18, 19, 22, 0.95); position: fixed; top: 0; left: 0; width: 100%; height: 100%; align-items: center; justify-content: center;">
+        <div class="modal-card" style="max-width: 450px; text-align: center; border: 1px solid rgba(255, 122, 0, 0.2); box-shadow: 0 10px 40px rgba(255, 122, 0, 0.15); background: var(--bg-tertiary); padding: 30px; border-radius: 12px;">
+            <!-- Icono de Candado SVG -->
+            <svg class="modal-icon" style="fill: var(--accent-orange); width: 60px; height: 60px; margin: 0 auto 20px auto; display: block;" viewBox="0 0 24 24">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+            <div class="modal-title" style="color: var(--text-main); font-size: 20px; font-weight: 700; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase;">Acceso Restringido</div>
+            <div class="modal-body" id="accessModalBody" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+                Este sitio web es una demostración protegida. Necesitas un enlace de invitación temporal para poder interactuar con el simulador de macros CNC.
+            </div>
+            <a href="mailto:soporte@tu-empresa.com?subject=Solicitud%20de%20Demostracion%20NG%20CNC" class="btn-modal-reset" style="text-decoration: none; display: inline-block; background-color: var(--accent-orange); color: white; padding: 12px 24px; border-radius: 6px; font-weight: 700; transition: background-color 0.2s;" id="accessActionBtn">Solicitar Enlace de Acceso</a>
+            
+            <!-- Activador de Clave de Licencia Permanente -->
+            <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">¿Tienes una clave de licencia?</label>
+                <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                    <input type="text" id="licenseKeyInput" placeholder="Pega tu clave aquí..." style="max-width: 240px; padding: 8px 12px; font-size: 12px; height: 34px; background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); text-align: center; outline: none;">
+                    <button class="btn-execute" onclick="activateLicenseKey()" style="padding: 0 16px; font-size: 12px; font-weight: 700; height: 34px; border-radius: 4px; cursor: pointer; border: none; background-color: var(--accent-orange); color: white;">Activar</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                <a href="#" onclick="showAdminPrompt(event)" style="font-size: 11px; color: var(--text-muted); text-decoration: none; opacity: 0.5; transition: opacity 0.2s;">Acceso Administrador</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ADMINISTRADOR / GENERADOR DE TOKENS -->
+    <div class="modal-overlay" id="adminModal" style="display: none; z-index: 9999; backdrop-filter: blur(15px); background: rgba(26, 29, 33, 0.85); position: fixed; top: 0; left: 0; width: 100%; height: 100%; align-items: center; justify-content: center;">
+        <div class="modal-card" style="max-width: 480px; width: 90%; border: 1px solid rgba(0, 122, 204, 0.2); box-shadow: 0 10px 40px rgba(0, 122, 204, 0.15); background: var(--bg-tertiary); padding: 30px; border-radius: 12px;">
+            <div class="panel-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div class="panel-card-title" style="color: #00bcff; font-size: 15px; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                    <svg viewBox="0 0 24 24" style="fill: #00bcff; width: 18px; height: 18px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    Panel de Administración Demo
+                </div>
+                <button class="icon-btn" onclick="closeAdminModal()" style="color: var(--text-muted); background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="text-align: left; color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-main); text-transform: uppercase; margin-bottom: 6px;">Duración del Acceso Demo</label>
+                    <select id="adminDurationSelect" class="input-field" style="padding-left: 15px; background-position: right 15px center; width: 100%; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; background-color: var(--bg-primary); color: var(--text-main);">
+                        <option value="15">15 Minutos</option>
+                        <option value="30">30 Minutos</option>
+                        <option value="60" selected>1 Hora</option>
+                        <option value="120">2 Horas</option>
+                        <option value="1440">24 Horas</option>
+                        <option value="10080">7 Días</option>
+                        <option value="43200">30 Días</option>
+                        <option value="525600">1 Año</option>
+                        <option value="5256000">10 Años (Permanente)</option>
+                    </select>
+                </div>
+                
+                <button class="btn-execute" onclick="generateDemoLink()" style="width: 100%; padding: 12px; font-weight: 700; background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;">Generar Enlace Demostración</button>
+                
+                <div id="adminResultContainer" style="display: none; margin-top: 20px; background: rgba(0, 122, 204, 0.05); border: 1px solid rgba(0, 122, 204, 0.15); border-radius: 6px; padding: 12px;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: #00bcff; text-transform: uppercase; margin-bottom: 6px;">Enlace de Demostración Generado</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <input type="text" id="adminGeneratedLinkInput" readonly class="input-field" style="padding-left: 10px; font-size: 12px; font-family: 'Fira Code', monospace; border: 1px solid rgba(0, 122, 204, 0.3); border-radius: 6px; width: 80%; background-color: var(--bg-primary); color: var(--text-main);">
+                        <button class="btn-execute" onclick="copyAdminLink()" style="background-color: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-main); font-size: 12px; border-radius: 6px; cursor: pointer; padding: 8px 12px;">Copiar</button>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.4;">Copia y comparte este enlace con el posible comprador. Expirará automáticamente al transcurrir el tiempo especificado.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- CARGA DE DATOS DE LAS MACROS -->
     <script src="macros_data.js"></script>
     <script>
+        // --- SISTEMA DE LICENCIAS TEMPORALES PARA DEMOS ---
+        const LICENSING_SALT = "ng-cnc-salt-2026";
+        const ADMIN_SALT = "admin-salt";
+        const ADMIN_HASH = "fvfy39"; // Contraseña en texto plano: "ngcnc2026"
+        let licensingTimer = null;
+
+        function generateSignature(expiryStr, salt) {
+            let hash = 0;
+            const combined = expiryStr + salt;
+            for (let i = 0; i < combined.length; i++) {
+                hash = (hash << 5) - hash + combined.charCodeAt(i);
+                hash |= 0; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(36);
+        }
+
+        function checkLicensing() {
+            // Leer el parámetro de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            let token = urlParams.get('demo');
+
+            if (token) {
+                // Guardar token en localStorage y limpiar la URL para que quede estético
+                localStorage.setItem('ng_cnc_active_token', token);
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({ path: newUrl }, '', newUrl);
+            } else {
+                token = localStorage.getItem('ng_cnc_active_token');
+            }
+
+            // Si el modo administrador está activo mediante parámetro de depuración
+            if (urlParams.get('admin') === 'true') {
+                localStorage.setItem('ng_cnc_admin_mode', 'true');
+            }
+
+            if (!token) {
+                // No hay token, denegar acceso
+                showAccessDenied("No se detectó un código de demostración activo. Por favor, solicita un enlace temporal.");
+                return;
+            }
+
+            // Validar token
+            const parts = token.split('-');
+            if (parts.length !== 2) {
+                showAccessDenied("El formato del enlace de demostración no es válido.");
+                return;
+            }
+
+            const expiryStr = parts[0];
+            const signature = parts[1];
+            const expectedSig = generateSignature(expiryStr, LICENSING_SALT);
+
+            if (signature !== expectedSig) {
+                showAccessDenied("La firma del enlace de demostración es inválida o ha sido alterada.");
+                return;
+            }
+
+            // Calcular expiración
+            const expiryMinutes = parseInt(expiryStr, 36);
+            const expiryTimestamp = expiryMinutes * 60 * 1000;
+            const now = Date.now();
+
+            if (now > expiryTimestamp) {
+                showAccessDenied("Tu tiempo de demostración de 1 hora ha terminado. Si deseas seguir utilizando NG CNC, por favor contáctanos.");
+                return;
+            }
+
+            // Acceso concedido! Configurar temporizador de expiración
+            startCountdown(expiryTimestamp);
+        }
+
+        function showAccessDenied(message) {
+            document.getElementById('accessModal').style.display = 'flex';
+            document.getElementById('accessModalBody').textContent = message;
+            // Bloquear la app visualmente ocultando el contenedor principal
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.style.opacity = '0.05';
+                appContainer.style.pointerEvents = 'none';
+            }
+        }
+
+        function startCountdown(expiryTimestamp) {
+            const banner = document.getElementById('demoCountdownBanner');
+            const timeRemainingSpan = document.getElementById('demoTimeRemaining');
+            const licenseCard = document.getElementById('licenseStatusCard');
+            const licenseVal = document.getElementById('licenseStatusValue');
+
+            const diff = expiryTimestamp - Date.now();
+            const ONE_DAY = 24 * 60 * 60 * 1000;
+
+            // Si es una licencia de largo plazo (mayor a 24 horas)
+            if (diff > ONE_DAY) {
+                if (banner) banner.style.display = 'none';
+                if (licenseCard) {
+                    licenseCard.style.display = 'flex';
+                    const expDate = new Date(expiryTimestamp);
+                    
+                    // Si expira en más de 20 años, considerarla permanente
+                    if (expiryTimestamp - Date.now() > 20 * 365 * ONE_DAY) {
+                        if (licenseVal) licenseVal.textContent = "Acceso Ilimitado";
+                    } else {
+                        if (licenseVal) licenseVal.textContent = "Expira: " + expDate.toLocaleDateString();
+                    }
+                }
+                return; // No requerimos temporizador de cuenta regresiva
+            }
+
+            // Si es de corto plazo, mostrar banner con cuenta regresiva
+            if (banner && timeRemainingSpan) {
+                banner.style.display = 'flex';
+            }
+
+            function updateTime() {
+                const now = Date.now();
+                const currentDiff = expiryTimestamp - now;
+
+                if (currentDiff <= 0) {
+                    clearInterval(licensingTimer);
+                    if (banner) banner.style.display = 'none';
+                    showAccessDenied("Tu tiempo de demostración de 1 hora ha terminado. Si deseas seguir utilizando NG CNC, por favor contáctanos.");
+                    return;
+                }
+
+                const hours = Math.floor(currentDiff / 3600000);
+                const minutes = Math.floor((currentDiff % 3600000) / 60000);
+                const seconds = Math.floor((currentDiff % 60000) / 1000);
+
+                let timeStr = "";
+                if (hours > 0) timeStr += String(hours).padStart(2, '0') + ":";
+                timeStr += String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+                
+                if (timeRemainingSpan) {
+                    timeRemainingSpan.textContent = timeStr;
+                }
+            }
+
+            updateTime();
+            licensingTimer = setInterval(updateTime, 1000);
+        }
+
+        function activateLicenseKey() {
+            const key = document.getElementById('licenseKeyInput').value.trim();
+            if (!key) {
+                alert("Por favor, ingresa una clave.");
+                return;
+            }
+
+            const parts = key.split('-');
+            if (parts.length !== 2) {
+                alert("La clave de licencia no es válida.");
+                return;
+            }
+
+            const expiryStr = parts[0];
+            const signature = parts[1];
+            const expectedSig = generateSignature(expiryStr, LICENSING_SALT);
+
+            if (signature !== expectedSig) {
+                alert("La firma de la clave de licencia es inválida o ha sido alterada.");
+                return;
+            }
+
+            const expiryMinutes = parseInt(expiryStr, 36);
+            const expiryTimestamp = expiryMinutes * 60 * 1000;
+            
+            if (Date.now() > expiryTimestamp) {
+                alert("Esta clave de licencia ya ha expirado.");
+                return;
+            }
+
+            // Almacenar licencia y recargar
+            localStorage.setItem('ng_cnc_active_token', key);
+            alert("¡Licencia activada con éxito! Acceso completo desbloqueado.");
+            window.location.reload();
+        }
+
+        // --- SISTEMA ADMINISTRADOR ---
+        function showAdminPrompt(e) {
+            if (e) e.preventDefault();
+            const password = prompt("Introduce la contraseña de administrador:");
+            if (!password) return;
+
+            const computedHash = generateSignature(password, ADMIN_SALT);
+            if (computedHash === ADMIN_HASH) {
+                // Abrir panel admin
+                document.getElementById('adminModal').style.display = 'flex';
+            } else {
+                alert("Contraseña incorrecta.");
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+            // Limpiar resultados
+            document.getElementById('adminResultContainer').style.display = 'none';
+        }
+
+        function generateDemoLink() {
+            const minutes = parseInt(document.getElementById('adminDurationSelect').value);
+            const now = Date.now();
+            const expiryTimestamp = now + (minutes * 60 * 1000);
+            const expiryMinutes = Math.floor(expiryTimestamp / 60000);
+            const expiryStr = expiryMinutes.toString(36);
+            const signature = generateSignature(expiryStr, LICENSING_SALT);
+            const token = expiryStr + "-" + signature;
+
+            // Generar URL completa
+            const originUrl = window.location.origin + window.location.pathname;
+            const demoUrl = originUrl + "?demo=" + token;
+
+            document.getElementById('adminGeneratedLinkInput').value = demoUrl;
+            document.getElementById('adminResultContainer').style.display = 'block';
+        }
+
+        function copyAdminLink() {
+            const input = document.getElementById('adminGeneratedLinkInput');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value)
+                .then(() => alert("¡Enlace de demostración copiado al portapapeles!"))
+                .catch(() => alert("Error al copiar enlace. Cópialo manualmente."));
+        }
+
         /* --- ESTADO DE LA APLICACION --- */
         const COLOR_BG_PRIMARY = '#121316';
         const COLOR_ACCENT_ORANGE = '#ff7a00';
