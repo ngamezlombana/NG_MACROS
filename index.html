@@ -1278,6 +1278,22 @@
                 return;
             }
 
+            // Si introducen la contraseña de administrador como clave master
+            const computedAdminHash = generateSignature(key, ADMIN_SALT);
+            if (computedAdminHash === ADMIN_HASH) {
+                // Generar automáticamente un token permanente (10 años)
+                const expiryTimestamp = Date.now() + (5256000 * 60 * 1000);
+                const expiryMinutes = Math.floor(expiryTimestamp / 60000);
+                const expiryStr = expiryMinutes.toString(36);
+                const signature = generateSignature(expiryStr, LICENSING_SALT);
+                const masterToken = expiryStr + "-" + signature;
+                
+                localStorage.setItem('ng_cnc_active_token', masterToken);
+                alert("¡Acceso de Administrador activado con éxito! Bienvenido.");
+                window.location.reload();
+                return;
+            }
+
             const parts = key.split('-');
             if (parts.length !== 2) {
                 alert("La clave de licencia no es válida.");
