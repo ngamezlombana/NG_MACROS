@@ -859,6 +859,381 @@
             from { opacity: 1; transform: scale(1); }
             to { opacity: 0.4; transform: scale(0.95); }
         }
+
+        /* --- ESTILOS ADICIONALES PARA TABS Y SIMULADOR --- */
+        header nav.header-nav a {
+            position: relative;
+            padding: 8px 4px;
+        }
+        header nav.header-nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent-orange);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--accent-orange);
+        }
+        
+        .sim-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            background-color: var(--bg-primary);
+        }
+
+        .sim-canvas-section {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .sim-canvas-wrapper {
+            flex: 1;
+            background-color: #0b0c0e;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .sim-canvas-wrapper canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .sim-controls-panel {
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        /* Digital Readout (DRO) */
+        .dro-panel {
+            background: linear-gradient(135deg, rgba(26, 29, 33, 0.95) 0%, rgba(18, 19, 22, 0.95) 100%);
+            border: 1px solid rgba(255, 122, 0, 0.15);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dro-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-orange);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 122, 0, 0.1);
+            padding-bottom: 6px;
+        }
+
+        .dro-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .dro-axis {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            text-align: left;
+            position: relative;
+        }
+
+        .dro-axis::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .dro-axis.x-axis::before { background-color: #ff3b30; }
+        .dro-axis.y-axis::before { background-color: #34c759; }
+        .dro-axis.z-axis::before { background-color: #007acc; }
+
+        .dro-axis-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .dro-axis-val {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-main);
+        }
+
+        .dro-secondary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .dro-item {
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dro-item-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .dro-item-val {
+            font-size: 12px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            color: #00bcff;
+        }
+
+        /* Spindle Load */
+        .spindle-load-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .spindle-load-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .spindle-load-bar {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .spindle-load-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34c759 0%, #ffcc00 70%, #ff3b30 100%);
+            width: 0%;
+            transition: width 0.15s ease-out;
+            box-shadow: 0 0 6px rgba(52, 199, 89, 0.5);
+        }
+
+        /* Simulation Controls */
+        .sim-action-card {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sim-btn-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sim-btn {
+            flex: 1;
+            height: 40px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sim-btn:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.06);
+            border-color: var(--text-muted);
+        }
+
+        .sim-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .sim-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .sim-btn.primary {
+            background-color: var(--accent-orange);
+            border-color: var(--accent-orange);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 122, 0, 0.15);
+        }
+
+        .sim-btn.primary:hover:not(:disabled) {
+            background-color: var(--accent-orange-hover);
+            border-color: var(--accent-orange-hover);
+        }
+
+        .sim-slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sim-slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .sim-slider {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+            accent-color: var(--accent-orange);
+        }
+
+        /* Scrolling G-code Terminal */
+        .sim-terminal-card {
+            background-color: #0b0c0e;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 160px;
+            max-height: 300px;
+        }
+
+        .sim-terminal-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sim-terminal-body {
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 10.5px;
+            line-height: 1.6;
+            color: #717c91;
+            padding-right: 4px;
+            white-space: pre-wrap;
+            scroll-behavior: smooth;
+        }
+
+        .sim-terminal-line {
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .sim-terminal-line.active {
+            background-color: rgba(255, 122, 0, 0.12);
+            color: var(--accent-orange);
+            font-weight: 500;
+            border-left: 2px solid var(--accent-orange);
+            padding-left: 4px;
+        }
+
+        .sim-terminal-line-num {
+            color: #3c424d;
+            text-align: right;
+            width: 25px;
+            user-select: none;
+        }
+
+        /* Tables & Lists in Other Views */
+        .glass-table-container {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .glass-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .glass-table th {
+            color: var(--accent-orange);
+            font-weight: 700;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 122, 0, 0.15);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .glass-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .glass-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .glass-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
     </style>
 </head>
 <body>
@@ -878,10 +1253,10 @@
                 <div class="logo-text">NG <span>CNC</span></div>
             </div>
             <nav class="header-nav">
-                <a href="#" class="active">Macros</a>
-                <a href="#">Simulación</a>
-                <a href="#">Herramientas</a>
-                <a href="#">Historial</a>
+                <a href="#" id="tab-macros" class="active" onclick="switchTab('macros', event)">Macros</a>
+                <a href="#" id="tab-simulation" onclick="switchTab('simulation', event)">Simulación</a>
+                <a href="#" id="tab-tools" onclick="switchTab('tools', event)">Herramientas</a>
+                <a href="#" id="tab-history" onclick="switchTab('history', event)">Historial</a>
             </nav>
             <div class="header-actions">
                 <button class="btn-execute" onclick="showExecuteAlert()">Ejecutar G-Code</button>
@@ -894,7 +1269,7 @@
         </header>
 
         <!-- CUERPO DE LA APLICACION -->
-        <div class="main-layout">
+        <div class="main-layout" id="macrosLayout">
             <!-- BARRA LATERAL (LISTA DE MACROS) -->
             <aside class="sidebar">
                 <div class="sidebar-section">
@@ -1036,6 +1411,255 @@
                     <span id="safetyMessage">Todos los parámetros dentro de límites de seguridad.</span>
                 </div>
             </aside>
+        </div>
+
+        <!-- VISTA DE SIMULACIÓN -->
+        <div class="sim-layout" id="simulationLayout" style="display: none;">
+            <!-- LIENZO Y GRÁFICO -->
+            <div class="sim-canvas-section">
+                <div class="macro-info-card" style="margin-bottom: 0;">
+                    <div class="macro-info-left">
+                        <div class="macro-title" id="simMacroTitle">Simulador de Mecanizado</div>
+                        <div class="macro-filename" id="simMacroFilename">macro.nc</div>
+                    </div>
+                    <!-- Estado de la Simulación en Badge -->
+                    <div style="display: flex; gap: 8px;">
+                        <div class="status-card" style="margin-bottom: 0; padding: 6px 12px; background: rgba(0, 188, 255, 0.05); border-color: rgba(0, 188, 255, 0.2);">
+                            <span style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Estado:</span>
+                            <span id="simStatusBadge" style="font-size: 11px; font-weight: 700; color: #00bcff; margin-left: 4px;">Listo</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sim-canvas-wrapper">
+                    <!-- Capa 1: Pieza en Bruto (Stock) y mecanizado -->
+                    <canvas id="simWorkpieceCanvas" style="position: absolute; top:0; left:0; z-index:1; width:100%; height:100%;"></canvas>
+                    <!-- Capa 2: Herramienta, rápidas y guías -->
+                    <canvas id="simToolCanvas" style="position: absolute; top:0; left:0; z-index:2; width:100%; height:100%; pointer-events: none;"></canvas>
+                </div>
+
+                <div class="canvas-legend">
+                    <div class="legend-item"><span class="legend-dot gray"></span>Bruto (Stock)</div>
+                    <div class="legend-item"><span class="legend-dot orange"></span>Corte de Desbaste</div>
+                    <div class="legend-item"><span class="legend-dot green"></span>Corte de Acabado</div>
+                    <div class="legend-item"><span class="legend-dot white"></span>Rápidos (G00)</div>
+                </div>
+            </div>
+
+            <!-- CONTROLES Y DRO -->
+            <div class="sim-controls-panel">
+                <!-- DRO PANEL -->
+                <div class="dro-panel">
+                    <div class="dro-title">CNC DRO (Digital Readout)</div>
+                    <div class="dro-grid">
+                        <div class="dro-axis x-axis">
+                            <div class="dro-axis-label">X Axis (mm)</div>
+                            <div class="dro-axis-val" id="droX">0.000</div>
+                        </div>
+                        <div class="dro-axis y-axis">
+                            <div class="dro-axis-label">Y Axis (mm)</div>
+                            <div class="dro-axis-val" id="droY">0.000</div>
+                        </div>
+                        <div class="dro-axis z-axis">
+                            <div class="dro-axis-label">Z Axis (mm)</div>
+                            <div class="dro-axis-val" id="droZ">5.000</div>
+                        </div>
+                    </div>
+                    <div class="dro-secondary-grid">
+                        <div class="dro-item">
+                            <span class="dro-item-label">Spindle (S)</span>
+                            <span class="dro-item-val" id="droS">0 RPM</span>
+                        </div>
+                        <div class="dro-item">
+                            <span class="dro-item-label">Feedrate (F)</span>
+                            <span class="dro-item-val" id="droF">0 mm/min</span>
+                        </div>
+                    </div>
+                    <!-- Spindle Load Gauge -->
+                    <div class="spindle-load-container">
+                        <div class="spindle-load-header">
+                            <span>Spindle Load</span>
+                            <span id="spindleLoadVal">0%</span>
+                        </div>
+                        <div class="spindle-load-bar">
+                            <div class="spindle-load-fill" id="spindleLoadFill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTROLES DE REPRODUCCIÓN -->
+                <div class="sim-action-card">
+                    <div class="sim-btn-row">
+                        <button class="sim-btn primary" id="simPlayBtn" onclick="simPlayPause()">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <span>Simular</span>
+                        </button>
+                        <button class="sim-btn" id="simStopBtn" onclick="simStop()" disabled>
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            <span>Detener</span>
+                        </button>
+                    </div>
+                    <!-- Regulador de Velocidad -->
+                    <div class="sim-slider-group">
+                        <div class="sim-slider-header">
+                            <span>Velocidad de Simulación</span>
+                            <span id="simSpeedLabel">5x</span>
+                        </div>
+                        <input type="range" id="simSpeedSlider" min="1" max="25" value="5" class="sim-slider" oninput="changeSimSpeed(this.value)">
+                    </div>
+                    <!-- Selector de Material -->
+                    <div class="sim-slider-group">
+                        <div class="sim-slider-header">
+                            <span>Material del Bloque</span>
+                        </div>
+                        <select id="simMaterialSelect" class="input-field" style="padding-left:12px; height: 36px; font-size:12px;" onchange="changeSimMaterial(this.value)">
+                            <option value="steel">Acero Inoxidable (Gris Oscuro)</option>
+                            <option value="aluminum" selected>Aluminio 6061 (Plata brillante)</option>
+                            <option value="copper">Cobre Electrolítico (Naranja Rojizo)</option>
+                            <option value="wood">Madera / MDF (Marrón Claro)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- TERMINAL G-CODE -->
+                <div class="sim-terminal-card">
+                    <div class="sim-terminal-title">
+                        <span>G-Code Ejecutándose</span>
+                        <span id="simLineCounter">Línea: 0 / 0</span>
+                    </div>
+                    <div class="sim-terminal-body" id="simTerminalBody">
+                        <!-- Líneas cargadas por JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DE HERRAMIENTAS -->
+        <div class="main-layout" id="toolsLayout" style="display: none; padding: 30px; overflow-y: auto; height: calc(100vh - 60px); background: var(--bg-primary);">
+            <div class="glass-table-container">
+                <h2 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Biblioteca de Herramientas de Corte</h2>
+                <table class="glass-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre de Herramienta</th>
+                            <th>Tipo de Fresa</th>
+                            <th>Diámetro (mm)</th>
+                            <th>Número de Labios (Z)</th>
+                            <th>Material Hta.</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>T01</td>
+                            <td>Cortador Plano Ø 12.0</td>
+                            <td>End Mill (Plana)</td>
+                            <td>12.0</td>
+                            <td>4</td>
+                            <td>Carburo Tungsteno</td>
+                            <td><span style="color: var(--success-color); font-weight: 600;">En Husillo</span></td>
+                        </tr>
+                        <tr>
+                            <td>T02</td>
+                            <td>Cortador Plano Ø 10.0</td>
+                            <td>End Mill (Plana)</td>
+                            <td>10.0</td>
+                            <td>4</td>
+                            <td>Carburo HCo</td>
+                            <td><span>Disponible</span></td>
+                        </tr>
+                        <tr>
+                            <td>T03</td>
+                            <td>Broca Ø 8.0</td>
+                            <td>Broca Helicoidal</td>
+                            <td>8.0</td>
+                            <td>2</td>
+                            <td>HSS-Co</td>
+                            <td><span>Disponible</span></td>
+                        </tr>
+                        <tr>
+                            <td>T04</td>
+                            <td>Fresa Roscadora M12</td>
+                            <td>Thread Mill (Roscar)</td>
+                            <td>9.5</td>
+                            <td>3</td>
+                            <td>Carburo AlTiN</td>
+                            <td><span>Disponible</span></td>
+                        </tr>
+                        <tr>
+                            <td>T05</td>
+                            <td>Cortador de O-Ring Ø 4.0</td>
+                            <td>Ranurar (O-Ring)</td>
+                            <td>4.0</td>
+                            <td>2</td>
+                            <td>Carburo</td>
+                            <td><span>Disponible</span></td>
+                        </tr>
+                        <tr>
+                            <td>T06</td>
+                            <td>Broca de Centrar #3</td>
+                            <td>Punteador</td>
+                            <td>3.15</td>
+                            <td>2</td>
+                            <td>HSS</td>
+                            <td><span>Disponible</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+                    <button class="btn-execute" onclick="alert('Funcionalidad de añadir herramienta disponible en versión comercial.')">+ Añadir Nueva Herramienta</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DE HISTORIAL -->
+        <div class="main-layout" id="historyLayout" style="display: none; padding: 30px; overflow-y: auto; height: calc(100vh - 60px); background: var(--bg-primary);">
+            <div class="glass-table-container" style="max-width: 950px;">
+                <h2 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Historial de G-Code Generados y Simulados</h2>
+                <table class="glass-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha/Hora</th>
+                            <th>Macro CNC</th>
+                            <th>Archivo Generado</th>
+                            <th>Líneas G-Code</th>
+                            <th>Tiempo Estimado</th>
+                            <th>Estado de Simulación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td>08/06/2026 11:15</td>
+                            <td>Desbaste/Acabado cajera circular</td>
+                            <td style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--accent-orange);">Desbaste_Acabado_cajera_circular.nc</td>
+                            <td>124 líneas</td>
+                            <td>4m 12s</td>
+                            <td><span style="color: var(--success-color); font-weight: 600;">Exitosa</span></td>
+                            <td><button class="btn-execute" style="padding: 4px 10px; font-size:11px;" onclick="alert('G-code restaurado en el editor.')">Cargar</button></td>
+                        </tr>
+                        <tr>
+                            <td>08/06/2026 10:42</td>
+                            <td>Arreglo Circular de Agujeros</td>
+                            <td style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--accent-orange);">Arreglo Circular de Agujeros.nc</td>
+                            <td>68 líneas</td>
+                            <td>1m 30s</td>
+                            <td><span style="color: var(--success-color); font-weight: 600;">Exitosa</span></td>
+                            <td><button class="btn-execute" style="padding: 4px 10px; font-size:11px;" onclick="alert('G-code restaurado en el editor.')">Cargar</button></td>
+                        </tr>
+                        <tr>
+                            <td>07/06/2026 18:24</td>
+                            <td>Fresado de Roscas Helicoidal</td>
+                            <td style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--accent-orange);">Fresado de Roscas Helicoidal.nc</td>
+                            <td>112 líneas</td>
+                            <td>2m 45s</td>
+                            <td><span style="color: var(--success-color); font-weight: 600;">Exitosa</span></td>
+                            <td><button class="btn-execute" style="padding: 4px 10px; font-size:11px;" onclick="alert('G-code restaurado en el editor.')">Cargar</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -2466,7 +3090,1042 @@
             isEmergencyStop = false;
             btn.classList.remove('active');
             overlay.style.display = 'none';
+            
+            // Si la parada se libera y estamos simulando, reactivar controles
+            document.getElementById('simPlayBtn').disabled = false;
         }
+
+        /* --- SISTEMA DE NAVEGACIÓN DE PESTAÑAS (TABS) --- */
+        function switchTab(tabId, event) {
+            if (event) event.preventDefault();
+            
+            // Pausar simulación activa si se cambia de pestaña
+            if (simIsPlaying) {
+                simPlayPause();
+            }
+
+            // Quitar clase activa de los botones
+            const navLinks = document.querySelectorAll('.header-nav a');
+            navLinks.forEach(link => link.classList.remove('active'));
+
+            // Ocultar todas las vistas
+            const views = ['macrosLayout', 'simulationLayout', 'toolsLayout', 'historyLayout'];
+            views.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = 'none';
+            });
+
+            // Activar botón de navegación seleccionado
+            const activeLink = document.getElementById(`tab-${tabId}`);
+            if (activeLink) activeLink.classList.add('active');
+
+            // Mostrar vista seleccionada
+            if (tabId === 'macros') {
+                document.getElementById('macrosLayout').style.display = 'grid';
+                // Redibujar canvas normal
+                if (typeof resizeCanvas === 'function') resizeCanvas();
+            } 
+            else if (tabId === 'simulation') {
+                const simLayout = document.getElementById('simulationLayout');
+                simLayout.style.display = 'grid';
+                // Inicializar simulador con la macro y variables cargadas actualmente
+                simInit();
+            } 
+            else if (tabId === 'tools') {
+                document.getElementById('toolsLayout').style.display = 'block';
+            } 
+            else if (tabId === 'history') {
+                document.getElementById('historyLayout').style.display = 'block';
+            }
+        }
+
+        /* --- MOTOR DEL SIMULADOR DE MECANIZADO CNC --- */
+        let simWorkpieceCanvas = null;
+        let simToolCanvas = null;
+        let simCtxWorkpiece = null;
+        let simCtxTool = null;
+        
+        let simPoints = [];
+        let simCurrentIndex = 0;
+        let simToolPos = { x: 0, y: 0, z: 5 };
+        let simIsPlaying = false;
+        let simAnimationId = null;
+        let simSpeedMultiplier = 5; // Valor inicial
+        let simMaterial = 'aluminum';
+        let simTimeElapsed = 0;
+        let simTimerInterval = null;
+
+        // Propiedades estéticas de materiales
+        const MATERIAL_THEMES = {
+            steel: {
+                stockColor: '#3a3e45',     // Gris oscuro industrial
+                cutColor: '#121316',       // Fondo de cavidad
+                finishColor: '#1e2126',    // Fondo acabado
+                sparkColor: '#ffaa00'      // Chispas naranja
+            },
+            aluminum: {
+                stockColor: '#7b838f',   // Plata brillante
+                cutColor: '#1a1d21',     // Cavidad
+                finishColor: '#282d35',  // Acabado
+                sparkColor: '#ffffff'    // Brillo blanco
+            },
+            copper: {
+                stockColor: '#c35b38',    // Naranja cobrizo
+                cutColor: '#1a100d',      // Cavidad cobre
+                finishColor: '#301812',   // Acabado cobre
+                sparkColor: '#ffd8aa'     // Brillo
+            },
+            wood: {
+                stockColor: '#b58e65',     // Madera clara
+                cutColor: '#2d1e11',       // Madera quemada/corte
+                finishColor: '#45301a',    // Cavidad acabado
+                sparkColor: '#ffe5cc'      // Polvo/viruta
+            }
+        };
+
+        function simInit() {
+            simWorkpieceCanvas = document.getElementById('simWorkpieceCanvas');
+            simToolCanvas = document.getElementById('simToolCanvas');
+            
+            if (!simWorkpieceCanvas || !simToolCanvas) return;
+
+            simCtxWorkpiece = simWorkpieceCanvas.getContext('2d');
+            simCtxTool = simToolCanvas.getContext('2d');
+
+            // Ajustar tamaños de canvas a sus contenedores respetando DPI
+            const dpr = window.devicePixelRatio || 1;
+            const width = simWorkpieceCanvas.parentElement.clientWidth;
+            const height = simWorkpieceCanvas.parentElement.clientHeight;
+
+            simWorkpieceCanvas.width = width * dpr;
+            simWorkpieceCanvas.height = height * dpr;
+            simToolCanvas.width = width * dpr;
+            simToolCanvas.height = height * dpr;
+
+            simCtxWorkpiece.scale(dpr, dpr);
+            simCtxTool.scale(dpr, dpr);
+
+            // Cargar datos de la macro activa
+            if (!activeMacro) return;
+            document.getElementById('simMacroTitle').textContent = activeMacro.filename.replace('.nc', '').replace('Desbaste_Acabado_', 'Desbaste/Acabado ').replace('_', ' ');
+            document.getElementById('simMacroFilename').textContent = activeMacro.filename;
+
+            // Extraer variables activas
+            const vars = {};
+            activeMacro.variables.forEach(v => {
+                vars[v.num] = v.value;
+            });
+
+            // Generar puntos de la trayectoria
+            simPoints = generateSimulationPath(activeMacro.filename, vars);
+            simCurrentIndex = 0;
+            simIsPlaying = false;
+            if (simAnimationId) cancelAnimationFrame(simAnimationId);
+            if (simTimerInterval) clearInterval(simTimerInterval);
+
+            // Reiniciar botones e indicadores
+            document.getElementById('simPlayBtn').innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Simular</span>`;
+            document.getElementById('simStopBtn').disabled = true;
+            document.getElementById('simStatusBadge').textContent = "Listo";
+            document.getElementById('simStatusBadge').style.color = "#00bcff";
+            document.getElementById('simStatusBadge').parentElement.style.borderColor = "rgba(0, 188, 255, 0.2)";
+            document.getElementById('simStatusBadge').parentElement.style.background = "rgba(0, 188, 255, 0.05)";
+
+            // Reiniciar DRO
+            document.getElementById('droX').textContent = "0.000";
+            document.getElementById('droY').textContent = "0.000";
+            document.getElementById('droZ').textContent = "5.000";
+            document.getElementById('droS').textContent = "0 RPM";
+            document.getElementById('droF').textContent = "0 mm/min";
+            document.getElementById('spindleLoadVal').textContent = "0%";
+            document.getElementById('spindleLoadFill').style.width = "0%";
+
+            // Cargar G-Code en la mini-terminal
+            const term = document.getElementById('simTerminalBody');
+            term.innerHTML = '';
+            
+            // Generar líneas
+            const lines = activeMacro.full_content.split('\n');
+            let termHtml = '';
+            lines.forEach((line, idx) => {
+                termHtml += `<div class="sim-terminal-line" id="sim-line-${idx}"><span class="sim-terminal-line-num">${idx+1}</span><span>${line}</span></div>`;
+            });
+            term.innerHTML = termHtml;
+            document.getElementById('simLineCounter').textContent = `Línea: 0 / ${lines.length}`;
+
+            // Resetear pieza en bruto
+            drawWorkpieceInit();
+            
+            // Dibujar la herramienta en posición inicial
+            if (simPoints.length > 0) {
+                simToolPos = { x: simPoints[0].x, y: simPoints[0].y, z: simPoints[0].z };
+                drawToolOnly();
+            }
+        }
+
+        function drawWorkpieceInit() {
+            const w = simWorkpieceCanvas.width / window.devicePixelRatio;
+            const h = simWorkpieceCanvas.height / window.devicePixelRatio;
+            const cx = w / 2;
+            const cy = h / 2;
+            const theme = MATERIAL_THEMES[simMaterial];
+
+            simCtxWorkpiece.clearRect(0, 0, w, h);
+
+            // Fondo rejilla del simulador
+            simCtxWorkpiece.strokeStyle = 'rgba(255, 255, 255, 0.01)';
+            simCtxWorkpiece.lineWidth = 1;
+            const gridSize = 20;
+            for (let x = 0; x < w; x += gridSize) {
+                simCtxWorkpiece.beginPath();
+                simCtxWorkpiece.moveTo(x, 0); simCtxWorkpiece.lineTo(x, h);
+                simCtxWorkpiece.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                simCtxWorkpiece.beginPath();
+                simCtxWorkpiece.moveTo(0, y); simCtxWorkpiece.lineTo(w, y);
+                simCtxWorkpiece.stroke();
+            }
+
+            // Pieza en bruto física (Stock)
+            simCtxWorkpiece.fillStyle = theme.stockColor;
+            
+            // Determinar dimensiones según macro
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+
+            let stockW = 160;
+            let stockH = 160;
+            let isCircular = false;
+
+            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
+                isCircular = true;
+                const dStock = vars[1] || 100;
+                stockW = dStock;
+            } 
+            else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
+                stockW = vars[1] || 120;
+                stockH = vars[2] || 120;
+                if (fname.includes("Ranura")) {
+                    stockW = vars[1] + 2 * vars[2] + 20;
+                    stockH = vars[2] * 2 + 20;
+                }
+            } 
+            else if (fname.includes("Arreglo Circular")) {
+                stockW = vars[1] + vars[3] + 20;
+                isCircular = true;
+            }
+
+            // Escala local
+            const scale = isCircular 
+                ? Math.min((w - 100) / stockW, (h - 100) / stockW)
+                : Math.min((w - 100) / stockW, (h - 100) / stockH);
+
+            simCtxWorkpiece.save();
+            simCtxWorkpiece.translate(cx, cy);
+
+            // Dibujar bloque con sombra premium
+            simCtxWorkpiece.shadowColor = 'rgba(0,0,0,0.5)';
+            simCtxWorkpiece.shadowBlur = 25;
+            simCtxWorkpiece.shadowOffsetY = 10;
+
+            simCtxWorkpiece.beginPath();
+            if (isCircular) {
+                simCtxWorkpiece.arc(0, 0, (stockW/2) * scale, 0, 2*Math.PI);
+            } else {
+                simCtxWorkpiece.rect((-stockW/2) * scale, (-stockH/2) * scale, stockW * scale, stockH * scale);
+            }
+            simCtxWorkpiece.fill();
+            
+            // Añadir borde sutil
+            simCtxWorkpiece.shadowBlur = 0;
+            simCtxWorkpiece.shadowOffsetY = 0;
+            simCtxWorkpiece.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            simCtxWorkpiece.lineWidth = 1.5;
+            simCtxWorkpiece.stroke();
+
+            simCtxWorkpiece.restore();
+        }
+
+        function drawToolOnly() {
+            const w = simToolCanvas.width / window.devicePixelRatio;
+            const h = simToolCanvas.height / window.devicePixelRatio;
+            const cx = w / 2;
+            const cy = h / 2;
+            const theme = MATERIAL_THEMES[simMaterial];
+
+            simCtxTool.clearRect(0, 0, w, h);
+
+            // Obtener escala
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+            let stockW = 160;
+            let stockH = 160;
+            let isCircular = false;
+            
+            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
+                isCircular = true;
+                stockW = vars[1] || 100;
+            } else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
+                stockW = vars[1] || 120;
+                stockH = vars[2] || 120;
+                if (fname.includes("Ranura")) {
+                    stockW = vars[1] + 2 * vars[2] + 20;
+                    stockH = vars[2] * 2 + 20;
+                }
+            } else if (fname.includes("Arreglo Circular")) {
+                stockW = vars[1] + vars[3] + 20;
+                isCircular = true;
+            }
+
+            const scale = isCircular 
+                ? Math.min((w - 100) / stockW, (h - 100) / stockW)
+                : Math.min((w - 100) / stockW, (h - 100) / stockH);
+
+            // Fresa / Diámetro de corte
+            let dHta = vars[2] || vars[3] || vars[4] || 10; // diámetros según macro
+            if (fname.includes("Arreglo Circular") || fname.includes("Patron Rectangular")) dHta = vars[3] || 8; // diámetro broca
+            const rHta = (dHta / 2) * scale;
+
+            const toolPxX = cx + simToolPos.x * scale;
+            const toolPxY = cy - simToolPos.y * scale;
+
+            // Dibujar trayectoria completa (guía semitransparente)
+            simCtxTool.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            simCtxTool.lineWidth = 1;
+            simCtxTool.beginPath();
+            simPoints.forEach((p, idx) => {
+                const px = cx + p.x * scale;
+                const py = cy - p.y * scale;
+                if (idx === 0) simCtxTool.moveTo(px, py);
+                else simCtxTool.lineTo(px, py);
+            });
+            simCtxTool.stroke();
+
+            // Dibujar Fresa (Círculo rojo/naranja traslúcido con centro)
+            simCtxTool.save();
+            simCtxTool.beginPath();
+            simCtxTool.arc(toolPxX, toolPxY, rHta, 0, 2*Math.PI);
+            
+            // Si la herramienta está en corte
+            if (simToolPos.z <= 0) {
+                simCtxTool.fillStyle = 'rgba(255, 122, 0, 0.35)';
+                simCtxTool.strokeStyle = 'rgba(255, 122, 0, 0.9)';
+                simCtxTool.lineWidth = 2;
+                
+                // Efecto de chispa / viruta en el punto de contacto
+                if (simIsPlaying) {
+                    const sparkCount = 4;
+                    simCtxTool.fillStyle = theme.sparkColor;
+                    for (let i = 0; i < sparkCount; i++) {
+                        const angle = Math.random() * 2 * Math.PI;
+                        const dist = rHta + Math.random() * 10;
+                        const sx = toolPxX + dist * Math.cos(angle);
+                        const sy = toolPxY + dist * Math.sin(angle);
+                        simCtxTool.fillRect(sx, sy, 2, 2);
+                    }
+                    simCtxTool.fillStyle = 'rgba(255, 122, 0, 0.35)'; // restore
+                }
+            } else {
+                simCtxTool.fillStyle = 'rgba(0, 188, 255, 0.2)';
+                simCtxTool.strokeStyle = 'rgba(0, 188, 255, 0.7)';
+                simCtxTool.lineWidth = 1.5;
+            }
+            simCtxTool.fill();
+            simCtxTool.stroke();
+
+            // Centro del cortador
+            simCtxTool.beginPath();
+            simCtxTool.arc(toolPxX, toolPxY, 2, 0, 2*Math.PI);
+            simCtxTool.fillStyle = '#ffffff';
+            simCtxTool.fill();
+            
+            simCtxTool.restore();
+        }
+
+        function simPlayPause() {
+            if (isEmergencyStop) {
+                alert("ERROR: La máquina simulada está en parada de emergencia. Restablece el sistema primero.");
+                return;
+            }
+
+            const playBtn = document.getElementById('simPlayBtn');
+            const stopBtn = document.getElementById('simStopBtn');
+
+            if (simIsPlaying) {
+                // Pausar
+                simIsPlaying = false;
+                playBtn.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Simular</span>`;
+                document.getElementById('simStatusBadge').textContent = "Pausado";
+                document.getElementById('simStatusBadge').style.color = "#ffcc00";
+                document.getElementById('simStatusBadge').parentElement.style.borderColor = "rgba(255, 204, 0, 0.2)";
+                document.getElementById('simStatusBadge').parentElement.style.background = "rgba(255, 204, 0, 0.05)";
+                
+                if (simAnimationId) cancelAnimationFrame(simAnimationId);
+                if (simTimerInterval) clearInterval(simTimerInterval);
+            } else {
+                // Iniciar / Continuar
+                simIsPlaying = true;
+                playBtn.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg><span>Pausar</span>`;
+                stopBtn.disabled = false;
+                document.getElementById('simStatusBadge').textContent = "Mecanizando";
+                document.getElementById('simStatusBadge').style.color = "var(--success-color)";
+                document.getElementById('simStatusBadge').parentElement.style.borderColor = "rgba(52, 199, 89, 0.2)";
+                document.getElementById('simStatusBadge').parentElement.style.background = "rgba(52, 199, 89, 0.05)";
+                
+                // Actualizar DRO secundario
+                const vars = {};
+                activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+                const calculatedRPM = vars[7] || vars[4] || 2000;
+                const calculatedFeed = vars[8] || vars[5] || 500;
+                
+                document.getElementById('droS').textContent = calculatedRPM.toFixed(0) + " RPM";
+                document.getElementById('droF').textContent = calculatedFeed.toFixed(0) + " mm/min";
+
+                // Ejecutar bucle
+                simTick();
+                
+                // Iniciar reloj
+                simTimerInterval = setInterval(() => {
+                    simTimeElapsed++;
+                }, 1000);
+            }
+        }
+
+        function simStop() {
+            simIsPlaying = false;
+            if (simAnimationId) cancelAnimationFrame(simAnimationId);
+            if (simTimerInterval) clearInterval(simTimerInterval);
+            simInit();
+        }
+
+        function simTick() {
+            if (!simIsPlaying) return;
+            
+            if (isEmergencyStop) {
+                simIsPlaying = false;
+                document.getElementById('simPlayBtn').disabled = true;
+                document.getElementById('simStatusBadge').textContent = "E-STOP BLOCK";
+                document.getElementById('simStatusBadge').style.color = "var(--danger-color)";
+                document.getElementById('simStatusBadge').parentElement.style.borderColor = "rgba(255, 59, 48, 0.2)";
+                document.getElementById('simStatusBadge').parentElement.style.background = "rgba(255, 59, 48, 0.05)";
+                return;
+            }
+
+            // Realizar pasos según la velocidad seleccionada
+            for (let s = 0; s < simSpeedMultiplier; s++) {
+                if (simCurrentIndex >= simPoints.length - 1) {
+                    // Simulación completada
+                    simIsPlaying = false;
+                    document.getElementById('simPlayBtn').innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Simular</span>`;
+                    document.getElementById('simPlayBtn').disabled = true;
+                    document.getElementById('simStatusBadge').textContent = "Completado";
+                    document.getElementById('simStatusBadge').style.color = "var(--success-color)";
+                    document.getElementById('spindleLoadVal').textContent = "0%";
+                    document.getElementById('spindleLoadFill').style.width = "0%";
+                    
+                    // Agregar registro al historial
+                    addMockHistory();
+                    
+                    alert("Simulación de mecanizado CNC completada con éxito.");
+                    break;
+                }
+
+                // Obtener objetivo
+                const target = simPoints[simCurrentIndex + 1];
+                
+                // Mover herramienta hacia el objetivo
+                const stepSize = 1.5; // tamaño de paso de interpolación
+                const dx = target.x - simToolPos.x;
+                const dy = target.y - simToolPos.y;
+                const dz = target.z - simToolPos.z;
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                if (dist <= stepSize) {
+                    // Llegó al punto objetivo
+                    simToolPos.x = target.x;
+                    simToolPos.y = target.y;
+                    simToolPos.z = target.z;
+                    simCurrentIndex++;
+                    
+                    // Actualizar terminal G-Code
+                    updateTerminalActiveLine(simCurrentIndex);
+                } else {
+                    // Interpolar
+                    simToolPos.x += (dx / dist) * stepSize;
+                    simToolPos.y += (dy / dist) * stepSize;
+                    simToolPos.z += (dz / dist) * stepSize;
+                }
+
+                // Si la herramienta está a nivel de corte (Z <= 0), tallar material
+                if (simToolPos.z <= 0) {
+                    carveWorkpiece();
+                }
+            }
+
+            // Actualizar interfaz (DRO)
+            document.getElementById('droX').textContent = simToolPos.x.toFixed(3);
+            document.getElementById('droY').textContent = simToolPos.y.toFixed(3);
+            document.getElementById('droZ').textContent = simToolPos.z.toFixed(3);
+
+            // Simular carga de husillo (Spindle Load)
+            if (simIsPlaying && simToolPos.z <= 0) {
+                const baseLoad = 45;
+                const jitter = Math.sin(Date.now() * 0.05) * 12;
+                const totalLoad = Math.max(10, Math.min(95, baseLoad + jitter));
+                document.getElementById('spindleLoadVal').textContent = totalLoad.toFixed(0) + "%";
+                document.getElementById('spindleLoadFill').style.width = totalLoad.toFixed(0) + "%";
+            } else {
+                document.getElementById('spindleLoadVal').textContent = "0%";
+                document.getElementById('spindleLoadFill').style.width = "0%";
+            }
+
+            // Redibujar capa superior
+            drawToolOnly();
+
+            if (simIsPlaying) {
+                simAnimationId = requestAnimationFrame(simTick);
+            }
+        }
+
+        function carveWorkpiece() {
+            const w = simWorkpieceCanvas.width / window.devicePixelRatio;
+            const h = simWorkpieceCanvas.height / window.devicePixelRatio;
+            const cx = w / 2;
+            const cy = h / 2;
+            const theme = MATERIAL_THEMES[simMaterial];
+
+            // Obtener variables de la macro
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+            let stockW = 160;
+            let stockH = 160;
+            let isCircular = false;
+            
+            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
+                isCircular = true;
+                stockW = vars[1] || 100;
+            } else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
+                stockW = vars[1] || 120;
+                stockH = vars[2] || 120;
+                if (fname.includes("Ranura")) {
+                    stockW = vars[1] + 2 * vars[2] + 20;
+                    stockH = vars[2] * 2 + 20;
+                }
+            } else if (fname.includes("Arreglo Circular")) {
+                stockW = vars[1] + vars[3] + 20;
+                isCircular = true;
+            }
+
+            const scale = isCircular 
+                ? Math.min((w - 100) / stockW, (h - 100) / stockW)
+                : Math.min((w - 100) / stockW, (h - 100) / stockH);
+
+            let dHta = vars[2] || vars[3] || vars[4] || 10;
+            if (fname.includes("Arreglo Circular") || fname.includes("Patron Rectangular")) dHta = vars[3] || 8;
+            const rHta = (dHta / 2) * scale;
+
+            const toolPxX = cx + simToolPos.x * scale;
+            const toolPxY = cy - simToolPos.y * scale;
+
+            // Dibujar corte en la capa de pieza
+            simCtxWorkpiece.save();
+            
+            // Determinar si es desbaste o acabado para variar el tono
+            const currentPoint = simPoints[simCurrentIndex];
+            const isFinish = currentPoint && (currentPoint.type === 'finish');
+            
+            // Usar una variación más oscura/profunda para simular profundidad Z
+            const zDepthRatio = Math.min(1.0, Math.abs(simToolPos.z) / (vars[4] || vars[5] || 15));
+            const darkness = 0.5 + (zDepthRatio * 0.5); // más oscuro entre más profundo
+            
+            simCtxWorkpiece.fillStyle = isFinish ? theme.finishColor : theme.cutColor;
+            
+            simCtxWorkpiece.beginPath();
+            simCtxWorkpiece.arc(toolPxX, toolPxY, rHta, 0, 2*Math.PI);
+            simCtxWorkpiece.fill();
+
+            // Bordes del corte (sutil línea brillante en las paredes)
+            simCtxWorkpiece.strokeStyle = isFinish ? 'rgba(0, 255, 196, 0.1)' : 'rgba(255, 122, 0, 0.1)';
+            simCtxWorkpiece.lineWidth = 1;
+            simCtxWorkpiece.beginPath();
+            simCtxWorkpiece.arc(toolPxX, toolPxY, rHta, 0, 2*Math.PI);
+            simCtxWorkpiece.stroke();
+
+            simCtxWorkpiece.restore();
+        }
+
+        function updateTerminalActiveLine(pointIdx) {
+            if (pointIdx < 0 || pointIdx >= simPoints.length) return;
+            
+            // Obtener el comando G-Code del punto actual
+            const point = simPoints[pointIdx];
+            if (!point || !point.gcode) return;
+            
+            // Buscar línea en base al comentario o tipo
+            const termLines = document.querySelectorAll('.sim-terminal-line');
+            termLines.forEach(line => line.classList.remove('active'));
+
+            // Buscar la línea correspondiente al comando en la terminal
+            // Haremos una búsqueda aproximada muy simple para resaltar la línea
+            const term = document.getElementById('simTerminalBody');
+            let matchedElement = null;
+            
+            for (let i = 0; i < termLines.length; i++) {
+                const text = termLines[i].textContent.toLowerCase();
+                const cmd = point.gcode.toLowerCase();
+                
+                // Extraer el código sin comentarios
+                const cleanCmd = cmd.split('(')[0].trim();
+                
+                if (cleanCmd && text.includes(cleanCmd)) {
+                    matchedElement = termLines[i];
+                    break;
+                }
+            }
+
+            if (matchedElement) {
+                matchedElement.classList.add('active');
+                
+                // Hacer scroll automático sutil
+                const topPos = matchedElement.offsetTop;
+                term.scrollTop = topPos - 60;
+            }
+
+            document.getElementById('simLineCounter').textContent = `Línea: ${pointIdx} / ${simPoints.length}`;
+        }
+
+        function changeSimSpeed(val) {
+            simSpeedMultiplier = parseInt(val);
+            document.getElementById('simSpeedLabel').textContent = val + "x";
+        }
+
+        function changeSimMaterial(val) {
+            simMaterial = val;
+            // Reiniciar y aplicar nuevo material
+            simInit();
+        }
+
+        function addMockHistory() {
+            const table = document.getElementById('historyTableBody');
+            if (!table) return;
+
+            const date = new Date();
+            const dateStr = date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td>${document.getElementById('simMacroTitle').textContent}</td>
+                <td style="font-family: 'Fira Code', monospace; font-size: 12px; color: var(--accent-orange);">${activeMacro.filename}</td>
+                <td>${simPoints.length} puntos</td>
+                <td>${Math.floor(simPoints.length / 50)}m ${Math.floor((simPoints.length % 50) * 1.2)}s</td>
+                <td><span style="color: var(--success-color); font-weight: 600;">Exitosa</span></td>
+                <td><button class="btn-execute" style="padding: 4px 10px; font-size:11px;" onclick="alert('G-code restaurado en el editor.')">Cargar</button></td>
+            `;
+            table.insertBefore(tr, table.firstChild);
+        }
+
+        // --- SISTEMAS DE SOPORTE PARA GENERACIÓN DE CORTES ---
+        // (Contiene los trazadores de curvas usados por generateSimulationPath)
+        function generateSimulationPath(macroName, vars) {
+            const path = [];
+            
+            // Valor por defecto si falta
+            const zTotal = vars[4] || vars[5] || 15; // prof
+            const zStep = vars[12] || vars[14] || vars[16] || 3; // pasada
+            const feed = vars[8] || vars[5] || 500; // avance
+            
+            if (macroName.includes("Arreglo Circular")) {
+                // #1=D círculo, #2=Agujeros, #3=D broca, #10=X, #11=Y, #13=Ang
+                const rPatron = vars[1] / 2;
+                const cX = vars[10] || 0;
+                const cY = vars[11] || 0;
+                const nAgujeros = vars[2] || 4;
+                const angInicial = (vars[13] || 0) * Math.PI / 180;
+                const clearanceZ = 5;
+                const totalZ = vars[5] || 15;
+
+                path.push({x: cX, y: cY, z: clearanceZ, type: 'rapid', gcode: 'G00 Z5.00'});
+
+                for (let i = 0; i < nAgujeros; i++) {
+                    const angle = angInicial + (i * 2 * Math.PI / nAgujeros);
+                    const hx = cX + rPatron * Math.cos(angle);
+                    const hy = cY - rPatron * Math.sin(angle);
+                    
+                    path.push({x: hx, y: hy, z: clearanceZ, type: 'rapid', gcode: `G00 X${hx.toFixed(2)} Y${hy.toFixed(2)}`});
+                    path.push({x: hx, y: hy, z: 1.0, type: 'rapid', gcode: 'G00 Z1.00'});
+                    path.push({x: hx, y: hy, z: -totalZ, type: 'feed', gcode: `G01 Z-${totalZ.toFixed(2)} F${feed.toFixed(0)}`});
+                    path.push({x: hx, y: hy, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                }
+            } 
+            else if (macroName.includes("circular central")) {
+                // #1=D stock, #2=D macho, #3=D hta, #6=Paso radial, #13=X, #14=Y
+                const rStock = vars[1] / 2;
+                const rMacho = vars[2] / 2;
+                const rHta = vars[3] / 2;
+                const cX = vars[13] || 0;
+                const cY = vars[14] || 0;
+                const step = vars[6] || 2;
+                const totalZ = vars[4] || 15;
+                const stepZ = vars[5] || 3;
+                
+                path.push({x: cX + rStock + 10, y: cY, z: 5, type: 'rapid', gcode: 'G00 X' + (cX + rStock + 10).toFixed(2) + ' Y' + cY.toFixed(2) + ' Z5.00'});
+                
+                let z = 0;
+                while (z > -totalZ) {
+                    z = Math.max(-totalZ, z - stepZ);
+                    path.push({x: cX + rStock + 10, y: cY, z: z, type: 'rapid', gcode: `G00 Z${z.toFixed(2)}`});
+                    
+                    let currR = rStock - rHta;
+                    const endR = rMacho + rHta + 0.5;
+                    
+                    while (currR > endR) {
+                        // Entrada
+                        path.push({x: cX + currR, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + currR).toFixed(2)} F${feed.toFixed(0)}`});
+                        // Círculo
+                        for (let a = 0; a <= 360; a += 15) {
+                            const rad = a * Math.PI / 180;
+                            path.push({x: cX + currR * Math.cos(rad), y: cY - currR * Math.sin(rad), z: z, type: 'feed', gcode: `G02 X${(cX + currR * Math.cos(rad)).toFixed(2)} Y${(cY - currR * Math.sin(rad)).toFixed(2)} (Desbaste)`});
+                        }
+                        currR -= step;
+                    }
+                    // Pasada final desbaste
+                    path.push({x: cX + endR, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + endR).toFixed(2)}`});
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        path.push({x: cX + endR * Math.cos(rad), y: cY - endR * Math.sin(rad), z: z, type: 'feed', gcode: `G02 (Desbaste Final)`});
+                    }
+                    
+                    // Pasada de acabado
+                    const rFin = rMacho + rHta;
+                    path.push({x: cX + rFin, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + rFin).toFixed(2)} F${(feed*0.7).toFixed(0)} (Acabado)`});
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        path.push({x: cX + rFin * Math.cos(rad), y: cY - rFin * Math.sin(rad), z: z, type: 'finish', gcode: `G02 (Acabado Macho)`});
+                    }
+                    // Retracción parcial
+                    path.push({x: cX + rStock + 10, y: cY, z: z, type: 'rapid', gcode: `G00 X${(cX + rStock + 10).toFixed(2)}`});
+                }
+                path.push({x: cX + rStock + 10, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+            }
+            else if (macroName.includes("cajera_circular")) {
+                // #1=D caja, #2=D hta, #10=X, #11=Y, #12=Paso radial
+                const rPocket = vars[1] / 2;
+                const rHta = vars[2] / 2;
+                const cX = vars[10] || 0;
+                const cY = vars[11] || 0;
+                const step = vars[12] || 2;
+                const totalZ = vars[4] || 15;
+                const stepZ = vars[3] || 3;
+                
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                
+                let z = 0;
+                while (z > -totalZ) {
+                    z = Math.max(-totalZ, z - stepZ);
+                    path.push({x: cX, y: cY, z: z, type: 'feed', gcode: `G01 Z${z.toFixed(2)} F${feed.toFixed(0)}`});
+                    
+                    let maxR = rPocket - rHta - 0.5;
+                    // Espiral
+                    for (let r = 0; r <= maxR; r += 2.0) {
+                        const theta = r * 0.45;
+                        const px = cX + r * Math.cos(theta);
+                        const py = cY + r * Math.sin(theta);
+                        path.push({x: px, y: py, z: z, type: 'feed', gcode: `G01 X${px.toFixed(2)} Y${py.toFixed(2)} (Espiral)`});
+                    }
+                    
+                    // Limpieza cajera
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        path.push({x: cX + maxR * Math.cos(rad), y: cY - maxR * Math.sin(rad), z: z, type: 'feed', gcode: `G03 X${(cX + maxR * Math.cos(rad)).toFixed(2)} Y${(cY - maxR * Math.sin(rad)).toFixed(2)} (Desbaste)`});
+                    }
+                    
+                    // Acabado
+                    const rFin = rPocket - rHta;
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        path.push({x: cX + rFin * Math.cos(rad), y: cY - rFin * Math.sin(rad), z: z, type: 'finish', gcode: `G03 X${(cX + rFin * Math.cos(rad)).toFixed(2)} Y${(cY - rFin * Math.sin(rad)).toFixed(2)} (Acabado)`});
+                    }
+                    
+                    // Retracción al centro
+                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: 'G00 X0.00 Y0.00 (Retorno Centro)'});
+                }
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+            }
+            else if (macroName.includes("cajera_rectangular")) {
+                // #1=Long X, #2=Ancho Y, #3=Rad esq, #4=Diam hta, #12=X, #13=Y, #14=Paso radial
+                const lenX = vars[1];
+                const lenY = vars[2];
+                const radCorner = vars[3] || 0;
+                const rHta = vars[4] / 2;
+                const cX = vars[12] || 0;
+                const cY = vars[13] || 0;
+                const step = vars[14] || 2;
+                const totalZ = vars[6] || 15;
+                const stepZ = vars[5] || 3;
+                
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                
+                let z = 0;
+                while (z > -totalZ) {
+                    z = Math.max(-totalZ, z - stepZ);
+                    path.push({x: cX, y: cY, z: z, type: 'feed', gcode: `G01 Z${z.toFixed(2)} F${feed.toFixed(0)}`});
+                    
+                    const maxStepX = lenX - 2 * rHta - 1.0;
+                    const maxStepY = lenY - 2 * rHta - 1.0;
+                    const maxRad = Math.max(0, radCorner - rHta - 0.5);
+                    
+                    let currStep = step;
+                    while (currStep < maxStepX / 2 && currStep < maxStepY / 2) {
+                        const ratio = (currStep * 2) / maxStepX;
+                        addRoundedRectPoints(path, cX, cY, maxStepX * ratio, maxStepY * ratio, maxRad * ratio, z, 'feed', 'Desbaste Rect', feed);
+                        currStep += step;
+                    }
+                    addRoundedRectPoints(path, cX, cY, maxStepX, maxStepY, maxRad, z, 'feed', 'Desbaste Final', feed);
+                    
+                    // Acabado
+                    addRoundedRectPoints(path, cX, cY, lenX - 2 * rHta, lenY - 2 * rHta, Math.max(0, radCorner - rHta), z, 'finish', 'Acabado Rect', feed * 0.7);
+                    
+                    // Retracción al centro
+                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: 'G00 X0.00 Y0.00 (Retorno Centro)'});
+                }
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+            }
+            else if (macroName.includes("Ranura Cerrada")) {
+                // #1=Long entre centros, #2=Rad ranura, #3=Ang, #4=Diam hta, #12=X, #13=Y, #14=Paso radial
+                const lenC = vars[1];
+                const rSlot = vars[2];
+                const rHta = vars[4] / 2;
+                const cX = vars[12] || 0;
+                const cY = vars[13] || 0;
+                const angle = (vars[3] || 0) * Math.PI / 180;
+                const step = vars[14] || 2;
+                const totalZ = vars[6] || 15;
+                const stepZ = vars[5] || 3;
+                
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                
+                let z = 0;
+                while (z > -totalZ) {
+                    z = Math.max(-totalZ, z - stepZ);
+                    path.push({x: cX, y: cY, z: z, type: 'feed', gcode: `G01 Z${z.toFixed(2)} F${feed.toFixed(0)}`});
+                    
+                    // Desbaste concéntrico
+                    const maxOffset = rSlot - rHta - 0.5;
+                    let offset = step;
+                    while (offset < maxOffset) {
+                        addSlotPoints(path, cX, cY, lenC, offset, angle, z, 'feed', 'Desbaste Ranura', feed);
+                        offset += step;
+                    }
+                    addSlotPoints(path, cX, cY, lenC, maxOffset, angle, z, 'feed', 'Desbaste Ranura Final', feed);
+                    
+                    // Acabado
+                    addSlotPoints(path, cX, cY, lenC, rSlot - rHta, angle, z, 'finish', 'Acabado Ranura', feed * 0.7);
+                    
+                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} (Retorno Centro)`});
+                }
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+            }
+            else if (macroName.includes("Roscas")) {
+                // #1=D nominal, #2=D fresa, #10=X, #11=Y, #3=Paso rosca, #4=Prof total
+                const rNominal = vars[1] / 2;
+                const rFresa = vars[2] / 2;
+                const cX = vars[10] || 0;
+                const cY = vars[11] || 0;
+                const pitch = vars[3] || 1.5;
+                const totalZ = vars[4] || 15;
+                const rEff = Math.max(0.5, rNominal - rFresa);
+                
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                // Rápido al fondo
+                path.push({x: cX, y: cY, z: -totalZ, type: 'rapid', gcode: `G00 Z-${totalZ.toFixed(2)}`});
+                
+                // Entrada helicoidal
+                const rEntrada = rEff / 2;
+                for (let a = 180; a <= 360; a += 15) {
+                    const rad = a * Math.PI / 180;
+                    const zOffset = -totalZ + (pitch/2) * ((a - 180) / 180);
+                    const px = cX + rEntrada + rEntrada * Math.cos(rad);
+                    const py = cY - rEntrada * Math.sin(rad);
+                    path.push({
+                        x: px, 
+                        y: py, 
+                        z: zOffset, 
+                        type: 'feed', 
+                        gcode: `G03 X${px.toFixed(2)} Y${py.toFixed(2)} Z${zOffset.toFixed(2)} F${feed.toFixed(0)} (Entrada)`
+                    });
+                }
+                
+                // Círculo helicoidal de roscado (sube Z por el paso)
+                for (let a = 0; a <= 360; a += 15) {
+                    const rad = a * Math.PI / 180;
+                    const zOffset = -totalZ + (pitch / 2) + pitch * (a / 360);
+                    path.push({
+                        x: cX + rEff * Math.cos(rad), 
+                        y: cY - rEff * Math.sin(rad), 
+                        z: zOffset, 
+                        type: 'finish', 
+                        gcode: `G03 X${(cX + rEff * Math.cos(rad)).toFixed(2)} Y${(cY - rEff * Math.sin(rad)).toFixed(2)} Z${zOffset.toFixed(2)} F${(feed*0.5).toFixed(0)} (Roscar)`
+                    });
+                }
+                
+                // Salida helicoidal
+                const zExit = -totalZ + (1.5 * pitch);
+                for (let a = 0; a <= 180; a += 15) {
+                    const rad = a * Math.PI / 180;
+                    const zOffset = zExit + (pitch/2) * (a / 180);
+                    const px = cX - rEntrada + rEntrada * Math.cos(rad);
+                    const py = cY - rEntrada * Math.sin(rad);
+                    path.push({
+                        x: px, 
+                        y: py, 
+                        z: zOffset, 
+                        type: 'feed', 
+                        gcode: `G03 X${px.toFixed(2)} Y${py.toFixed(2)} Z${zOffset.toFixed(2)} (Salida)`
+                    });
+                }
+                
+                // Retract al centro
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 X0.00 Y0.00 Z5.00'});
+            }
+            else if (macroName.includes("Patron Rectangular")) {
+                // #1=Long X, #2=Ancho Y, #3=Holes X, #4=Holes Y, #11=X, #12=Y
+                const lenX = vars[1];
+                const lenY = vars[2];
+                const cX = vars[11] || 0;
+                const cY = vars[12] || 0;
+                const qtyX = vars[3] || 2;
+                const qtyY = vars[4] || 2;
+                const totalZ = vars[6] || 15;
+                const clearanceZ = 5;
+
+                const points = [];
+                const stepX = lenX / (qtyX - 1);
+                const stepY = lenY / (qtyY - 1);
+                const startX = cX - lenX/2;
+                const startY = cY - lenY/2;
+
+                for (let i = 0; i < qtyX; i++) points.push({ x: startX + i * stepX, y: startY + lenY });
+                for (let i = 1; i < qtyY - 1; i++) points.push({ x: startX + lenX, y: startY + lenY - i * stepY });
+                for (let i = 0; i < qtyX; i++) points.push({ x: startX + lenX - i * stepX, y: startY });
+                for (let i = 1; i < qtyY - 1; i++) points.push({ x: startX, y: startY + i * stepY });
+
+                path.push({x: cX, y: cY, z: clearanceZ, type: 'rapid', gcode: 'G00 Z5.00'});
+
+                points.forEach((p, idx) => {
+                    path.push({x: p.x, y: p.y, z: clearanceZ, type: 'rapid', gcode: `G00 X${p.x.toFixed(2)} Y${p.y.toFixed(2)}`});
+                    path.push({x: p.x, y: p.y, z: 1.0, type: 'rapid', gcode: `G00 Z1.00`});
+                    path.push({x: p.x, y: p.y, z: -totalZ, type: 'feed', gcode: `G01 Z-${totalZ.toFixed(2)} F${feed.toFixed(0)}`});
+                    path.push({x: p.x, y: p.y, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                });
+            }
+            else if (macroName.includes("oring") || macroName.includes("orings")) {
+                // #1=Diam ranura centro, #2=Diam hta, #9=X, #10=Y
+                const rGroove = vars[1] / 2;
+                const cX = vars[9] || 0;
+                const cY = vars[10] || 0;
+                const totalZ = vars[4] || 15;
+                const stepZ = vars[3] || 3;
+                
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                
+                let z = 0;
+                while (z > -totalZ) {
+                    z = Math.max(-totalZ, z - stepZ);
+                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: `G00 Z${z.toFixed(2)}`});
+                    // Entrada
+                    path.push({x: cX + rGroove, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + rGroove).toFixed(2)} F${feed.toFixed(0)}`});
+                    // Círculo completo
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        path.push({x: cX + rGroove * Math.cos(rad), y: cY - rGroove * Math.sin(rad), z: z, type: 'feed', gcode: `G02 X${(cX + rGroove * Math.cos(rad)).toFixed(2)} Y${(cY - rGroove * Math.sin(rad)).toFixed(2)} (Ranurar)`});
+                    }
+                    // Retracción al centro
+                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                }
+                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+            }
+            
+            return path;
+        }
+
+        // Funciones auxiliares para cajera rectangular y ranura
+        function addRoundedRectPoints(path, cx, cy, w, h, rad, z, type, label, feedRate) {
+            const startX = cx - w/2 + rad;
+            const startY = cy - h/2;
+            
+            // Punto inicial
+            path.push({x: startX, y: startY, z: z, type: type, gcode: `G01 X${startX.toFixed(2)} Y${startY.toFixed(2)} F${feedRate.toFixed(0)} (${label})`});
+            
+            // Superior derecha
+            path.push({x: cx + w/2 - rad, y: cy - h/2, z: z, type: type, gcode: `G01 X${(cx + w/2 - rad).toFixed(2)}`});
+            if (rad > 0) {
+                for (let a = 270; a <= 360; a += 15) {
+                    const theta = a * Math.PI / 180;
+                    path.push({x: cx + w/2 - rad + rad * Math.cos(theta), y: cy - h/2 + rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx + w/2 - rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy - h/2 + rad + rad * Math.sin(theta)).toFixed(2)}`});
+                }
+            }
+            // Derecha inferior
+            path.push({x: cx + w/2, y: cy + h/2 - rad, z: z, type: type, gcode: `G01 Y${(cy + h/2 - rad).toFixed(2)}`});
+            if (rad > 0) {
+                for (let a = 0; a <= 90; a += 15) {
+                    const theta = a * Math.PI / 180;
+                    path.push({x: cx + w/2 - rad + rad * Math.cos(theta), y: cy + h/2 - rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx + w/2 - rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy + h/2 - rad + rad * Math.sin(theta)).toFixed(2)}`});
+                }
+            }
+            // Inferior izquierda
+            path.push({x: cx - w/2 + rad, y: cy + h/2, z: z, type: type, gcode: `G01 X${(cx - w/2 + rad).toFixed(2)}`});
+            if (rad > 0) {
+                for (let a = 90; a <= 180; a += 15) {
+                    const theta = a * Math.PI / 180;
+                    path.push({x: cx - w/2 + rad + rad * Math.cos(theta), y: cy + h/2 - rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx - w/2 + rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy + h/2 - rad + rad * Math.sin(theta)).toFixed(2)}`});
+                }
+            }
+            // Izquierda superior
+            path.push({x: cx - w/2, y: cy - h/2 + rad, z: z, type: type, gcode: `G01 Y${(cy - h/2 + rad).toFixed(2)}`});
+            if (rad > 0) {
+                for (let a = 180; a <= 270; a += 15) {
+                    const theta = a * Math.PI / 180;
+                    path.push({x: cx - w/2 + rad + rad * Math.cos(theta), y: cy - h/2 + rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx - w/2 + rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy - h/2 + rad + rad * Math.sin(theta)).toFixed(2)}`});
+                }
+            }
+        }
+
+        function addSlotPoints(path, cx, cy, lenC, offset, angle, z, type, label, feedRate) {
+            // Genera puntos de ranura rotada
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            
+            const localPoints = [];
+            // Arco derecho
+            for (let a = -90; a <= 90; a += 15) {
+                const theta = a * Math.PI / 180;
+                localPoints.push({x: lenC/2 + offset * Math.cos(theta), y: offset * Math.sin(theta)});
+            }
+            // Arco izquierdo
+            for (let a = 90; a <= 270; a += 15) {
+                const theta = a * Math.PI / 180;
+                localPoints.push({x: -lenC/2 + offset * Math.cos(theta), y: offset * Math.sin(theta)});
+            }
+            localPoints.push({x: lenC/2, y: -offset}); // close loop
+            
+            localPoints.forEach((p, idx) => {
+                const rx = cx + p.x * cos - p.y * sin;
+                const ry = cy + p.x * sin + p.y * cos;
+                path.push({
+                    x: rx, 
+                    y: ry, 
+                    z: z, 
+                    type: type, 
+                    gcode: idx === 0 ? `G01 X${rx.toFixed(2)} Y${ry.toFixed(2)} F${feedRate.toFixed(0)} (${label})` : `G03 X${rx.toFixed(2)} Y${ry.toFixed(2)}`
+                });
+            });
+        }
+
     </script>
 </body>
 </html>
