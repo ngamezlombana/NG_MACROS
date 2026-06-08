@@ -1260,6 +1260,7 @@
                 <a href="#" id="tab-simulation" onclick="switchTab('simulation', event)">Simulación</a>
                 <a href="#" id="tab-tools" onclick="switchTab('tools', event)">Herramientas</a>
                 <a href="#" id="tab-history" onclick="switchTab('history', event)">Historial</a>
+                <a href="#" id="tab-manual" onclick="switchTab('manual', event)">Manual</a>
             </nav>
             <div class="header-actions">
                 <button class="btn-execute" onclick="showExecuteAlert()">Ejecutar G-Code</button>
@@ -1669,6 +1670,328 @@
                 </table>
             </div>
         </div>
+        <!-- VISTA DE MANUAL DE USUARIO NATIVO -->
+        <div class="main-layout" id="manualLayout" style="display: none; padding: 30px; overflow-y: auto; height: calc(100vh - 60px); background: var(--bg-primary); color: var(--text-main);">
+            <div class="glass-table-container" style="max-width: 950px; padding: 30px; background: rgba(18, 20, 26, 0.4); border: 1px solid var(--border-color); border-radius: 12px; backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+                <h1 style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid var(--accent-orange); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" style="color: var(--accent-orange); flex-shrink: 0;">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm0-4h-2V7h2v7z"/>
+                    </svg>
+                    Manual de Usuario - Macros CNC Paramétricas (NG CNC)
+                </h1>
+                
+                <p style="font-size: 14px; line-height: 1.6; color: var(--text-muted); margin-bottom: 25px;">
+                    Esta guía te explicará de manera clara y directa cómo utilizar la página web, programar los parámetros de las 8 macros y visualizar de forma segura la simulación 2D y 3D antes de ejecutar el corte en tu máquina física.
+                </p>
+
+                <!-- Menú de navegación rápida -->
+                <div style="background: rgba(255, 122, 0, 0.05); border-left: 3px solid var(--accent-orange); padding: 15px; border-radius: 6px; margin-bottom: 35px; border: 1px solid rgba(255, 122, 0, 0.1);">
+                    <h3 style="font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; color: var(--accent-orange); letter-spacing: 0.5px;">Navegación del Manual:</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; font-size: 13px;">
+                        <div><a href="#man-interfaz" style="color: var(--text-main); text-decoration: none; font-weight: 600;">1. Guía de la Interfaz Web</a></div>
+                        <div><a href="#man-sim" style="color: var(--text-main); text-decoration: none; font-weight: 600;">2. El Módulo de Simulación 2D y 3D</a></div>
+                        <div style="grid-column: 1 / -1; margin-top: 5px; font-weight: 700; color: var(--accent-blue); text-transform: uppercase; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">Guías de las 8 Macros de la Aplicación:</div>
+                        <div><a href="#m1" style="color: var(--accent-blue); text-decoration: none;">• Macro 1: Arreglo Circular de Agujeros</a></div>
+                        <div><a href="#m2" style="color: var(--accent-blue); text-decoration: none;">• Macro 2: Macho Circular Central</a></div>
+                        <div><a href="#m3" style="color: var(--accent-blue); text-decoration: none;">• Macro 3: Cajera Circular</a></div>
+                        <div><a href="#m4" style="color: var(--accent-blue); text-decoration: none;">• Macro 4: Cajera Rectangular</a></div>
+                        <div><a href="#m5" style="color: var(--accent-blue); text-decoration: none;">• Macro 5: Ranura Cerrada</a></div>
+                        <div><a href="#m6" style="color: var(--accent-blue); text-decoration: none;">• Macro 6: Fresado de Roscas</a></div>
+                        <div><a href="#m7" style="color: var(--accent-blue); text-decoration: none;">• Macro 7: Patrón Rectangular Perimetral</a></div>
+                        <div><a href="#m8" style="color: var(--accent-blue); text-decoration: none;">• Macro 8: Ranuras Tipo O-rings</a></div>
+                        <div style="grid-column: 1 / -1; margin-top: 10px;"><a href="#man-seg" style="color: var(--text-main); text-decoration: none; font-weight: 600;">3. Seguridad y Práctica en el Taller</a></div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 1 -->
+                <div id="man-interfaz" style="margin-bottom: 40px; scroll-margin-top: 80px;">
+                    <h2 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; text-transform: uppercase; color: var(--accent-orange);">1. Guía de la Interfaz Web</h2>
+                    <p style="font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Para programar una figura, sigue estos sencillos pasos:
+                    </p>
+                    <ol style="font-size: 13.5px; line-height: 1.8; color: var(--text-muted); padding-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Selección de Macro:</strong> Elige en la barra lateral izquierda la figura que deseas mecanizar (cajeras, taladrados, machos o roscas).</li>
+                        <li><strong>Llenado de Parámetros:</strong> Rellena el formulario del panel central con las medidas de tu pieza. Todos los campos tienen explicaciones directas e indican sus unidades (mm, RPM, m/min).</li>
+                        <li><strong>Generación del Código:</strong> Haz clic en <strong>"Ejecutar y Generar Código G"</strong>. El programa correspondiente en código G se compilará al instante en el editor del panel derecho.</li>
+                        <li><strong>Copiado/Descarga:</strong> Utiliza el botón <strong>"Copiar Código G"</strong> para guardarlo en tu portapapeles, pégalo en un bloc de notas y guárdalo con extensión <code>.nc</code> para transferirlo por USB a tu control CNC.</li>
+                    </ol>
+                </div>
+
+                <!-- SECCIÓN 2 -->
+                <div id="man-sim" style="margin-bottom: 40px; scroll-margin-top: 80px;">
+                    <h2 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; text-transform: uppercase; color: var(--accent-orange);">2. El Módulo de Simulación 2D y 3D</h2>
+                    <p style="font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        El simulador te permite ver el recorrido exacto de la fresa antes de cortar. Al entrar a la pestaña <strong>"Simulación"</strong>:
+                    </p>
+                    <ul style="font-size: 13.5px; line-height: 1.8; color: var(--text-muted); padding-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Controles (Play/Pausa/Stop):</strong> Gestiona la ejecución virtual. Puedes regular la velocidad hasta a 20 veces la velocidad real (20x) para simulaciones largas.</li>
+                        <li><strong>Visualización de Materiales:</strong> Modifica la estética del material (Acero, Cobre, Aluminio, Madera) para ver cómo luce tu bloque stock real.</li>
+                        <li><strong>Vista 3D Isométrica:</strong> Presiona el botón <strong>"Vista 3D"</strong> para cargar el modelo WebGL. Puedes arrastrar con el botón izquierdo del ratón para girar la cámara orbital, con el click derecho para moverla, y usar la rueda para hacer zoom.</li>
+                        <li><strong>Códigos de Color de Trayectoria:</strong> Las líneas blancas representan tránsitos rápidos en el aire ($G00$), las naranjas cortes de desbaste ($G01/G02/G03$) y las turquesas pasadas de acabado.</li>
+                    </ul>
+                </div>
+
+                <!-- MACRO 1 -->
+                <div id="m1" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 1: Arreglo Circular de Agujeros</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Se utiliza para realizar barrenados o taladrados distribuidos uniformemente sobre una circunferencia imaginaria. Muy útil para platos divisores, acoplamientos o bridas de tuberías.
+                    </p>
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Diámetro del Círculo</td><td>Diámetro de la circunferencia guía donde van los centros de los agujeros.</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Número de Agujeros</td><td>Cantidad de taladrados a realizar (ej: 4, 6, 8, 12).</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Diámetro de la Broca</td><td>Medida de la broca instalada, sirve para escalar la herramienta en la simulación.</td></tr>
+                            <tr><td><strong>#6</strong></td><td>Profundidad Total</td><td>Grosor o profundidad del taladrado (medido hacia abajo como valor positivo).</td></tr>
+                            <tr><td><strong>#7</strong></td><td>Estrategia (0/1)</td><td><strong>0 = Directo</strong> (bajada continua), <strong>1 = Picoteo</strong> (baja por pasos para evacuar viruta).</td></tr>
+                            <tr><td><strong>#8</strong></td><td>Paso de Picoteo</td><td>Cuánto desciende en milímetros la broca en cada penetración de picoteo.</td></tr>
+                            <tr><td><strong>#9</strong></td><td>Seguridad sobre Pieza</td><td>Altura segura (Z+) a la que se traslada la broca en rápido antes de empezar a taladrar.</td></tr>
+                            <tr><td><strong>#10</strong></td><td>Centro X</td><td>Ubicación del centro de la brida en el eje X respecto al origen de la pieza.</td></tr>
+                            <tr><td><strong>#11</strong></td><td>Centro Y</td><td>Ubicación del centro de la brida en el eje Y respecto al origen de la pieza.</td></tr>
+                            <tr><td><strong>#12</strong></td><td>Z Inicial</td><td>Nivel Z de la superficie del material donde se empieza a taladrar (ej: 0.0).</td></tr>
+                            <tr><td><strong>#13</strong></td><td>Ángulo Inicial</td><td>Orientación en grados del primer agujero respecto a la horizontal.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 2 -->
+                <div id="m2" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 2: Desbaste Acabado macho circular central</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Mecaniza la parte exterior de un bloque cilíndrico dejando un cuello o cilindro que sobresale hacia arriba (macho circular).
+                    </p>
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Diámetro Exterior Inicial</td><td>El diámetro del bloque original que vas a rebajar.</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Diámetro Final del Macho</td><td>El diámetro final del cilindro central que quedará intacto.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Diámetro de la Herramienta</td><td>Diámetro de la fresa instalada en el husillo.</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Profundidad Total Z</td><td>La profundidad total que se va a desgastar hacia abajo (valor positivo).</td></tr>
+                            <tr><td><strong>#5</strong></td><td>Pasada en Z</td><td>Espesor vertical en milímetros que rebaja la herramienta en cada nivel.</td></tr>
+                            <tr><td><strong>#6</strong></td><td>Paso Radial</td><td>Anchura máxima del paso lateral de la herramienta para remover material exterior.</td></tr>
+                            <tr><td><strong>#7</strong></td><td>Sobrematerial Pared</td><td>Espesor extra que se deja en la pared del macho para limpiar durante el acabado.</td></tr>
+                            <tr><td><strong>#9</strong></td><td>Plano de Retroceso R</td><td>Altura Z segura de traslado para evitar colisiones entre niveles.</td></tr>
+                            <tr><td><strong>#13</strong></td><td>Centro X</td><td>Coordenada X del centro del cilindro.</td></tr>
+                            <tr><td><strong>#14</strong></td><td>Centro Y</td><td>Coordenada Y del centro del cilindro.</td></tr>
+                            <tr><td><strong>#15</strong></td><td>Z Inicial</td><td>Altura Z donde se encuentra la cara superior de la pieza.</td></tr>
+                            <tr><td><strong>#16</strong></td><td>Opción (0 / 1 / 2)</td><td><strong>0 = Ambos</strong> (Desbaste + Acabado), <strong>1 = Solo Desbaste</strong>, <strong>2 = Solo Acabado</strong>.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 3 -->
+                <div id="m3" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 3: Desbaste/Acabado cajera circular</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Realiza una piscina o rebaje cilíndrico por debajo de la superficie del material. La fresa inicia en el centro y se desplaza en órbitas circulares progresivas hacia afuera.
+                    </p>
+                    <img src="cajera_circular_diagram.png" style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid var(--border-color); margin: 15px auto; display: block;" alt="Esquema Cajera Circular">
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Diámetro Final de Caja</td><td>Diámetro del agujero circular final del rebaje.</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Diámetro de la Herramienta</td><td>Diámetro físico de la fresa a utilizar.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Profundidad Total Z</td><td>Profundidad del fondo de la cajera (valor positivo).</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Pasada Z Desbaste</td><td>Medida que baja la herramienta verticalmente en cada capa de desbaste.</td></tr>
+                            <tr><td><strong>#5</strong></td><td>Sobrematerial Radial</td><td>Material sobrante para limpiar en la pasada final de acabado.</td></tr>
+                            <tr><td><strong>#9</strong></td><td>Plano de Seguridad R</td><td>Altura libre en Z donde la herramienta se mueve rápido.</td></tr>
+                            <tr><td><strong>#10</strong></td><td>Centro en X</td><td>Coordenada X del centro de la cajera.</td></tr>
+                            <tr><td><strong>#11</strong></td><td>Centro en Y</td><td>Coordenada Y del centro de la cajera.</td></tr>
+                            <tr><td><strong>#12</strong></td><td>Paso Radial Máximo</td><td>Paso lateral máximo que da la fresa para ir abriendo la cajera.</td></tr>
+                            <tr><td><strong>#14</strong></td><td>Z Inicial</td><td>Altura de la cara superior de la pieza (normalmente 0).</td></tr>
+                            <tr><td><strong>#15</strong></td><td>Radio de Arco Acabado</td><td>Radio del arco tangencial con el que entra la fresa en el acabado para evitar marcas.</td></tr>
+                            <tr><td><strong>#16</strong></td><td>Opción (0 / 1 / 2)</td><td>Selecciona el ciclo de trabajo: <strong>0 = Todo</strong>, <strong>1 = Solo Desbaste</strong>, <strong>2 = Solo Acabado</strong>.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 4 -->
+                <div id="m4" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 4: Desbaste/Acabado cajera rectangular</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Fresado de una cavidad rectangular o cuadrada. Permite redondear las cuatro esquinas de forma automática con un radio personalizable.
+                    </p>
+                    <img src="cajera_rectangular_diagram.png" style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid var(--border-color); margin: 15px auto; display: block;" alt="Esquema Cajera Rectangular">
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Longitud X de la Caja</td><td>Medida de la cajera a lo largo del eje horizontal X.</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Ancho Y de la Caja</td><td>Medida de la cajera a lo largo del eje vertical Y.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Radio en las Esquinas</td><td>Radio de redondeo en las 4 esquinas internas (debe ser igual o mayor al radio de tu fresa).</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Diámetro de la Herramienta</td><td>Diámetro del cortador.</td></tr>
+                            <tr><td><strong>#5</strong></td><td>Profundidad Total Z</td><td>Profundidad del fondo del cajón (valor positivo).</td></tr>
+                            <tr><td><strong>#6</strong></td><td>Pasada en Z Desbaste</td><td>Cuántos milímetros baja la fresa por cada capa.</td></tr>
+                            <tr><td><strong>#7</strong></td><td>Sobrematerial Radial</td><td>Grosor reservado para la pasada de acabado en las paredes laterales.</td></tr>
+                            <tr><td><strong>#11</strong></td><td>Plano de Seguridad R</td><td>Nivel seguro para desplazamientos rápidos sobre la pieza.</td></tr>
+                            <tr><td><strong>#12</strong></td><td>Centro en X</td><td>Coordenada X del centro de la cajera rectangular.</td></tr>
+                            <tr><td><strong>#13</strong></td><td>Centro en Y</td><td>Coordenada Y del centro de la cajera rectangular.</td></tr>
+                            <tr><td><strong>#14</strong></td><td>Paso Radial Máximo</td><td>Paso lateral de la fresa durante el vaciado del rectángulo.</td></tr>
+                            <tr><td><strong>#15</strong></td><td>Z Inicial</td><td>Superficie de inicio en Z.</td></tr>
+                            <tr><td><strong>#16</strong></td><td>Radio de Arco Acabado</td><td>Radio del arco circular para la aproximación tangencial de acabado.</td></tr>
+                            <tr><td><strong>#17</strong></td><td>Opción (0 / 1 / 2)</td><td><strong>0 = Ambos</strong>, <strong>1 = Solo Desbaste</strong>, <strong>2 = Solo Acabado</strong>.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 5 -->
+                <div id="m5" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 5: Desbaste/Acabado Ranura Cerrada</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Mecanizado de una ranura lineal o colisa (chaveteros alargados). Esta macro permite orientar la ranura en cualquier ángulo de inclinación de 0 a 360 grados.
+                    </p>
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Longitud entre Centros (L)</td><td>Distancia lineal de extremo a extremo entre los centros de los radios de la ranura.</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Radio de la Ranura</td><td>Radio del semicírculo extremo. Define la mitad del ancho de la ranura.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Ángulo de Inclinación</td><td>Ángulo en grados para girar la ranura respecto a la horizontal.</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Diámetro de la Herramienta</td><td>Diámetro de la fresa a emplear.</td></tr>
+                            <tr><td><strong>#5</strong></td><td>Profundidad Total Z</td><td>Profundidad del canal de la ranura (valor positivo).</td></tr>
+                            <tr><td><strong>#6</strong></td><td>Pasada en Z Desbaste</td><td>Medida que baja la fresa en cada pasada de penetración.</td></tr>
+                            <tr><td><strong>#7</strong></td><td>Sobrematerial Radial</td><td>Espesor de la capa de pared a limpiar en el ciclo de acabado.</td></tr>
+                            <tr><td><strong>#11</strong></td><td>Plano de Seguridad R</td><td>Plano seguro en Z en el aire.</td></tr>
+                            <tr><td><strong>#12</strong></td><td>Centro en X</td><td>Coordenada X del centro exacto de la ranura.</td></tr>
+                            <tr><td><strong>#13</strong></td><td>Centro en Y</td><td>Coordenada Y del centro exacto de la ranura.</td></tr>
+                            <tr><td><strong>#14</strong></td><td>Paso Radial Máximo</td><td>Paso lateral de limpieza si el ancho de la ranura es mayor al diámetro del cortador.</td></tr>
+                            <tr><td><strong>#15</strong></td><td>Z Inicial</td><td>Cara superior de la pieza.</td></tr>
+                            <tr><td><strong>#16</strong></td><td>Radio de Arco Acabado</td><td>Arco de entrada tangencial en el acabado de las paredes.</td></tr>
+                            <tr><td><strong>#17</strong></td><td>Opción (0 / 1 / 2)</td><td><strong>0 = Ambos</strong>, <strong>1 = Solo Desbaste</b>, <strong>2 = Solo Acabado</strong>.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 6 -->
+                <div id="m6" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 6: Fresado de Roscas Helicoidal</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Genera roscas interiores en agujeros previos con una fresa de roscar. Realiza una interpolación helicoidal donde la fresa gira circularmente mientras sube por el paso (pitch) de la rosca.
+                    </p>
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Diámetro Nominal Rosca</td><td>Diámetro mayor o exterior de la rosca deseada (ej: 64 para M64).</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Diámetro Fresa de Roscar</td><td>Diámetro del cortador especial de roscar.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Profundidad de la Rosca</td><td>Profundidad útil hasta donde se tallará el hilo de rosca.</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Paso de la Rosca / Pitch</td><td>Avance por vuelta de la rosca (ej: 2.0 mm, paso fino o grueso).</td></tr>
+                            <tr><td><strong>#5</strong></td><td>Número de Vueltas</td><td><strong>1</strong> para herramientas de peines completos (multipaso).<br><strong>Más de 1</strong> si es una fresa de un solo hilo que rosca por espirales sucesivas.</td></tr>
+                            <tr><td><strong>#9</strong></td><td>Plano de Seguridad R</td><td>Altura Z donde la fresa se aproxima o sale rápidamente en vacío.</td></tr>
+                            <tr><td><strong>#10</strong></td><td>Centro X</td><td>Coordenada X del centro del agujero a roscar.</td></tr>
+                            <tr><td><strong>#11</strong></td><td>Centro Y</td><td>Coordenada Y del centro del agujero a roscar.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 7 -->
+                <div id="m7" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 7: Patron Rectangular Perimetral de Agujeros</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Realiza un patrón rectangular de agujeros (barrenados) colocados solo en el perímetro o contorno exterior. Útil para tapas de cajas, bridas cuadradas o marcos atornillados.
+                    </p>
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Longitud Total X</td><td>Distancia entre centros horizontales del marco en el eje X.</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Ancho Total Y</td><td>Distancia entre centros verticales del marco en el eje Y.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Cantidad Agujeros en X</td><td>Número de taladrados a lo largo del marco superior e inferior.</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Cantidad Agujeros en Y</td><td>Número de taladrados a lo largo del marco izquierdo y derecho.</td></tr>
+                            <tr><td><strong>#5</strong></td><td>RPM (Velocidad Giro)</td><td>Velocidad rotacional del husillo para taladrar.</td></tr>
+                            <tr><td><strong>#6</strong></td><td>Avance F</td><td>Avance de penetración vertical de la broca al taladrar.</td></tr>
+                            <tr><td><strong>#7</strong></td><td>Profundidad Z Total</td><td>Espesor o profundidad del taladrado (valor positivo).</td></tr>
+                            <tr><td><strong>#8</strong></td><td>Estrategia (0 / 1)</td><td><strong>0 = Directo</strong> (entra sin pausa), <strong>1 = Picoteo</strong> (bajada intermitente para romper viruta).</td></tr>
+                            <tr><td><strong>#9</strong></td><td>Paso de Picoteo</td><td>Profundidad de cada bajada sucesiva en la estrategia de picoteo.</td></tr>
+                            <tr><td><strong>#10</strong></td><td>Seguridad Z</td><td>Margen de altura (Z+) por encima de la pieza antes de cortar.</td></tr>
+                            <tr><td><strong>#11</strong></td><td>Centro X</td><td>Coordenada X del centro geométrico de la placa o marco.</td></tr>
+                            <tr><td><strong>#12</strong></td><td>Centro Y</td><td>Coordenada Y del centro geométrico de la placa o marco.</td></tr>
+                            <tr><td><strong>#13</strong></td><td>Z Inicial</td><td>Superficie superior de la pieza.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MACRO 8 -->
+                <div id="m8" style="margin-bottom: 45px; scroll-margin-top: 80px; background: rgba(255,255,255,0.01); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 12px; text-transform: uppercase;">• Macro 8: Ranuras Tipo orings</h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Mecaniza canales circulares de sección plana (ranuras de sellado hermético). Emplea un descenso helicoidal suave de 360 grados constante, asegurando que no queden marcas de penetración en el empaque.
+                    </p>
+                    <table class="glass-table" style="font-size: 12.5px; width: 100%; margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Variable</th>
+                                <th style="width: 30%;">Nombre en Interfaz</th>
+                                <th>Explicación en Lenguaje Simple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>#1</strong></td><td>Diámetro de la Ranura</td><td>Diámetro medido al centro de la ranura circular (donde pasa el centro del cortador).</td></tr>
+                            <tr><td><strong>#2</strong></td><td>Diámetro de la Herramienta</td><td>Diámetro del cortador cilíndrico, que define el ancho exacto del canal.</td></tr>
+                            <tr><td><strong>#3</strong></td><td>Profundidad Total Z</td><td>Profundidad del canal del O-ring (valor positivo).</td></tr>
+                            <tr><td><strong>#4</strong></td><td>Profundidad por Vuelta</td><td>Paso de hélice en Z. Cuánto desciende el cortador por cada giro completo de 360 grados.</td></tr>
+                            <tr><td><strong>#8</strong></td><td>Plano de Seguridad R</td><td>Nivel Z de seguridad para traslados rápidos sobre la pieza.</td></tr>
+                            <tr><td><strong>#9</strong></td><td>Centro en X</td><td>Coordenada X del eje central de la ranura.</td></tr>
+                            <tr><td><strong>#10</strong></td><td>Centro en Y</td><td>Coordenada Y del eje central de la ranura.</td></tr>
+                            <tr><td><strong>#14</strong></td><td>Z Inicial</td><td>Plano superior de apoyo de la herramienta.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SECCIÓN 3 -->
+                <div id="man-seg" style="margin-bottom: 20px; scroll-margin-top: 80px;">
+                    <h2 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; text-transform: uppercase; color: var(--accent-orange);">3. Seguridad y Práctica en el Taller</h2>
+                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 15px;">
+                        Para garantizar una operación segura al cargar el código G en tu máquina CNC real, sigue estrictamente estas recomendaciones:
+                    </p>
+                    <ul style="font-size: 13px; line-height: 1.8; color: var(--text-muted); padding-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Verificación del Cero de la Pieza (WCS):</strong> Todas las trayectorias de la simulación se programan con el origen (X0, Y0) en el centro geométrico de la cavidad o patrón. Antes de ejecutar, asegúrate de palpar o referenciar la máquina en el centro real del bloque en bruto. El Z0 siempre es la cara superior de tu material.</li>
+                        <li><strong>Plano de Seguridad R:</strong> Nunca programes un plano seguro R inferior a 5 milímetros. Mantener un colchón de aire seguro evita colisiones laterales contra tornillos o mordazas durante el retorno rápido de la herramienta.</li>
+                        <li><strong>Corrida en el Aire (Air Cut):</strong> Si es la primera vez que utilizas el código generado, levanta el cero en Z a +50 milímetros sobre la superficie y realiza una prueba en vacío. Así confirmarás visualmente que la cinemática de la máquina coincide perfectamente con la simulación en 3D que viste en pantalla.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- PANTALLA DE PARADA DE EMERGENCIA MODAL -->
@@ -3117,7 +3440,7 @@
             navLinks.forEach(link => link.classList.remove('active'));
 
             // Ocultar todas las vistas
-            const views = ['macrosLayout', 'simulationLayout', 'toolsLayout', 'historyLayout'];
+            const views = ['macrosLayout', 'simulationLayout', 'toolsLayout', 'historyLayout', 'manualLayout'];
             views.forEach(id => {
                 const element = document.getElementById(id);
                 if (element) element.style.display = 'none';
