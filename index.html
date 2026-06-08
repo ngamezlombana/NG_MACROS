@@ -3175,6 +3175,7 @@
         let threeStock = null;
         let threeTool = null;
         let threeLineGroup = null;
+        let currentFrustumSize = 250;
 
         // Propiedades estéticas de materiales
         const MATERIAL_THEMES = {
@@ -4554,8 +4555,21 @@
             threeScene = new THREE.Scene();
             threeScene.background = new THREE.Color('#0c0e12');
             
-            threeCamera = new THREE.PerspectiveCamera(45, w / h, 1, 1000);
-            threeCamera.position.set(0, -150, 150);
+            // Creación de Cámara Ortográfica para proyección Isométrica
+            const aspect = w / h;
+            const frustumSize = 250;
+            threeCamera = new THREE.OrthographicCamera(
+                -frustumSize * aspect / 2,
+                frustumSize * aspect / 2,
+                frustumSize / 2,
+                -frustumSize / 2,
+                1,
+                1000
+            );
+            
+            // Posicionamiento isométrico estándar: misma distancia en X, -Y y Z
+            threeCamera.position.set(150, -150, 150);
+            threeCamera.lookAt(0, 0, 0);
             
             threeRenderer = new THREE.WebGLRenderer({ antialias: true });
             threeRenderer.setSize(w, h);
@@ -4602,7 +4616,15 @@
             const container = document.getElementById('sim3DContainer');
             const w = container.clientWidth;
             const h = container.clientHeight;
-            threeCamera.aspect = w / h;
+            const aspect = w / h;
+            
+            const fSize = (typeof currentFrustumSize !== 'undefined') ? currentFrustumSize : 250;
+            
+            threeCamera.left = -fSize * aspect / 2;
+            threeCamera.right = fSize * aspect / 2;
+            threeCamera.top = fSize / 2;
+            threeCamera.bottom = -fSize / 2;
+            
             threeCamera.updateProjectionMatrix();
             threeRenderer.setSize(w, h);
         }
@@ -4666,6 +4688,31 @@
             threeStock.receiveShadow = true;
             threeStock.castShadow = true;
             threeScene.add(threeStock);
+
+            // Ajustar el frustum de la cámara ortográfica dinámicamente según el tamaño de la pieza
+            if (threeCamera) {
+                const maxDim = Math.max(stockW, stockH);
+                currentFrustumSize = Math.max(150, maxDim * 1.6);
+                
+                const container = document.getElementById('sim3DContainer');
+                const aspect = container.clientWidth / container.clientHeight;
+                
+                threeCamera.left = -currentFrustumSize * aspect / 2;
+                threeCamera.right = currentFrustumSize * aspect / 2;
+                threeCamera.top = currentFrustumSize / 2;
+                threeCamera.bottom = -currentFrustumSize / 2;
+                threeCamera.updateProjectionMatrix();
+                
+                // Posicionar la cámara en perspectiva isométrica proporcional a la pieza
+                const camDist = currentFrustumSize * 0.8;
+                threeCamera.position.set(camDist, -camDist, camDist);
+                threeCamera.lookAt(0, 0, -stockD / 2);
+                
+                if (threeControls) {
+                    threeControls.target.set(0, 0, -stockD / 2);
+                    threeControls.update();
+                }
+            }
         }
 
         function updateThreeTool() {
