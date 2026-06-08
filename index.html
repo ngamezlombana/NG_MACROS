@@ -3348,6 +3348,27 @@
             simCtxWorkpiece.restore();
         }
 
+        function getToolDiameter(fname, vars) {
+            if (fname.includes("Arreglo Circular")) {
+                return vars[3] || 8;
+            } else if (fname.includes("circular central")) {
+                return vars[3] || 12;
+            } else if (fname.includes("cajera_circular")) {
+                return vars[2] || 12;
+            } else if (fname.includes("cajera_rectangular")) {
+                return vars[4] || 12;
+            } else if (fname.includes("Ranura Cerrada")) {
+                return vars[4] || 10;
+            } else if (fname.includes("Roscas")) {
+                return vars[2] || 12;
+            } else if (fname.includes("Patron Rectangular")) {
+                return 8; // Broca default
+            } else if (fname.includes("oring") || fname.includes("orings")) {
+                return vars[2] || 6;
+            }
+            return 10; // Default fallback
+        }
+
         function drawToolOnly() {
             const w = simToolCanvas.width / window.devicePixelRatio;
             const h = simToolCanvas.height / window.devicePixelRatio;
@@ -3385,8 +3406,7 @@
                 : Math.min((w - 100) / stockW, (h - 100) / stockH);
 
             // Fresa / Diámetro de corte
-            let dHta = vars[2] || vars[3] || vars[4] || 10; // diámetros según macro
-            if (fname.includes("Arreglo Circular") || fname.includes("Patron Rectangular")) dHta = vars[3] || 8; // diámetro broca
+            const dHta = getToolDiameter(fname, vars);
             const rHta = (dHta / 2) * scale;
 
             const toolPxX = cx + simToolPos.x * scale;
@@ -3624,8 +3644,8 @@
                 ? Math.min((w - 100) / stockW, (h - 100) / stockW)
                 : Math.min((w - 100) / stockW, (h - 100) / stockH);
 
-            let dHta = vars[2] || vars[3] || vars[4] || 10;
-            if (fname.includes("Arreglo Circular") || fname.includes("Patron Rectangular")) dHta = vars[3] || 8;
+            // Fresa / Diámetro de corte
+            const dHta = getToolDiameter(fname, vars);
             const rHta = (dHta / 2) * scale;
 
             const toolPxX = cx + simToolPos.x * scale;
