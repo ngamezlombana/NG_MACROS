@@ -1235,6 +1235,9 @@
             background-color: rgba(255, 255, 255, 0.01);
         }
     </style>
+    <!-- Three.js y OrbitControls para simulación 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
     <!-- BANNER DE TIEMPO RESTANTE DEMO -->
@@ -1423,7 +1426,10 @@
                         <div class="macro-filename" id="simMacroFilename">macro.nc</div>
                     </div>
                     <!-- Estado de la Simulación en Badge -->
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="toggleSimModeBtn" class="btn-execute" style="padding: 6px 12px; font-size: 11px; margin-bottom: 0; background: var(--accent-blue); border-color: var(--accent-blue);" onclick="toggleSimMode()">
+                            <span>Vista 3D</span>
+                        </button>
                         <div class="status-card" style="margin-bottom: 0; padding: 6px 12px; background: rgba(0, 188, 255, 0.05); border-color: rgba(0, 188, 255, 0.2);">
                             <span style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Estado:</span>
                             <span id="simStatusBadge" style="font-size: 11px; font-weight: 700; color: #00bcff; margin-left: 4px;">Listo</span>
@@ -1436,6 +1442,8 @@
                     <canvas id="simWorkpieceCanvas" style="position: absolute; top:0; left:0; z-index:1; width:100%; height:100%;"></canvas>
                     <!-- Capa 2: Herramienta, rápidas y guías -->
                     <canvas id="simToolCanvas" style="position: absolute; top:0; left:0; z-index:2; width:100%; height:100%; pointer-events: none;"></canvas>
+                    <!-- Capa 3D: Contenedor para Three.js -->
+                    <div id="sim3DContainer" style="position: absolute; top:0; left:0; z-index:3; width:100%; height:100%; display: none; background: #0c0e12; border-radius: 8px; overflow: hidden;"></div>
                 </div>
 
                 <div class="canvas-legend">
@@ -3130,6 +3138,9 @@
                 simLayout.style.display = 'grid';
                 // Inicializar simulador con la macro y variables cargadas actualmente
                 simInit();
+                if (simMode === '3d' && threeRenderer) {
+                    resizeThree();
+                }
             } 
             else if (tabId === 'tools') {
                 document.getElementById('toolsLayout').style.display = 'block';
@@ -3154,6 +3165,16 @@
         let simMaterial = 'aluminum';
         let simTimeElapsed = 0;
         let simTimerInterval = null;
+
+        // Variables de Simulación 3D
+        let simMode = '2d';
+        let threeScene = null;
+        let threeCamera = null;
+        let threeRenderer = null;
+        let threeControls = null;
+        let threeStock = null;
+        let threeTool = null;
+        let threeLineGroup = null;
 
         // Propiedades estéticas de materiales
         const MATERIAL_THEMES = {
@@ -3260,6 +3281,36 @@
             if (simPoints.length > 0) {
                 simToolPos = { x: simPoints[0].x, y: simPoints[0].y, z: simPoints[0].z };
                 drawToolOnly();
+                
+                if (simMode === '3d' && threeTool) {
+                    threeTool.position.set(simToolPos.x, simToolPos.y, simToolPos.z);
+                }
+            }
+
+            // Reiniciar 3D si está activo
+            if (simMode === '3d' && threeScene) {
+                if (threeLineGroup) {
+                    while (threeLineGroup.children.length > 0) {
+                        threeLineGroup.remove(threeLineGroup.children[0]);
+                    }
+                }
+                updateThreeStock();
+                updateThreeTool();
+                
+                if (simPoints.length > 0 && threeLineGroup) {
+                    const points = [];
+                    simPoints.forEach(p => {
+                        points.push(new THREE.Vector3(p.x, p.y, p.z));
+                    });
+                    const guideGeom = new THREE.BufferGeometry().setFromPoints(points);
+                    const guideMat = new THREE.LineBasicMaterial({
+                        color: 0x444444,
+                        transparent: true,
+                        opacity: 0.3
+                    });
+                    const guideLine = new THREE.Line(guideGeom, guideMat);
+                    threeLineGroup.add(guideLine);
+                }
             }
         }
 
@@ -3563,6 +3614,8 @@
                 const dz = target.z - simToolPos.z;
                 const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
+                const prevThreePos = { x: simToolPos.x, y: simToolPos.y, z: simToolPos.z };
+
                 if (dist <= stepSize) {
                     // Llegó al punto objetivo
                     simToolPos.x = target.x;
@@ -3582,6 +3635,16 @@
                 // Si la herramienta está a nivel de corte (Z <= 0), tallar material
                 if (simToolPos.z <= 0) {
                     carveWorkpiece();
+                }
+
+                // Actualizar simulación 3D
+                if (simMode === '3d') {
+                    if (threeTool) {
+                        threeTool.position.set(simToolPos.x, simToolPos.y, simToolPos.z);
+                    }
+                    const targetPoint = simPoints[simCurrentIndex];
+                    const type = targetPoint ? targetPoint.type : 'rapid';
+                    updateThreeToolpathLine(prevThreePos, simToolPos, type);
                 }
             }
 
@@ -3754,278 +3817,551 @@
         function generateSimulationPath(macroName, vars) {
             const path = [];
             
-            // Valor por defecto si falta
-            const zTotal = vars[4] || vars[5] || 15; // prof
-            const zStep = vars[12] || vars[14] || vars[16] || 3; // pasada
-            const feed = vars[8] || vars[5] || 500; // avance
+            // Obtener el diámetro de herramienta correcto
+            const toolDiam = getToolDiameter(macroName, vars);
+            
+            // Buscar parámetros de avance para calcularlo adecuadamente
+            let vc = 0, teeth = 0, fz = 0;
+            let directRPM = 0, directFeed = 0;
+            for (let num in vars) {
+                const v = activeMacro.variables.find(x => x.num == num);
+                if (v) {
+                    const commentUpper = v.comment.toUpperCase();
+                    if (commentUpper.includes("VC")) vc = v.value;
+                    if (commentUpper.includes("INSERTOS") || commentUpper.includes("LABIOS") || commentUpper.includes("TEETH") || commentUpper.includes("LIPS")) teeth = v.value;
+                    if (commentUpper.includes("FZ")) fz = v.value;
+                    if (commentUpper === "RPM" || commentUpper.includes("VELOCIDAD RPM")) directRPM = v.value;
+                    if (commentUpper === "AVANCE F" || commentUpper === "AVANCE" || commentUpper === "AVANCE (F)") directFeed = v.value;
+                }
+            }
+            
+            const calculatedRPM = vc > 0 && toolDiam > 0 ? Math.round((vc * 1000) / (Math.PI * toolDiam)) : (directRPM > 0 ? Math.round(directRPM) : 2000);
+            const feed = vc > 0 && toolDiam > 0 && teeth > 0 && fz > 0 ? Math.round(calculatedRPM * teeth * fz) : (directFeed > 0 ? Math.round(directFeed) : 500);
             
             if (macroName.includes("Arreglo Circular")) {
-                // #1=D círculo, #2=Agujeros, #3=D broca, #10=X, #11=Y, #13=Ang
+                // #1=D círculo, #2=Agujeros, #3=D broca, #6=Prof total, #7=Estrategia, #8=Paso picoteo, #9=Seguridad, #10=X, #11=Y, #12=Z inicial, #13=Ang inicial, #14=Agujero inicio, #15=Agujero final
                 const rPatron = vars[1] / 2;
+                const nAgujeros = vars[2] || 4;
+                const totalZ = vars[6] || 15;
+                const estrategia = vars[7] || 0; // 0=Directo, 1=Picoteo
+                const pasoPicoteo = vars[8] || 5;
+                const seguridad = vars[9] || 5;
                 const cX = vars[10] || 0;
                 const cY = vars[11] || 0;
-                const nAgujeros = vars[2] || 4;
+                const zInicial = vars[12] || 0;
                 const angInicial = (vars[13] || 0) * Math.PI / 180;
-                const clearanceZ = 5;
-                const totalZ = vars[5] || 15;
+                const hStart = vars[14] || 1;
+                const hEnd = Math.min(nAgujeros, vars[15] || nAgujeros);
+                
+                const clearanceZ = zInicial + seguridad;
+                const zLimit = zInicial - totalZ;
 
-                path.push({x: cX, y: cY, z: clearanceZ, type: 'rapid', gcode: 'G00 Z5.00'});
+                path.push({x: cX, y: cY, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
 
-                for (let i = 0; i < nAgujeros; i++) {
-                    const angle = angInicial + (i * 2 * Math.PI / nAgujeros);
+                const stepAngle = (2 * Math.PI) / nAgujeros;
+                for (let i = hStart - 1; i < hEnd; i++) {
+                    const angle = angInicial + (i * stepAngle);
                     const hx = cX + rPatron * Math.cos(angle);
-                    const hy = cY - rPatron * Math.sin(angle);
+                    const hy = cY + rPatron * Math.sin(angle);
                     
                     path.push({x: hx, y: hy, z: clearanceZ, type: 'rapid', gcode: `G00 X${hx.toFixed(2)} Y${hy.toFixed(2)}`});
-                    path.push({x: hx, y: hy, z: 1.0, type: 'rapid', gcode: 'G00 Z1.00'});
-                    path.push({x: hx, y: hy, z: -totalZ, type: 'feed', gcode: `G01 Z-${totalZ.toFixed(2)} F${feed.toFixed(0)}`});
-                    path.push({x: hx, y: hy, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                    path.push({x: hx, y: hy, z: zInicial + 1.0, type: 'rapid', gcode: `G00 Z${(zInicial + 1.0).toFixed(2)}`});
+                    
+                    if (estrategia === 1) {
+                        let zActual = zInicial;
+                        while (zActual > zLimit) {
+                            const nextZ = Math.max(zLimit, zActual - pasoPicoteo);
+                            path.push({x: hx, y: hy, z: zActual + 1.0, type: 'rapid', gcode: `G00 Z${(zActual + 1.0).toFixed(2)}`});
+                            path.push({x: hx, y: hy, z: nextZ, type: 'feed', gcode: `G01 Z${nextZ.toFixed(2)} F${feed.toFixed(0)}`});
+                            path.push({x: hx, y: hy, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                            zActual = nextZ;
+                        }
+                    } else {
+                        path.push({x: hx, y: hy, z: zLimit, type: 'feed', gcode: `G01 Z${zLimit.toFixed(2)} F${feed.toFixed(0)}`});
+                        path.push({x: hx, y: hy, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                    }
                 }
             } 
             else if (macroName.includes("circular central")) {
-                // #1=D stock, #2=D macho, #3=D hta, #6=Paso radial, #13=X, #14=Y
+                // #1=D stock, #2=D macho, #3=D hta, #4=Prof total, #5=Prof pasada, #6=Paso radial, #9=Safety R, #13=X, #14=Y, #15=Z inicial, #16=Opcion
                 const rStock = vars[1] / 2;
                 const rMacho = vars[2] / 2;
                 const rHta = vars[3] / 2;
-                const cX = vars[13] || 0;
-                const cY = vars[14] || 0;
-                const step = vars[6] || 2;
                 const totalZ = vars[4] || 15;
                 const stepZ = vars[5] || 3;
+                const step = vars[6] || 2;
+                const safetyR = vars[9] || 50;
+                const cX = vars[13] || 0;
+                const cY = vars[14] || 0;
+                const zInicial = vars[15] || 0;
+                const opcion = vars[16] || 0;
                 
-                path.push({x: cX + rStock + 10, y: cY, z: 5, type: 'rapid', gcode: 'G00 X' + (cX + rStock + 10).toFixed(2) + ' Y' + cY.toFixed(2) + ' Z5.00'});
+                const zLimit = -totalZ;
+                const startX = rStock - rHta;
+                const endR = rMacho + rHta + (vars[7] || 0.5);
+
+                path.push({x: cX + startX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${(cX + startX).toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
                 
-                let z = 0;
-                while (z > -totalZ) {
-                    z = Math.max(-totalZ, z - stepZ);
-                    path.push({x: cX + rStock + 10, y: cY, z: z, type: 'rapid', gcode: `G00 Z${z.toFixed(2)}`});
+                if (opcion === 0 || opcion === 1) {
+                    let zActual = zInicial;
+                    let lastZ = zInicial + 1;
                     
-                    let currR = rStock - rHta;
-                    const endR = rMacho + rHta + 0.5;
-                    
-                    while (currR > endR) {
-                        // Entrada
-                        path.push({x: cX + currR, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + currR).toFixed(2)} F${feed.toFixed(0)}`});
-                        // Círculo
+                    while (zActual > zLimit) {
+                        zActual = zActual - stepZ;
+                        if (zActual < zLimit) zActual = zLimit;
+                        
+                        path.push({x: cX + startX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 X${(cX + startX).toFixed(2)} Y${cY.toFixed(2)}`});
+                        path.push({x: cX + startX, y: cY, z: zActual, type: 'feed', gcode: `G01 Z${zActual.toFixed(2)} F${(feed/2).toFixed(0)}`});
+                        
+                        let currR = startX;
+                        while (currR > endR) {
+                            path.push({x: cX + currR, y: cY, z: zActual, type: 'feed', gcode: `G01 X${(cX + currR).toFixed(2)} F${feed.toFixed(0)}`});
+                            for (let a = 0; a <= 360; a += 15) {
+                                const rad = a * Math.PI / 180;
+                                const px = cX + currR * Math.cos(rad);
+                                const py = cY - currR * Math.sin(rad);
+                                
+                                let gcodeStr = "";
+                                if (a === 360) {
+                                    gcodeStr = `G02 I-${currR.toFixed(2)} J0.00`;
+                                }
+                                path.push({x: px, y: py, z: zActual, type: 'feed', gcode: gcodeStr});
+                            }
+                            currR -= step;
+                        }
+                        
+                        path.push({x: cX + endR, y: cY, z: zActual, type: 'feed', gcode: `G01 X${(cX + endR).toFixed(2)}`});
                         for (let a = 0; a <= 360; a += 15) {
                             const rad = a * Math.PI / 180;
-                            path.push({x: cX + currR * Math.cos(rad), y: cY - currR * Math.sin(rad), z: z, type: 'feed', gcode: `G02 X${(cX + currR * Math.cos(rad)).toFixed(2)} Y${(cY - currR * Math.sin(rad)).toFixed(2)} (Desbaste)`});
+                            const px = cX + endR * Math.cos(rad);
+                            const py = cY - endR * Math.sin(rad);
+                            
+                            let gcodeStr = "";
+                            if (a === 360) {
+                                gcodeStr = `G02 I-${endR.toFixed(2)} J0.00`;
+                            }
+                            path.push({x: px, y: py, z: zActual, type: 'feed', gcode: gcodeStr});
                         }
-                        currR -= step;
+                        
+                        path.push({x: cX + endR, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                        if (zActual > zLimit) {
+                            lastZ = zActual + 1;
+                        }
                     }
-                    // Pasada final desbaste
-                    path.push({x: cX + endR, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + endR).toFixed(2)}`});
-                    for (let a = 0; a <= 360; a += 15) {
-                        const rad = a * Math.PI / 180;
-                        path.push({x: cX + endR * Math.cos(rad), y: cY - endR * Math.sin(rad), z: z, type: 'feed', gcode: `G02 (Desbaste Final)`});
-                    }
-                    
-                    // Pasada de acabado
-                    const rFin = rMacho + rHta;
-                    path.push({x: cX + rFin, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + rFin).toFixed(2)} F${(feed*0.7).toFixed(0)} (Acabado)`});
-                    for (let a = 0; a <= 360; a += 15) {
-                        const rad = a * Math.PI / 180;
-                        path.push({x: cX + rFin * Math.cos(rad), y: cY - rFin * Math.sin(rad), z: z, type: 'finish', gcode: `G02 (Acabado Macho)`});
-                    }
-                    // Retracción parcial
-                    path.push({x: cX + rStock + 10, y: cY, z: z, type: 'rapid', gcode: `G00 X${(cX + rStock + 10).toFixed(2)}`});
                 }
-                path.push({x: cX + rStock + 10, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+                
+                if (opcion === 0 || opcion === 2) {
+                    const rFin = rMacho + rHta;
+                    path.push({x: cX + rFin, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${(cX + rFin).toFixed(2)} Y${cY.toFixed(2)}`});
+                    path.push({x: cX + rFin, y: cY, z: zLimit, type: 'feed', gcode: `G01 Z${zLimit.toFixed(2)} F${(feed/2).toFixed(0)}`});
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        const px = cX + rFin * Math.cos(rad);
+                        const py = cY - rFin * Math.sin(rad);
+                        
+                        let gcodeStr = "";
+                        if (a === 360) {
+                            gcodeStr = `G02 I-${rFin.toFixed(2)} J0.00 F${(feed*0.7).toFixed(0)}`;
+                        }
+                        path.push({x: px, y: py, z: zLimit, type: 'finish', gcode: gcodeStr});
+                    }
+                    path.push({x: cX + rFin, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                }
             }
             else if (macroName.includes("cajera_circular")) {
-                // #1=D caja, #2=D hta, #10=X, #11=Y, #12=Paso radial
-                const rPocket = vars[1] / 2;
-                const rHta = vars[2] / 2;
+                const dCaja = vars[1] || 80;
+                const dHta = vars[2] || 12;
+                const zFinal = vars[3] || 20;
+                const zStep = vars[4] || 5;
+                const sobrematerial = vars[5] || 0.5;
+                const safetyR = vars[9] || 50;
                 const cX = vars[10] || 0;
                 const cY = vars[11] || 0;
-                const step = vars[12] || 2;
-                const totalZ = vars[4] || 15;
-                const stepZ = vars[3] || 3;
+                const pasoRadial = vars[12] || 8;
+                const zInicial = vars[14] || 0;
+                const radArco = vars[15] || 4;
+                const opcion = vars[16] || 0;
                 
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
-                
-                let z = 0;
-                while (z > -totalZ) {
-                    z = Math.max(-totalZ, z - stepZ);
-                    path.push({x: cX, y: cY, z: z, type: 'feed', gcode: `G01 Z${z.toFixed(2)} F${feed.toFixed(0)}`});
-                    
-                    let maxR = rPocket - rHta - 0.5;
-                    // Espiral
-                    for (let r = 0; r <= maxR; r += 2.0) {
-                        const theta = r * 0.45;
-                        const px = cX + r * Math.cos(theta);
-                        const py = cY + r * Math.sin(theta);
-                        path.push({x: px, y: py, z: z, type: 'feed', gcode: `G01 X${px.toFixed(2)} Y${py.toFixed(2)} (Espiral)`});
+                const rHta = dHta / 2;
+                const dEfectivo = dCaja - sobrematerial * 2;
+                const rTrayDesbaste = dEfectivo / 2 - rHta;
+                const rTrayAcabado = dCaja / 2 - rHta;
+
+                const zLimit = -zFinal;
+
+                path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
+                path.push({x: cX, y: cY, z: zInicial + 1, type: 'rapid', gcode: `G00 Z${(zInicial + 1).toFixed(2)}`});
+
+                if (opcion === 0 || opcion === 1) {
+                    let zActual = zInicial;
+                    let lastZ = zInicial + 1;
+
+                    while (zActual > zLimit) {
+                        zActual = zActual - zStep;
+                        if (zActual < zLimit) zActual = zLimit;
+
+                        path.push({x: cX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                        path.push({x: cX, y: cY, z: zActual, type: 'feed', gcode: `G01 Z${zActual.toFixed(2)} F${(feed/2).toFixed(0)}`});
+
+                        let rActual = 0;
+                        while (rActual < rTrayDesbaste) {
+                            rActual = rActual + pasoRadial;
+                            if (rActual > rTrayDesbaste) rActual = rTrayDesbaste;
+
+                            path.push({x: cX + rActual, y: cY, z: zActual, type: 'feed', gcode: `G01 X${(cX + rActual).toFixed(2)} F${feed.toFixed(0)}`});
+                            for (let a = 0; a <= 360; a += 15) {
+                                const rad = a * Math.PI / 180;
+                                const px = cX + rActual * Math.cos(rad);
+                                const py = cY + rActual * Math.sin(rad);
+                                
+                                let gcodeStr = "";
+                                if (a === 360) {
+                                    gcodeStr = `G03 I-${rActual.toFixed(2)} J0.00`;
+                                }
+                                path.push({x: px, y: py, z: zActual, type: 'feed', gcode: gcodeStr});
+                            }
+                        }
+
+                        path.push({x: cX + rActual, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                        path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                        
+                        if (zActual > zLimit) {
+                            lastZ = zActual + 1;
+                            path.push({x: cX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 Z${lastZ.toFixed(2)}`});
+                        }
                     }
-                    
-                    // Limpieza cajera
-                    for (let a = 0; a <= 360; a += 15) {
-                        const rad = a * Math.PI / 180;
-                        path.push({x: cX + maxR * Math.cos(rad), y: cY - maxR * Math.sin(rad), z: z, type: 'feed', gcode: `G03 X${(cX + maxR * Math.cos(rad)).toFixed(2)} Y${(cY - maxR * Math.sin(rad)).toFixed(2)} (Desbaste)`});
-                    }
-                    
-                    // Acabado
-                    const rFin = rPocket - rHta;
-                    for (let a = 0; a <= 360; a += 15) {
-                        const rad = a * Math.PI / 180;
-                        path.push({x: cX + rFin * Math.cos(rad), y: cY - rFin * Math.sin(rad), z: z, type: 'finish', gcode: `G03 X${(cX + rFin * Math.cos(rad)).toFixed(2)} Y${(cY - rFin * Math.sin(rad)).toFixed(2)} (Acabado)`});
-                    }
-                    
-                    // Retracción al centro
-                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: 'G00 X0.00 Y0.00 (Retorno Centro)'});
                 }
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+
+                if (opcion === 0 || opcion === 2) {
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                    path.push({x: cX, y: cY, z: zLimit, type: 'feed', gcode: `G01 Z${zLimit.toFixed(2)} F${(feed/2).toFixed(0)}`});
+
+                    const prepX = cX - radArco;
+                    const prepY = cY + rTrayAcabado - radArco;
+                    path.push({x: prepX, y: prepY, z: zLimit, type: 'feed', gcode: `G01 X${prepX.toFixed(2)} Y${prepY.toFixed(2)} F${feed.toFixed(0)}`});
+
+                    const enterSteps = 18;
+                    for (let step = 0; step <= enterSteps; step++) {
+                        const t = step / enterSteps;
+                        const angle = Math.PI + (Math.PI * 1.5) * t;
+                        const px = cX + radArco * Math.cos(angle);
+                        const py = (cY + rTrayAcabado - radArco) + radArco * Math.sin(angle);
+                        
+                        let gcodeStr = "";
+                        if (step === enterSteps) {
+                            gcodeStr = `G03 X${cX.toFixed(2)} Y${(cY + rTrayAcabado).toFixed(2)} I${radArco.toFixed(2)} J0.00`;
+                        }
+                        path.push({x: px, y: py, z: zLimit, type: 'feed', gcode: gcodeStr});
+                    }
+
+                    for (let a = 90; a <= 450; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        const px = cX + rTrayAcabado * Math.cos(rad);
+                        const py = cY + rTrayAcabado * Math.sin(rad);
+                        path.push({x: px, y: py, z: zLimit, type: 'finish', gcode: `G03 X${px.toFixed(2)} Y${py.toFixed(2)}`});
+                    }
+
+                    for (let step = 0; step <= enterSteps; step++) {
+                        const t = step / enterSteps;
+                        const angle = (Math.PI * 0.5) + (Math.PI * 1.5) * t;
+                        const px = cX + radArco * Math.cos(angle);
+                        const py = (cY + rTrayAcabado - radArco) + radArco * Math.sin(angle);
+                        
+                        let gcodeStr = "";
+                        if (step === enterSteps) {
+                            const endX = cX + radArco;
+                            const endY = cY + rTrayAcabado - radArco;
+                            gcodeStr = `G03 X${endX.toFixed(2)} Y${endY.toFixed(2)} I0.00 J-${radArco.toFixed(2)}`;
+                        }
+                        path.push({x: px, y: py, z: zLimit, type: 'feed', gcode: gcodeStr});
+                    }
+
+                    path.push({x: cX + radArco, y: cY + rTrayAcabado - radArco, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                }
             }
             else if (macroName.includes("cajera_rectangular")) {
-                // #1=Long X, #2=Ancho Y, #3=Rad esq, #4=Diam hta, #12=X, #13=Y, #14=Paso radial
                 const lenX = vars[1];
                 const lenY = vars[2];
                 const radCorner = vars[3] || 0;
-                const rHta = vars[4] / 2;
+                const dHta = vars[4] || 12;
+                const totalZ = vars[5] || 20;
+                const stepZ = vars[6] || 5;
+                const safetyR = vars[11] || 50;
                 const cX = vars[12] || 0;
                 const cY = vars[13] || 0;
-                const step = vars[14] || 2;
-                const totalZ = vars[6] || 15;
-                const stepZ = vars[5] || 3;
+                const pasoRadial = vars[14] || 8;
+                const zInicial = vars[15] || 0;
+                const radArco = vars[16] || 5;
+                const opcion = vars[17] || 0;
                 
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                const rHta = dHta / 2;
+                const zLimit = -totalZ;
                 
-                let z = 0;
-                while (z > -totalZ) {
-                    z = Math.max(-totalZ, z - stepZ);
-                    path.push({x: cX, y: cY, z: z, type: 'feed', gcode: `G01 Z${z.toFixed(2)} F${feed.toFixed(0)}`});
-                    
-                    const maxStepX = lenX - 2 * rHta - 1.0;
-                    const maxStepY = lenY - 2 * rHta - 1.0;
-                    const maxRad = Math.max(0, radCorner - rHta - 0.5);
-                    
-                    let currStep = step;
-                    while (currStep < maxStepX / 2 && currStep < maxStepY / 2) {
-                        const ratio = (currStep * 2) / maxStepX;
-                        addRoundedRectPoints(path, cX, cY, maxStepX * ratio, maxStepY * ratio, maxRad * ratio, z, 'feed', 'Desbaste Rect', feed);
-                        currStep += step;
+                const dEfectivoX = lenX - (vars[7] || 0.5) * 2;
+                const dEfectivoY = lenY - (vars[7] || 0.5) * 2;
+                const rTrayDesbasteX = dEfectivoX / 2 - rHta;
+                const rTrayDesbasteY = dEfectivoY / 2 - rHta;
+                const rTrayAcabadoX = lenX / 2 - rHta;
+                const rTrayAcabadoY = lenY / 2 - rHta;
+                
+                const maxDesbasteR = Math.max(rTrayDesbasteX, rTrayDesbasteY);
+
+                path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
+                path.push({x: cX, y: cY, z: zInicial + 1, type: 'rapid', gcode: `G00 Z${(zInicial + 1).toFixed(2)}`});
+
+                if (opcion === 0 || opcion === 1) {
+                    let zActual = zInicial;
+                    let lastZ = zInicial + 1;
+
+                    while (zActual > zLimit) {
+                        zActual = zActual - stepZ;
+                        if (zActual < zLimit) zActual = zLimit;
+
+                        path.push({x: cX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                        path.push({x: cX, y: cY, z: zActual, type: 'feed', gcode: `G01 Z${zActual.toFixed(2)} F${(feed/2).toFixed(0)}`});
+
+                        let rActual = 0;
+                        while (rActual < maxDesbasteR) {
+                            rActual = rActual + pasoRadial;
+                            if (rActual > maxDesbasteR) rActual = maxDesbasteR;
+
+                            const ratio = rActual / maxDesbasteR;
+                            const currW = rTrayDesbasteX * 2 * ratio;
+                            const currH = rTrayDesbasteY * 2 * ratio;
+                            const currRad = Math.max(0, radCorner - (vars[7] || 0.5) - rHta) * ratio;
+
+                            addRoundedRectPoints(path, cX, cY, currW, currH, currRad, zActual, 'feed', 'Desbaste Rect', feed);
+                        }
+
+                        path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                        path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                        
+                        if (zActual > zLimit) {
+                            lastZ = zActual + 1;
+                            path.push({x: cX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 Z${lastZ.toFixed(2)}`});
+                        }
                     }
-                    addRoundedRectPoints(path, cX, cY, maxStepX, maxStepY, maxRad, z, 'feed', 'Desbaste Final', feed);
-                    
-                    // Acabado
-                    addRoundedRectPoints(path, cX, cY, lenX - 2 * rHta, lenY - 2 * rHta, Math.max(0, radCorner - rHta), z, 'finish', 'Acabado Rect', feed * 0.7);
-                    
-                    // Retracción al centro
-                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: 'G00 X0.00 Y0.00 (Retorno Centro)'});
                 }
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+
+                if (opcion === 0 || opcion === 2) {
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                    path.push({x: cX, y: cY, z: zLimit, type: 'feed', gcode: `G01 Z${zLimit.toFixed(2)} F${(feed/2).toFixed(0)}`});
+
+                    const prepX = cX - radArco;
+                    const prepY = cY - rTrayAcabadoY + radArco;
+                    path.push({x: prepX, y: prepY, z: zLimit, type: 'feed', gcode: `G01 X${prepX.toFixed(2)} Y${prepY.toFixed(2)} F${feed.toFixed(0)}`});
+                    
+                    const enterSteps = 12;
+                    for (let step = 0; step <= enterSteps; step++) {
+                        const t = step / enterSteps;
+                        const angle = Math.PI + (Math.PI / 2) * t;
+                        const px = (cX - radArco) + radArco * Math.cos(angle);
+                        const py = (cY - rTrayAcabadoY + radArco) + radArco * Math.sin(angle);
+                        const finalPx = px + radArco;
+                        
+                        let gcodeStr = "";
+                        if (step === enterSteps) {
+                            gcodeStr = `G03 X${cX.toFixed(2)} Y${(cY - rTrayAcabadoY).toFixed(2)} I${radArco.toFixed(2)} J0.00`;
+                        }
+                        path.push({x: finalPx, y: py, z: zLimit, type: 'feed', gcode: gcodeStr});
+                    }
+
+                    addRoundedRectPoints(path, cX, cY, rTrayAcabadoX * 2, rTrayAcabadoY * 2, Math.max(0, radCorner - rHta), zLimit, 'finish', 'Acabado Rect', feed * 0.7);
+
+                    for (let step = 0; step <= enterSteps; step++) {
+                        const t = step / enterSteps;
+                        const angle = (Math.PI / 2) - (Math.PI / 2) * t;
+                        const px = cX + radArco * Math.cos(angle);
+                        const py = (cY - rTrayAcabadoY + radArco) - radArco * Math.sin(angle);
+                        
+                        let gcodeStr = "";
+                        if (step === enterSteps) {
+                            const endX = cX + radArco;
+                            const endY = cY - rTrayAcabadoY + radArco;
+                            gcodeStr = `G03 X${endX.toFixed(2)} Y${endY.toFixed(2)} I0.00 J${radArco.toFixed(2)}`;
+                        }
+                        path.push({x: px, y: py, z: zLimit, type: 'feed', gcode: gcodeStr});
+                    }
+
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                }
             }
             else if (macroName.includes("Ranura Cerrada")) {
-                // #1=Long entre centros, #2=Rad ranura, #3=Ang, #4=Diam hta, #12=X, #13=Y, #14=Paso radial
                 const lenC = vars[1];
                 const rSlot = vars[2];
-                const rHta = vars[4] / 2;
+                const angle = (vars[3] || 0) * Math.PI / 180;
+                const dHta = vars[4] || 12;
+                const totalZ = vars[5] || 15;
+                const stepZ = vars[6] || 5;
+                const safetyR = vars[11] || 50;
                 const cX = vars[12] || 0;
                 const cY = vars[13] || 0;
-                const angle = (vars[3] || 0) * Math.PI / 180;
-                const step = vars[14] || 2;
-                const totalZ = vars[6] || 15;
-                const stepZ = vars[5] || 3;
+                const pasoRadial = vars[14] || 6;
+                const zInicial = vars[15] || 0;
+                const radArco = vars[16] || 4;
+                const opcion = vars[17] || 0;
                 
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                const rHta = dHta / 2;
+                const zLimit = -totalZ;
                 
-                let z = 0;
-                while (z > -totalZ) {
-                    z = Math.max(-totalZ, z - stepZ);
-                    path.push({x: cX, y: cY, z: z, type: 'feed', gcode: `G01 Z${z.toFixed(2)} F${feed.toFixed(0)}`});
-                    
-                    // Desbaste concéntrico
-                    const maxOffset = rSlot - rHta - 0.5;
-                    let offset = step;
-                    while (offset < maxOffset) {
-                        addSlotPoints(path, cX, cY, lenC, offset, angle, z, 'feed', 'Desbaste Ranura', feed);
-                        offset += step;
+                const rMaxDesbaste = rSlot - (vars[7] || 0.5) - rHta;
+                const rMaxAcabado = rSlot - rHta;
+
+                path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
+                path.push({x: cX, y: cY, z: zInicial + 1, type: 'rapid', gcode: `G00 Z${(zInicial + 1).toFixed(2)}`});
+
+                if (opcion === 0 || opcion === 1) {
+                    let zActual = zInicial;
+                    let lastZ = zInicial + 1;
+
+                    while (zActual > zLimit) {
+                        zActual = zActual - stepZ;
+                        if (zActual < zLimit) zActual = zLimit;
+
+                        path.push({x: cX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                        path.push({x: cX, y: cY, z: zActual, type: 'feed', gcode: `G01 Z${zActual.toFixed(2)} F${(feed/2).toFixed(0)}`});
+
+                        let rActual = 0;
+                        while (rActual < rMaxDesbaste) {
+                            if (rActual === 0) {
+                                const cos = Math.cos(angle);
+                                const sin = Math.sin(angle);
+                                const pt1_x = cX + (lenC / 2) * cos;
+                                const pt1_y = cY + (lenC / 2) * sin;
+                                const pt2_x = cX - (lenC / 2) * cos;
+                                const pt2_y = cY - (lenC / 2) * sin;
+
+                                path.push({x: pt1_x, y: pt1_y, z: zActual, type: 'feed', gcode: `G01 X${pt1_x.toFixed(2)} Y${pt1_y.toFixed(2)} F${feed.toFixed(0)}`});
+                                path.push({x: pt2_x, y: pt2_y, z: zActual, type: 'feed', gcode: `G01 X${pt2_x.toFixed(2)} Y${pt2_y.toFixed(2)}`});
+                                path.push({x: cX, y: cY, z: zActual, type: 'feed', gcode: `G01 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                            } else {
+                                addSlotPoints(path, cX, cY, lenC, rActual, angle, zActual, 'feed', 'Desbaste Ranura', feed);
+                            }
+                            
+                            rActual = rActual + pasoRadial;
+                            if (rActual > rMaxDesbaste && rActual - pasoRadial < rMaxDesbaste) rActual = rMaxDesbaste;
+                        }
+                        
+                        if (rMaxDesbaste > 0) {
+                            addSlotPoints(path, cX, cY, lenC, rMaxDesbaste, angle, zActual, 'feed', 'Desbaste Ranura Final', feed);
+                        }
+
+                        path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                        path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                        
+                        if (zActual > zLimit) {
+                            lastZ = zActual + 1;
+                            path.push({x: cX, y: cY, z: lastZ, type: 'rapid', gcode: `G00 Z${lastZ.toFixed(2)}`});
+                        }
                     }
-                    addSlotPoints(path, cX, cY, lenC, maxOffset, angle, z, 'feed', 'Desbaste Ranura Final', feed);
-                    
-                    // Acabado
-                    addSlotPoints(path, cX, cY, lenC, rSlot - rHta, angle, z, 'finish', 'Acabado Ranura', feed * 0.7);
-                    
-                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} (Retorno Centro)`});
                 }
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+
+                if (opcion === 0 || opcion === 2) {
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                    path.push({x: cX, y: cY, z: zLimit, type: 'feed', gcode: `G01 Z${zLimit.toFixed(2)} F${(feed/2).toFixed(0)}`});
+
+                    addSlotPoints(path, cX, cY, lenC, rMaxAcabado, angle, zLimit, 'finish', 'Acabado Ranura', feed * 0.7);
+
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
+                    path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
+                }
             }
             else if (macroName.includes("Roscas")) {
-                // #1=D nominal, #2=D fresa, #10=X, #11=Y, #3=Paso rosca, #4=Prof total
-                const rNominal = vars[1] / 2;
-                const rFresa = vars[2] / 2;
+                const dNominal = vars[1];
+                const dFresa = vars[2];
+                const totalZ = vars[3] || 15;
+                const pitch = vars[4] || 2;
+                const numTurns = vars[5] || 1;
+                const safetyR = vars[9] || 50;
                 const cX = vars[10] || 0;
                 const cY = vars[11] || 0;
-                const pitch = vars[3] || 1.5;
-                const totalZ = vars[4] || 15;
+                
+                const rNominal = dNominal / 2;
+                const rFresa = dFresa / 2;
                 const rEff = Math.max(0.5, rNominal - rFresa);
-                
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
-                // Rápido al fondo
-                path.push({x: cX, y: cY, z: -totalZ, type: 'rapid', gcode: `G00 Z-${totalZ.toFixed(2)}`});
-                
-                // Entrada helicoidal
                 const rEntrada = rEff / 2;
+                
+                const zFinal = -totalZ;
+                
+                path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
+                path.push({x: cX, y: cY, z: 2.0, type: 'rapid', gcode: `G00 Z2.00`});
+                path.push({x: cX, y: cY, z: zFinal, type: 'feed', gcode: `G01 Z${zFinal.toFixed(2)} F${(feed/2).toFixed(0)}`});
+                
+                const halfPitch = pitch / 2;
+                let zActual = zFinal;
                 for (let a = 180; a <= 360; a += 15) {
                     const rad = a * Math.PI / 180;
-                    const zOffset = -totalZ + (pitch/2) * ((a - 180) / 180);
+                    const t = (a - 180) / 180;
+                    const zOffset = zFinal + halfPitch * t;
                     const px = cX + rEntrada + rEntrada * Math.cos(rad);
                     const py = cY - rEntrada * Math.sin(rad);
-                    path.push({
-                        x: px, 
-                        y: py, 
-                        z: zOffset, 
-                        type: 'feed', 
-                        gcode: `G03 X${px.toFixed(2)} Y${py.toFixed(2)} Z${zOffset.toFixed(2)} F${feed.toFixed(0)} (Entrada)`
-                    });
+                    
+                    let gcodeStr = "";
+                    if (a === 360) {
+                        gcodeStr = `G03 X${(cX + rEff).toFixed(2)} Y${cY.toFixed(2)} Z${zOffset.toFixed(2)} I${rEntrada.toFixed(2)} J0.00`;
+                    }
+                    path.push({x: px, y: py, z: zOffset, type: 'feed', gcode: gcodeStr});
+                    zActual = zOffset;
                 }
                 
-                // Círculo helicoidal de roscado (sube Z por el paso)
-                for (let a = 0; a <= 360; a += 15) {
-                    const rad = a * Math.PI / 180;
-                    const zOffset = -totalZ + (pitch / 2) + pitch * (a / 360);
-                    path.push({
-                        x: cX + rEff * Math.cos(rad), 
-                        y: cY - rEff * Math.sin(rad), 
-                        z: zOffset, 
-                        type: 'finish', 
-                        gcode: `G03 X${(cX + rEff * Math.cos(rad)).toFixed(2)} Y${(cY - rEff * Math.sin(rad)).toFixed(2)} Z${zOffset.toFixed(2)} F${(feed*0.5).toFixed(0)} (Roscar)`
-                    });
+                for (let turn = 0; turn < numTurns; turn++) {
+                    const zStartOfTurn = zActual;
+                    zActual = zActual + pitch;
+                    
+                    for (let a = 0; a <= 360; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        const t = a / 360;
+                        const pz = zStartOfTurn + (zActual - zStartOfTurn) * t;
+                        const px = cX + rEff * Math.cos(rad);
+                        const py = cY - rEff * Math.sin(rad);
+                        
+                        let gcodeStr = "";
+                        if (a === 360) {
+                            gcodeStr = `G03 X${(cX + rEff).toFixed(2)} Y${cY.toFixed(2)} Z${pz.toFixed(2)} I-${rEff.toFixed(2)} J0.00`;
+                        }
+                        path.push({x: px, y: py, z: pz, type: 'finish', gcode: gcodeStr});
+                    }
                 }
                 
-                // Salida helicoidal
-                const zExit = -totalZ + (1.5 * pitch);
+                const zStartOfExit = zActual;
+                zActual = zActual + halfPitch;
                 for (let a = 0; a <= 180; a += 15) {
                     const rad = a * Math.PI / 180;
-                    const zOffset = zExit + (pitch/2) * (a / 180);
+                    const t = a / 180;
+                    const zOffset = zStartOfExit + halfPitch * t;
                     const px = cX - rEntrada + rEntrada * Math.cos(rad);
                     const py = cY - rEntrada * Math.sin(rad);
-                    path.push({
-                        x: px, 
-                        y: py, 
-                        z: zOffset, 
-                        type: 'feed', 
-                        gcode: `G03 X${px.toFixed(2)} Y${py.toFixed(2)} Z${zOffset.toFixed(2)} (Salida)`
-                    });
+                    
+                    let gcodeStr = "";
+                    if (a === 180) {
+                        gcodeStr = `G03 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${zOffset.toFixed(2)} I-${rEntrada.toFixed(2)} J0.00`;
+                    }
+                    path.push({x: px, y: py, z: zOffset, type: 'feed', gcode: gcodeStr});
                 }
                 
-                // Retract al centro
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 X0.00 Y0.00 Z5.00'});
+                path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
             }
             else if (macroName.includes("Patron Rectangular")) {
-                // #1=Long X, #2=Ancho Y, #3=Holes X, #4=Holes Y, #11=X, #12=Y
                 const lenX = vars[1];
                 const lenY = vars[2];
-                const cX = vars[11] || 0;
-                const cY = vars[12] || 0;
                 const qtyX = vars[3] || 2;
                 const qtyY = vars[4] || 2;
-                const totalZ = vars[6] || 15;
-                const clearanceZ = 5;
+                const totalZ = vars[7] || 15;
+                const estrategia = vars[8] || 0; // 0=Directo, 1=Picoteo
+                const pasoPicoteo = vars[9] || 5;
+                const safetyR = vars[10] || 5;
+                const cX = vars[11] || 0;
+                const cY = vars[12] || 0;
+                const zInicial = vars[13] || 0;
+ 
+                const clearanceZ = zInicial + safetyR;
+                const zLimit = zInicial - totalZ;
 
                 const points = [];
-                const stepX = lenX / (qtyX - 1);
-                const stepY = lenY / (qtyY - 1);
+                const stepX = qtyX > 1 ? lenX / (qtyX - 1) : 0;
+                const stepY = qtyY > 1 ? lenY / (qtyY - 1) : 0;
                 const startX = cX - lenX/2;
                 const startY = cY - lenY/2;
 
@@ -4034,40 +4370,77 @@
                 for (let i = 0; i < qtyX; i++) points.push({ x: startX + lenX - i * stepX, y: startY });
                 for (let i = 1; i < qtyY - 1; i++) points.push({ x: startX, y: startY + i * stepY });
 
-                path.push({x: cX, y: cY, z: clearanceZ, type: 'rapid', gcode: 'G00 Z5.00'});
+                path.push({x: cX, y: cY, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
 
-                points.forEach((p, idx) => {
+                points.forEach((p) => {
                     path.push({x: p.x, y: p.y, z: clearanceZ, type: 'rapid', gcode: `G00 X${p.x.toFixed(2)} Y${p.y.toFixed(2)}`});
-                    path.push({x: p.x, y: p.y, z: 1.0, type: 'rapid', gcode: `G00 Z1.00`});
-                    path.push({x: p.x, y: p.y, z: -totalZ, type: 'feed', gcode: `G01 Z-${totalZ.toFixed(2)} F${feed.toFixed(0)}`});
-                    path.push({x: p.x, y: p.y, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                    path.push({x: p.x, y: p.y, z: zInicial + 1.0, type: 'rapid', gcode: `G00 Z${(zInicial + 1.0).toFixed(2)}`});
+                    
+                    if (estrategia === 1) {
+                        let zActual = zInicial;
+                        while (zActual > zLimit) {
+                            const nextZ = Math.max(zLimit, zActual - pasoPicoteo);
+                            path.push({x: p.x, y: p.y, z: zActual + 1.0, type: 'rapid', gcode: `G00 Z${(zActual + 1.0).toFixed(2)}`});
+                            path.push({x: p.x, y: p.y, z: nextZ, type: 'feed', gcode: `G01 Z${nextZ.toFixed(2)} F${feed.toFixed(0)}`});
+                            path.push({x: p.x, y: p.y, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                            zActual = nextZ;
+                        }
+                    } else {
+                        path.push({x: p.x, y: p.y, z: zLimit, type: 'feed', gcode: `G01 Z${zLimit.toFixed(2)} F${feed.toFixed(0)}`});
+                        path.push({x: p.x, y: p.y, z: clearanceZ, type: 'rapid', gcode: `G00 Z${clearanceZ.toFixed(2)}`});
+                    }
                 });
             }
             else if (macroName.includes("oring") || macroName.includes("orings")) {
-                // #1=Diam ranura centro, #2=Diam hta, #9=X, #10=Y
-                const rGroove = vars[1] / 2;
+                const dGroove = vars[1] || 100;
+                const dHta = vars[2] || 12;
+                const totalZ = vars[3] || 15;
+                const pitch = vars[4] || 2;
+                const safetyR = vars[8] || 50;
                 const cX = vars[9] || 0;
                 const cY = vars[10] || 0;
-                const totalZ = vars[4] || 15;
-                const stepZ = vars[3] || 3;
+                const zInicial = vars[14] || 0;
                 
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z5.00`});
+                const rGroove = dGroove / 2;
+                const zLimit = -totalZ;
                 
-                let z = 0;
-                while (z > -totalZ) {
-                    z = Math.max(-totalZ, z - stepZ);
-                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: `G00 Z${z.toFixed(2)}`});
-                    // Entrada
-                    path.push({x: cX + rGroove, y: cY, z: z, type: 'feed', gcode: `G01 X${(cX + rGroove).toFixed(2)} F${feed.toFixed(0)}`});
-                    // Círculo completo
+                path.push({x: cX + rGroove, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${(cX + rGroove).toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
+                path.push({x: cX + rGroove, y: cY, z: zInicial + 1, type: 'rapid', gcode: `G00 Z${(zInicial + 1).toFixed(2)}`});
+                path.push({x: cX + rGroove, y: cY, z: zInicial, type: 'feed', gcode: `G01 Z${zInicial.toFixed(2)} F${(feed/2).toFixed(0)}`});
+                
+                let zActual = zInicial;
+                while (zActual > zLimit) {
+                    const zStartOfTurn = zActual;
+                    zActual = zActual - pitch;
+                    if (zActual < zLimit) zActual = zLimit;
+                    
                     for (let a = 0; a <= 360; a += 15) {
                         const rad = a * Math.PI / 180;
-                        path.push({x: cX + rGroove * Math.cos(rad), y: cY - rGroove * Math.sin(rad), z: z, type: 'feed', gcode: `G02 X${(cX + rGroove * Math.cos(rad)).toFixed(2)} Y${(cY - rGroove * Math.sin(rad)).toFixed(2)} (Ranurar)`});
+                        const px = cX + rGroove * Math.cos(rad);
+                        const py = cY + rGroove * Math.sin(rad);
+                        const pz = zStartOfTurn + (zActual - zStartOfTurn) * (a / 360);
+                        
+                        let gcodeStr = "";
+                        if (a === 360) {
+                            gcodeStr = `G03 I-${rGroove.toFixed(2)} J0.00 Z${pz.toFixed(2)} F${feed.toFixed(0)}`;
+                        }
+                        path.push({x: px, y: py, z: pz, type: 'feed', gcode: gcodeStr});
                     }
-                    // Retracción al centro
-                    path.push({x: cX, y: cY, z: z, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)}`});
                 }
-                path.push({x: cX, y: cY, z: 5, type: 'rapid', gcode: 'G00 Z5.00'});
+                
+                for (let a = 0; a <= 360; a += 15) {
+                    const rad = a * Math.PI / 180;
+                    const px = cX + rGroove * Math.cos(rad);
+                    const py = cY + rGroove * Math.sin(rad);
+                    
+                    let gcodeStr = "";
+                    if (a === 360) {
+                        gcodeStr = `G03 I-${rGroove.toFixed(2)} J0.00`;
+                    }
+                    path.push({x: px, y: py, z: zLimit, type: 'finish', gcode: gcodeStr});
+                }
+                
+                path.push({x: cX + rGroove, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
             }
             
             return path;
@@ -4078,10 +4451,8 @@
             const startX = cx - w/2 + rad;
             const startY = cy - h/2;
             
-            // Punto inicial
             path.push({x: startX, y: startY, z: z, type: type, gcode: `G01 X${startX.toFixed(2)} Y${startY.toFixed(2)} F${feedRate.toFixed(0)} (${label})`});
             
-            // Superior derecha
             path.push({x: cx + w/2 - rad, y: cy - h/2, z: z, type: type, gcode: `G01 X${(cx + w/2 - rad).toFixed(2)}`});
             if (rad > 0) {
                 for (let a = 270; a <= 360; a += 15) {
@@ -4089,7 +4460,6 @@
                     path.push({x: cx + w/2 - rad + rad * Math.cos(theta), y: cy - h/2 + rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx + w/2 - rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy - h/2 + rad + rad * Math.sin(theta)).toFixed(2)}`});
                 }
             }
-            // Derecha inferior
             path.push({x: cx + w/2, y: cy + h/2 - rad, z: z, type: type, gcode: `G01 Y${(cy + h/2 - rad).toFixed(2)}`});
             if (rad > 0) {
                 for (let a = 0; a <= 90; a += 15) {
@@ -4097,7 +4467,6 @@
                     path.push({x: cx + w/2 - rad + rad * Math.cos(theta), y: cy + h/2 - rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx + w/2 - rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy + h/2 - rad + rad * Math.sin(theta)).toFixed(2)}`});
                 }
             }
-            // Inferior izquierda
             path.push({x: cx - w/2 + rad, y: cy + h/2, z: z, type: type, gcode: `G01 X${(cx - w/2 + rad).toFixed(2)}`});
             if (rad > 0) {
                 for (let a = 90; a <= 180; a += 15) {
@@ -4105,7 +4474,6 @@
                     path.push({x: cx - w/2 + rad + rad * Math.cos(theta), y: cy + h/2 - rad + rad * Math.sin(theta), z: z, type: type, gcode: `G02 X${(cx - w/2 + rad + rad * Math.cos(theta)).toFixed(2)} Y${(cy + h/2 - rad + rad * Math.sin(theta)).toFixed(2)}`});
                 }
             }
-            // Izquierda superior
             path.push({x: cx - w/2, y: cy - h/2 + rad, z: z, type: type, gcode: `G01 Y${(cy - h/2 + rad).toFixed(2)}`});
             if (rad > 0) {
                 for (let a = 180; a <= 270; a += 15) {
@@ -4116,22 +4484,19 @@
         }
 
         function addSlotPoints(path, cx, cy, lenC, offset, angle, z, type, label, feedRate) {
-            // Genera puntos de ranura rotada
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
             
             const localPoints = [];
-            // Arco derecho
             for (let a = -90; a <= 90; a += 15) {
                 const theta = a * Math.PI / 180;
                 localPoints.push({x: lenC/2 + offset * Math.cos(theta), y: offset * Math.sin(theta)});
             }
-            // Arco izquierdo
             for (let a = 90; a <= 270; a += 15) {
                 const theta = a * Math.PI / 180;
                 localPoints.push({x: -lenC/2 + offset * Math.cos(theta), y: offset * Math.sin(theta)});
             }
-            localPoints.push({x: lenC/2, y: -offset}); // close loop
+            localPoints.push({x: lenC/2, y: -offset});
             
             localPoints.forEach((p, idx) => {
                 const rx = cx + p.x * cos - p.y * sin;
@@ -4146,6 +4511,230 @@
             });
         }
 
-    </script>
+        // LÓGICA DE CONTROL DE LA SIMULACIÓN 3D (THREE.JS)
+        function toggleSimMode() {
+            const btn = document.getElementById('toggleSimModeBtn');
+            const workpieceCanvas = document.getElementById('simWorkpieceCanvas');
+            const toolCanvas = document.getElementById('simToolCanvas');
+            const container3d = document.getElementById('sim3DContainer');
+            
+            if (simMode === '2d') {
+                simMode = '3d';
+                btn.innerHTML = `<span>Vista 2D</span>`;
+                workpieceCanvas.style.display = 'none';
+                toolCanvas.style.display = 'none';
+                container3d.style.display = 'block';
+                
+                if (!threeRenderer) {
+                    initThree();
+                } else {
+                    animateThree();
+                }
+                
+                resizeThree();
+                updateThreeStock();
+                updateThreeTool();
+            } else {
+                simMode = '2d';
+                btn.innerHTML = `<span>Vista 3D</span>`;
+                workpieceCanvas.style.display = 'block';
+                toolCanvas.style.display = 'block';
+                container3d.style.display = 'none';
+                
+                drawWorkpieceInit();
+                drawToolOnly();
+            }
+        }
+
+        function initThree() {
+            const container = document.getElementById('sim3DContainer');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            
+            threeScene = new THREE.Scene();
+            threeScene.background = new THREE.Color('#0c0e12');
+            
+            threeCamera = new THREE.PerspectiveCamera(45, w / h, 1, 1000);
+            threeCamera.position.set(0, -150, 150);
+            
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+            threeRenderer.setSize(w, h);
+            threeRenderer.shadowMap.enabled = true;
+            container.appendChild(threeRenderer.domElement);
+            
+            threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+            threeControls.enableDamping = true;
+            threeControls.dampingFactor = 0.05;
+            threeControls.maxPolarAngle = Math.PI / 2 - 0.05;
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            threeScene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(100, -100, 200);
+            dirLight.castShadow = true;
+            threeScene.add(dirLight);
+            
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+            dirLight2.position.set(-100, 100, 50);
+            threeScene.add(dirLight2);
+            
+            const gridHelper = new THREE.GridHelper(300, 30, 0x007acc, 0x22252a);
+            gridHelper.rotation.x = Math.PI / 2;
+            threeScene.add(gridHelper);
+            
+            threeLineGroup = new THREE.Group();
+            threeScene.add(threeLineGroup);
+            
+            animateThree();
+        }
+
+        function animateThree() {
+            if (simMode === '3d') {
+                requestAnimationFrame(animateThree);
+                threeControls.update();
+                threeRenderer.render(threeScene, threeCamera);
+            }
+        }
+
+        function resizeThree() {
+            if (!threeRenderer) return;
+            const container = document.getElementById('sim3DContainer');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            threeCamera.aspect = w / h;
+            threeCamera.updateProjectionMatrix();
+            threeRenderer.setSize(w, h);
+        }
+
+        function updateThreeStock() {
+            if (!threeScene) return;
+            if (threeStock) threeScene.remove(threeStock);
+            
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+            const theme = MATERIAL_THEMES[simMaterial];
+            
+            let stockW = 160;
+            let stockH = 160;
+            let stockD = 30;
+            let isCircular = false;
+            
+            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
+                isCircular = true;
+                const dStock = vars[1] || 100;
+                stockW = dStock;
+                stockD = (vars[3] || vars[4] || vars[8] || 15) * 1.5;
+            } 
+            else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
+                stockW = vars[1] || 120;
+                stockH = vars[2] || 120;
+                stockD = (vars[5] || vars[6] || vars[7] || 15) * 1.5;
+                if (fname.includes("Ranura")) {
+                    stockW = vars[1] + 2 * vars[2] + 20;
+                    stockH = vars[2] * 2 + 20;
+                    stockD = (vars[5] || vars[6] || 15) * 1.5;
+                }
+            } 
+            else if (fname.includes("Arreglo Circular")) {
+                stockW = vars[1] + vars[3] + 20;
+                stockD = (vars[6] || 15) * 1.5;
+                isCircular = true;
+            }
+            
+            if (stockD < 10) stockD = 30;
+            
+            let geometry;
+            if (isCircular) {
+                geometry = new THREE.CylinderGeometry(stockW / 2, stockW / 2, stockD, 40);
+                geometry.rotateX(Math.PI / 2);
+            } else {
+                geometry = new THREE.BoxGeometry(stockW, stockH, stockD);
+            }
+            
+            const material = new THREE.MeshStandardMaterial({
+                color: theme.stockColor,
+                roughness: 0.5,
+                metalness: 0.6,
+                transparent: true,
+                opacity: 0.85
+            });
+            
+            threeStock = new THREE.Mesh(geometry, material);
+            threeStock.position.set(0, 0, -stockD / 2);
+            threeStock.receiveShadow = true;
+            threeStock.castShadow = true;
+            threeScene.add(threeStock);
+        }
+
+        function updateThreeTool() {
+            if (!threeScene) return;
+            if (threeTool) threeScene.remove(threeTool);
+            
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+            const dHta = getToolDiameter(fname, vars);
+            const rHta = dHta / 2;
+            
+            const toolGroup = new THREE.Group();
+            
+            const cuttingGeom = new THREE.CylinderGeometry(rHta, rHta, 20, 20);
+            cuttingGeom.rotateX(Math.PI / 2);
+            const cuttingMat = new THREE.MeshStandardMaterial({
+                color: 0xff4500,
+                roughness: 0.3,
+                metalness: 0.8,
+                emissive: 0xff0000,
+                emissiveIntensity: 0.1
+            });
+            const cuttingMesh = new THREE.Mesh(cuttingGeom, cuttingMat);
+            cuttingMesh.position.set(0, 0, 10);
+            toolGroup.add(cuttingMesh);
+            
+            const shaftGeom = new THREE.CylinderGeometry(rHta * 0.8, rHta * 0.8, 40, 20);
+            shaftGeom.rotateX(Math.PI / 2);
+            const shaftMat = new THREE.MeshStandardMaterial({
+                color: 0xcccccc,
+                roughness: 0.1,
+                metalness: 0.9
+            });
+            const shaftMesh = new THREE.Mesh(shaftGeom, shaftMat);
+            shaftMesh.position.set(0, 0, 40);
+            toolGroup.add(shaftMesh);
+            
+            threeTool = toolGroup;
+            threeScene.add(threeTool);
+            threeTool.position.set(simToolPos.x, simToolPos.y, simToolPos.z);
+        }
+
+        function updateThreeToolpathLine(from, to, type) {
+            if (!threeLineGroup) return;
+            
+            let color = 0xffffff;
+            let linewidth = 1;
+            
+            if (type === 'feed') {
+                color = 0xff7a00;
+                linewidth = 2.5;
+            } else if (type === 'finish') {
+                color = 0x00ffc4;
+                linewidth = 3;
+            }
+            
+            const material = new THREE.LineBasicMaterial({
+                color: color,
+                linewidth: linewidth
+            });
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(from.x, from.y, from.z),
+                new THREE.Vector3(to.x, to.y, to.z)
+            ]);
+            
+            const line = new THREE.Line(geometry, material);
+            threeLineGroup.add(line);
+        }</script>
 </body>
 </html>
