@@ -240,6 +240,8 @@ Se utiliza para realizar roscado interior en agujeros previamente taladrados, us
 | **#9** | Plano de Seguridad R | Plano seguro en Z para aproximaciones rápidas. |
 | **#10** | Centro X | Coordenada X del eje del agujero roscado. |
 | **#11** | Centro Y | Coordenada Y del eje del agujero roscado. |
+| **#12** | Número de Pasadas Radiales | Cantidad de aproximaciones radiales (1 para una sola pasada directo al diámetro nominal). |
+| **#13** | Profundidad Radial/Pasada | Incremento radial del corte entre pasadas sucesivas (en mm). |
 | **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
