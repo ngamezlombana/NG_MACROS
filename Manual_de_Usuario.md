@@ -112,6 +112,7 @@ Se utiliza para realizar una serie de taladrados repartidos uniformemente a lo l
 | **#13** | Ángulo Inicial | Ángulo en grados del primer agujero respecto a la horizontal (ej: 0° empieza a las 3 en punto). |
 | **#14** | Agujero de Inicio | Número del agujero desde donde iniciará el taladrado (por defecto 1). |
 | **#15** | Agujero Final | Número del agujero donde terminará (permite hacer patrones parciales). |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -137,6 +138,7 @@ Sirve para mecanizar la superficie exterior de una pieza dejando un cilindro cen
 | **#14** | Centro Y | Coordenada Y del centro del macho. |
 | **#15** | Z Inicial | Altura donde empieza a cortar la herramienta. |
 | **#16** | Opción (0 / 1 / 2) | **0 = Desbaste y Acabado** (Completo).<br>**1 = Solo Desbaste** (deja el sobrematerial).<br>**2 = Solo Acabado** (limpia el contorno final). |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -161,6 +163,7 @@ Se utiliza para realizar un vaciado redondo (como un agujero ciego o pasante de 
 | **#14** | Z Inicial / Reinicio | Altura Z desde donde empieza a cortar (por defecto 0). |
 | **#15** | Radio de Arco Acabado | Radio del arco de entrada suave que hace la herramienta para no marcar la pared en el acabado. |
 | **#16** | Opción (0 / 1 / 2) | **0 = Ambos** (Desbaste + Acabado).<br>**1 = Solo Desbaste**.<br>**2 = Solo Acabado**. |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -189,6 +192,7 @@ Crea una cavidad rectangular en el material. Es ideal para rebajes, alojamientos
 | **#15** | Z Inicial / Reinicio | Plano Z inicial del material. |
 | **#16** | Radio de Arco Acabado | Radio de entrada tangencial en arco para el acabado de las paredes. |
 | **#17** | Opción (0 / 1 / 2) | **0 = Completo**, **1 = Solo Desbaste**, **2 = Solo Acabado**. |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -215,6 +219,7 @@ Sirve para fresar ranuras lineales o colisas (ranuras con dos semicírculos en l
 | **#15** | Z Inicial / Reinicio | Plano de partida del mecanizado en Z. |
 | **#16** | Radio de Arco Acabado | Radio del movimiento circular de aproximación de la pasada de acabado. |
 | **#17** | Opción (0 / 1 / 2) | **0 = Completo**, **1 = Solo Desbaste**, **2 = Solo Acabado**. |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -235,6 +240,7 @@ Se utiliza para realizar roscado interior en agujeros previamente taladrados, us
 | **#9** | Plano de Seguridad R | Plano seguro en Z para aproximaciones rápidas. |
 | **#10** | Centro X | Coordenada X del eje del agujero roscado. |
 | **#11** | Centro Y | Coordenada Y del eje del agujero roscado. |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -257,6 +263,7 @@ Permite realizar una cuadrícula rectangular o marco de taladrados. Es ideal par
 | **#11** | Centro X | Coordenada X del centro geométrico del marco. |
 | **#12** | Centro Y | Coordenada Y del centro geométrico del marco. |
 | **#13** | Z Inicial | Plano de partida del taladrado en el eje Z. |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
@@ -277,6 +284,7 @@ Especialmente programada para fresar canales circulares concéntricos que alojan
 | **#9** | Centro en X | Coordenada X del centro de la ranura circular. |
 | **#10** | Centro en Y | Coordenada Y del centro de la ranura circular. |
 | **#14** | Z Inicial | Altura Z de inicio del mecanizado. |
+| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
 
 ---
 
