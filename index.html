@@ -1919,6 +1919,8 @@
                             <tr><td><strong>#9</strong></td><td>Plano de Seguridad R</td><td>Altura Z donde la fresa se aproxima o sale rápidamente en vacío.</td></tr>
                             <tr><td><strong>#10</strong></td><td>Centro X</td><td>Coordenada X del centro del agujero a roscar.</td></tr>
                             <tr><td><strong>#11</strong></td><td>Centro Y</td><td>Coordenada Y del centro del agujero a roscar.</td></tr>
+                            <tr><td><strong>#12</strong></td><td>Número de Pasadas Radiales</td><td>Número de pasadas radiales de aproximación (1 para pasada única).</td></tr>
+                            <tr><td><strong>#13</strong></td><td>Profundidad Radial/Pasada</td><td>Incremento radial del corte entre pasadas sucesivas (en mm).</td></tr>
                                                     <tr><td><strong>#20</strong></td><td>Número de Herramienta</td><td>Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H).</td></tr>
 </tbody>
                     </table>
@@ -2701,6 +2703,9 @@
             if (fname.includes("Arreglo Circular")) {
                 optionText = vars[7] == 1 ? "Ciclo de Picoteo" : "Taladrado Directo";
             }
+            if (fname.includes("Roscas")) {
+                optionText = "Fresado de Rosca Helicoidal";
+            }
 
             let stepZ = vars[4] || vars[5] || vars[6] || vars[8] || 0;
             let totalZ = vars[3] || vars[4] || vars[5] || vars[7] || 0;
@@ -2709,6 +2714,14 @@
             stratStr = `Estrategia: <strong>${optionText}</strong>`;
             if (stepZ > 0 && !fname.includes("Arreglo Circular") && !fname.includes("Roscas")) {
                 stratStr += `<br>Pasada Prof.: <strong>${stepZ.toFixed(1)} mm</strong> (${passes} pasadas)`;
+            }
+            if (fname.includes("Roscas")) {
+                const numPasses = Math.max(1, Math.round(vars[12] || 1));
+                const radDepth = vars[13] || 0;
+                stratStr += `<br>Pasadas Radiales: <strong>${numPasses}</strong>`;
+                if (radDepth > 0) {
+                    stratStr += `<br>Prof. Radial/Pasada: <strong>${radDepth.toFixed(3)} mm</strong>`;
+                }
             }
             if (vars[12] && fname.includes("cajera_circular")) {
                 stratStr += `<br>Paso Radial: <strong>${vars[12].toFixed(1)} mm</strong>`;
@@ -2761,6 +2774,14 @@
                 if (vars[2] >= vars[1]) {
                     hasError = true;
                     errorMsg = "ERROR: El diámetro de la fresa de roscar (#2) debe ser menor que el diámetro nominal de la rosca (#1).";
+                }
+                if (vars[12] < 1) {
+                    hasError = true;
+                    errorMsg = "ERROR: El número de pasadas radiales (#12) debe ser como mínimo 1.";
+                }
+                if (vars[13] <= 0) {
+                    hasError = true;
+                    errorMsg = "ERROR: La profundidad radial por pasada (#13) debe ser mayor a cero.";
                 }
             }
 
@@ -3300,15 +3321,32 @@
                 ctx.fill();
                 ctx.stroke();
 
-                // Trayectoria interpolación helicoidal (Naranja)
-                ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                // Trayectorias de interpolación helicoidal multi-pasada (Naranja)
                 ctx.lineWidth = 1.5;
-                const rEntrada = rEff / 2;
-                ctx.beginPath();
-                ctx.arc(cX + rEntrada, cY, rEntrada, Math.PI, 0, false);
-                ctx.arc(cX, cY, rEff, 0, 2*Math.PI);
-                ctx.arc(cX - rEntrada, cY, rEntrada, 0, Math.PI, false);
-                ctx.stroke();
+                const numPasses = Math.max(1, Math.round(vars[12] || 1));
+                const radialDepth = vars[13] || 0.5;
+
+                for (let pass = 1; pass <= numPasses; pass++) {
+                    // Las pasadas previas se dibujan semitransparentes, la última en color completo
+                    if (pass < numPasses) {
+                        ctx.strokeStyle = 'rgba(255, 122, 0, 0.3)';
+                    } else {
+                        ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+                    }
+                    
+                    let rEffPass = rEff - (numPasses - pass) * radialDepth * scale;
+                    if (rEffPass <= 0) {
+                        rEffPass = radialDepth * scale;
+                    }
+                    if (rEffPass <= 1) rEffPass = 1;
+                    
+                    const rEntrada = rEffPass / 2;
+                    ctx.beginPath();
+                    ctx.arc(cX + rEntrada, cY, rEntrada, Math.PI, 0, false);
+                    ctx.arc(cX, cY, rEffPass, 0, 2*Math.PI);
+                    ctx.arc(cX - rEntrada, cY, rEntrada, 0, Math.PI, false);
+                    ctx.stroke();
+                }
 
                 // Cotas
                 drawDimension(ctx, cX - rNominal, cY, cX + rNominal, cY, -rNominal - 20, `Rosca M${vars[1].toFixed(1)}`);
@@ -4612,68 +4650,82 @@
                 const safetyR = vars[9] || 50;
                 const cX = vars[10] || 0;
                 const cY = vars[11] || 0;
+                const numPasses = Math.max(1, Math.round(vars[12] || 1));
+                const radialDepth = vars[13] || 0.5;
                 
                 const rNominal = dNominal / 2;
                 const rFresa = dFresa / 2;
                 const rEff = Math.max(0.5, rNominal - rFresa);
-                const rEntrada = rEff / 2;
                 
                 const zFinal = -totalZ;
                 
                 path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${safetyR.toFixed(2)}`});
                 path.push({x: cX, y: cY, z: 2.0, type: 'rapid', gcode: `G00 Z2.00`});
-                path.push({x: cX, y: cY, z: zFinal, type: 'feed', gcode: `G01 Z${zFinal.toFixed(2)} F${(feed/2).toFixed(0)}`});
                 
-                const halfPitch = pitch / 2;
-                let zActual = zFinal;
-                for (let a = 180; a <= 360; a += 15) {
-                    const rad = a * Math.PI / 180;
-                    const t = (a - 180) / 180;
-                    const zOffset = zFinal + halfPitch * t;
-                    const px = cX + rEntrada + rEntrada * Math.cos(rad);
-                    const py = cY - rEntrada * Math.sin(rad);
-                    
-                    let gcodeStr = "";
-                    if (a === 360) {
-                        gcodeStr = `G03 X${(cX + rEff).toFixed(2)} Y${cY.toFixed(2)} Z${zOffset.toFixed(2)} I${rEntrada.toFixed(2)} J0.00`;
+                for (let pass = 1; pass <= numPasses; pass++) {
+                    let rEffPass = rEff - (numPasses - pass) * radialDepth;
+                    if (rEffPass <= 0) {
+                        rEffPass = radialDepth;
                     }
-                    path.push({x: px, y: py, z: zOffset, type: 'feed', gcode: gcodeStr});
-                    zActual = zOffset;
-                }
-                
-                for (let turn = 0; turn < numTurns; turn++) {
-                    const zStartOfTurn = zActual;
-                    zActual = zActual + pitch;
+                    if (rEffPass <= 0.1) rEffPass = 0.1;
                     
-                    for (let a = 0; a <= 360; a += 15) {
+                    const rEntrada = rEffPass / 2;
+                    
+                    path.push({x: cX, y: cY, z: zFinal, type: 'feed', gcode: `G01 Z${zFinal.toFixed(2)} F${(feed/2).toFixed(0)}`});
+                    
+                    const halfPitch = pitch / 2;
+                    let zActual = zFinal;
+                    for (let a = 180; a <= 360; a += 15) {
                         const rad = a * Math.PI / 180;
-                        const t = a / 360;
-                        const pz = zStartOfTurn + (zActual - zStartOfTurn) * t;
-                        const px = cX + rEff * Math.cos(rad);
-                        const py = cY - rEff * Math.sin(rad);
+                        const t = (a - 180) / 180;
+                        const zOffset = zFinal + halfPitch * t;
+                        const px = cX + rEntrada + rEntrada * Math.cos(rad);
+                        const py = cY - rEntrada * Math.sin(rad);
                         
                         let gcodeStr = "";
                         if (a === 360) {
-                            gcodeStr = `G03 X${(cX + rEff).toFixed(2)} Y${cY.toFixed(2)} Z${pz.toFixed(2)} I-${rEff.toFixed(2)} J0.00`;
+                            gcodeStr = `G03 X${(cX + rEffPass).toFixed(2)} Y${cY.toFixed(2)} Z${zOffset.toFixed(2)} I${rEntrada.toFixed(2)} J0.00`;
                         }
-                        path.push({x: px, y: py, z: pz, type: 'finish', gcode: gcodeStr});
+                        path.push({x: px, y: py, z: zOffset, type: 'feed', gcode: gcodeStr});
+                        zActual = zOffset;
                     }
-                }
-                
-                const zStartOfExit = zActual;
-                zActual = zActual + halfPitch;
-                for (let a = 0; a <= 180; a += 15) {
-                    const rad = a * Math.PI / 180;
-                    const t = a / 180;
-                    const zOffset = zStartOfExit + halfPitch * t;
-                    const px = cX - rEntrada + rEntrada * Math.cos(rad);
-                    const py = cY - rEntrada * Math.sin(rad);
                     
-                    let gcodeStr = "";
-                    if (a === 180) {
-                        gcodeStr = `G03 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${zOffset.toFixed(2)} I-${rEntrada.toFixed(2)} J0.00`;
+                    for (let turn = 0; turn < numTurns; turn++) {
+                        const zStartOfTurn = zActual;
+                        zActual = zActual + pitch;
+                        
+                        for (let a = 0; a <= 360; a += 15) {
+                            const rad = a * Math.PI / 180;
+                            const t = a / 360;
+                            const pz = zStartOfTurn + (zActual - zStartOfTurn) * t;
+                            const px = cX + rEffPass * Math.cos(rad);
+                            const py = cY - rEffPass * Math.sin(rad);
+                            
+                            let gcodeStr = "";
+                            if (a === 360) {
+                                gcodeStr = `G03 X${(cX + rEffPass).toFixed(2)} Y${cY.toFixed(2)} Z${pz.toFixed(2)} I-${rEffPass.toFixed(2)} J0.00`;
+                            }
+                            path.push({x: px, y: py, z: pz, type: 'finish', gcode: gcodeStr});
+                        }
                     }
-                    path.push({x: px, y: py, z: zOffset, type: 'feed', gcode: gcodeStr});
+                    
+                    const zStartOfExit = zActual;
+                    zActual = zActual + halfPitch;
+                    for (let a = 0; a <= 180; a += 15) {
+                        const rad = a * Math.PI / 180;
+                        const t = a / 180;
+                        const zOffset = zStartOfExit + halfPitch * t;
+                        const px = cX - rEntrada + rEntrada * Math.cos(rad);
+                        const py = cY - rEntrada * Math.sin(rad);
+                        
+                        let gcodeStr = "";
+                        if (a === 180) {
+                            gcodeStr = `G03 X${cX.toFixed(2)} Y${cY.toFixed(2)} Z${zOffset.toFixed(2)} I-${rEntrada.toFixed(2)} J0.00`;
+                        }
+                        path.push({x: px, y: py, z: zOffset, type: 'feed', gcode: gcodeStr});
+                    }
+                    
+                    path.push({x: cX, y: cY, z: 2.0, type: 'rapid', gcode: `G00 Z2.00`});
                 }
                 
                 path.push({x: cX, y: cY, z: safetyR, type: 'rapid', gcode: `G00 Z${safetyR.toFixed(2)}`});
