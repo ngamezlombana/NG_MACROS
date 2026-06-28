@@ -1427,7 +1427,19 @@
                         <div class="macro-filename" id="simMacroFilename">macro.nc</div>
                     </div>
                     <!-- Estado de la Simulación en Badge -->
-                    <div style="display: flex; gap: 8px; align-items: center;">
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <!-- Selector de plano 2D (solo visible en modo 2D) -->
+                        <div id="view2DSelector" style="display:flex; gap:3px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px;">
+                            <button id="view2DTopBtn" onclick="setSim2DView('top')"
+                                style="padding:4px 9px; font-size:10px; font-weight:600; border-radius:4px; border:none; cursor:pointer; background:var(--accent-blue); color:#fff; transition:all .15s;"
+                                title="Vista Superior (plano XY)">XY</button>
+                            <button id="view2DFrontBtn" onclick="setSim2DView('front')"
+                                style="padding:4px 9px; font-size:10px; font-weight:600; border-radius:4px; border:none; cursor:pointer; background:transparent; color:var(--text-muted); transition:all .15s;"
+                                title="Vista Frontal (plano XZ)">XZ</button>
+                            <button id="view2DSideBtn" onclick="setSim2DView('side')"
+                                style="padding:4px 9px; font-size:10px; font-weight:600; border-radius:4px; border:none; cursor:pointer; background:transparent; color:var(--text-muted); transition:all .15s;"
+                                title="Vista Lateral (plano YZ)">YZ</button>
+                        </div>
                         <button id="toggleSimModeBtn" class="btn-execute" style="padding: 6px 12px; font-size: 11px; margin-bottom: 0; background: var(--accent-blue); border-color: var(--accent-blue);" onclick="toggleSimMode()">
                             <span>Vista 3D</span>
                         </button>
@@ -1448,9 +1460,10 @@
                 </div>
 
                 <div class="canvas-legend">
-                    <div class="legend-item"><span class="legend-dot gray"></span>Bruto (Stock)</div>
-                    <div class="legend-item"><span class="legend-dot orange"></span>Corte de Desbaste</div>
-                    <div class="legend-item"><span class="legend-dot green"></span>Corte de Acabado</div>
+                    <div class="legend-item"><span class="legend-dot gray"></span>Material restante</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#1a1d21;"></span>Material removido (cavidad)</div>
+                    <div class="legend-item"><span class="legend-dot orange"></span>Trayectoria desbaste</div>
+                    <div class="legend-item"><span class="legend-dot green"></span>Trayectoria acabado</div>
                     <div class="legend-item"><span class="legend-dot white"></span>Rápidos (G00)</div>
                 </div>
             </div>
@@ -1484,6 +1497,11 @@
                             <span class="dro-item-val" id="droF">0 mm/min</span>
                         </div>
                     </div>
+                    <!-- Indicador de modo de movimiento -->
+                    <div class="dro-item" style="margin-top:8px; justify-content:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:7px;">
+                        <span class="dro-item-label" style="margin-right:6px;">Modo:</span>
+                        <span class="dro-item-val" id="droMode" style="color:var(--text-muted); font-weight:700;">— En espera</span>
+                    </div>
                     <!-- Spindle Load Gauge -->
                     <div class="spindle-load-container">
                         <div class="spindle-load-header">
@@ -1508,6 +1526,17 @@
                             <span>Detener</span>
                         </button>
                     </div>
+                    <!-- Fila paso a paso -->
+                    <div class="sim-btn-row" style="margin-top: 4px;">
+                        <button class="sim-btn" id="simStepBtn" onclick="simStepOnce()" disabled
+                            style="flex:1; border-color: rgba(255,204,0,0.35); color:#ffcc00;"
+                            title="Avanzar un movimiento (waypoint) a la vez">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 18V6l8.5 6L6 18zm8.5 0V6H17v12h-2.5z"/>
+                            </svg>
+                            <span>Paso a paso</span>
+                        </button>
+                    </div>
                     <!-- Regulador de Velocidad -->
                     <div class="sim-slider-group">
                         <div class="sim-slider-header">
@@ -1527,6 +1556,75 @@
                             <option value="copper">Cobre Electrolítico (Naranja Rojizo)</option>
                             <option value="wood">Madera / MDF (Marrón Claro)</option>
                         </select>
+                    </div>
+                    <!-- Descarga del programa CNC -->
+                    <div class="sim-btn-row" style="margin-top: 12px;">
+                        <button class="sim-btn primary" id="simDownloadBtn" onclick="downloadGCode()"
+                            style="flex:1; background: var(--accent-orange); border-color: var(--accent-orange);"
+                            title="Descargar el programa CNC con los parámetros actuales como archivo .nc">
+                            <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                            <span>Descargar Programa (.NC)</span>
+                        </button>
+                    </div>
+                    <div style="text-align:center; font-size:9px; color:var(--text-muted); margin-top:6px;">
+                        Genera el código G con los parámetros y stock actuales
+                    </div>
+                </div>
+
+                <!-- DIMENSIONES DEL STOCK -->
+                <div class="sim-action-card" id="stockDimsCard">
+                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
+                        Bloque de Trabajo (Stock)
+                    </div>
+                    <!-- Toggle forma -->
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <button id="stockShapeRectBtn" class="sim-btn primary" style="flex:1; padding:5px 4px; font-size:10px; gap:4px;" onclick="setStockShape('rectangular')">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="5" width="18" height="14" rx="1.5"/></svg>
+                            Rectangular
+                        </button>
+                        <button id="stockShapeCircBtn" class="sim-btn" style="flex:1; padding:5px 4px; font-size:10px; gap:4px;" onclick="setStockShape('circular')">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/></svg>
+                            Circular
+                        </button>
+                    </div>
+                    <!-- Inputs rectangular -->
+                    <div id="stockRectInputs">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px;">
+                            <div>
+                                <label style="font-size: 9px; color: var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Largo X</label>
+                                <input type="number" id="stockX" class="input-field" style="padding:5px 6px; height:30px; font-size:12px; font-family:'Fira Code',monospace; text-align:center;" value="200" min="10" max="3000" oninput="applyStockDims()">
+                            </div>
+                            <div>
+                                <label style="font-size: 9px; color: var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Ancho Y</label>
+                                <input type="number" id="stockY" class="input-field" style="padding:5px 6px; height:30px; font-size:12px; font-family:'Fira Code',monospace; text-align:center;" value="150" min="10" max="3000" oninput="applyStockDims()">
+                            </div>
+                            <div>
+                                <label style="font-size: 9px; color: var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Altura Z</label>
+                                <input type="number" id="stockZ" class="input-field" style="padding:5px 6px; height:30px; font-size:12px; font-family:'Fira Code',monospace; text-align:center;" value="50" min="5" max="1000" oninput="applyStockDims()">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Inputs circular -->
+                    <div id="stockCircInputs" style="display:none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px;">
+                            <div>
+                                <label style="font-size: 9px; color: var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Diámetro</label>
+                                <input type="number" id="stockDiam" class="input-field" style="padding:5px 6px; height:30px; font-size:12px; font-family:'Fira Code',monospace; text-align:center;" value="200" min="10" max="3000" oninput="applyStockDims()">
+                            </div>
+                            <div>
+                                <label style="font-size: 9px; color: var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Altura Z</label>
+                                <input type="number" id="stockZCirc" class="input-field" style="padding:5px 6px; height:30px; font-size:12px; font-family:'Fira Code',monospace; text-align:center;" value="50" min="5" max="1000" oninput="applyStockDims()">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Info + botón auto -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                        <span id="stockDimsInfo" style="font-size:10px; color:var(--accent-orange); font-family:'Fira Code',monospace; font-weight:600;"></span>
+                        <button class="sim-btn" style="padding:4px 10px; font-size:10px;" onclick="resetStockDims()" title="Detectar dimensiones automáticamente desde la macro">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                            Auto
+                        </button>
                     </div>
                 </div>
 
@@ -2807,7 +2905,8 @@
         }
 
         /* --- GENERACIÓN DEL G-CODE --- */
-        function generateGCode() {
+        // Construye el string de G-code con los valores actuales (fuente única de verdad)
+        function buildGCodeString() {
             let lines = activeMacro.full_content.split('\n');
             activeMacro.variables.forEach(v => {
                 const valStr = Number.isInteger(v.value) ? v.value.toString() : v.value.toFixed(2);
@@ -2818,7 +2917,11 @@
                 }
                 lines[v.line_idx] = newLine;
             });
-            gcodeViewer.value = lines.join('\n');
+            return lines.join('\n');
+        }
+
+        function generateGCode() {
+            gcodeViewer.value = buildGCodeString();
         }
 
         /* --- COPIAR Y DESCARGAR --- */
@@ -2831,14 +2934,30 @@
             });
         }
 
+        // Descarga el G-code como archivo .nc. Funciona desde cualquier pestaña:
+        // toma el contenido del visor si existe, o lo genera al vuelo.
         function downloadGCode() {
-            const blob = new Blob([gcodeViewer.value], { type: 'text/plain;charset=utf-8' });
+            if (!activeMacro) {
+                alert("Selecciona una macro antes de descargar.");
+                return;
+            }
+            const content = (gcodeViewer && gcodeViewer.value.trim())
+                ? gcodeViewer.value
+                : buildGCodeString();
+
+            // Garantizar extensión .nc
+            let name = activeMacro.filename || "macro.nc";
+            name = name.replace(/\.[^.]*$/, "");   // quitar extensión existente
+            name += ".nc";
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = activeMacro.filename;
+            link.download = name;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
         }
 
         /* --- FUNCIÓN AUXILIAR PARA DIBUJAR COTAS (DIMENSION LINES) --- */
@@ -3505,6 +3624,8 @@
             else if (tabId === 'simulation') {
                 const simLayout = document.getElementById('simulationLayout');
                 simLayout.style.display = 'grid';
+                // Pre-rellenar panel de stock con dimensiones de la macro actual
+                initStockDimsCard();
                 // Inicializar simulador con la macro y variables cargadas actualmente
                 simInit();
                 if (simMode === '3d' && threeRenderer) {
@@ -3540,6 +3661,27 @@
 
         // Variables de Simulación 3D
         let simMode = '2d';
+        let simStockCustom = false;
+        let simStockShape = 'rectangular';
+        let simScale2D = 1; // escala px/mm activa en el canvas 2D
+        let sim2DView = 'top'; // 'top' | 'front' | 'side'
+        let simProgramRPM = 0;   // RPM del husillo del programa activo
+        let simProgramFeed = 0;  // avance de corte programado (mm/min)
+        const SIM_RAPID_RATE = 5000; // velocidad de desplazamiento rápido G00 (mm/min) referencial
+
+        // --- Mapa de profundidad (depth/height map) para remoción real de material ---
+        let simDepth = null;      // Float32Array: profundidad removida (mm) por celda; 0 = intacto
+        let simGridCols = 0, simGridRows = 0;
+        let simGridCellMm = 1;    // tamaño de celda en mm
+        let simMaxCutDepth = 1;   // profundidad máxima del programa (mm) para sombreado
+        let simStockWmm = 0, simStockHmm = 0; // dims del stock usadas por el grid
+
+        // --- Heightmap 3D (malla de la cara superior que se talla) ---
+        let threeTopMesh = null;     // malla de la superficie superior tallable
+        let threeTopGeom = null;     // su BufferGeometry
+        let threeTopXY = null;       // Float32Array [x0,y0,x1,y1,...] de cada vértice superior
+        let threeTopCount = 0;       // nº de vértices superiores
+        let sim3DDirty = false;      // hay cortes pendientes de reflejar en 3D
         let threeScene = null;
         let threeCamera = null;
         let threeRenderer = null;
@@ -3577,6 +3719,144 @@
             }
         };
 
+        /* --- GESTIÓN DE DIMENSIONES DEL STOCK --- */
+
+        function setSim2DView(v) {
+            sim2DView = v;
+            const ids = { top: 'view2DTopBtn', front: 'view2DFrontBtn', side: 'view2DSideBtn' };
+            Object.entries(ids).forEach(([key, id]) => {
+                const btn = document.getElementById(id);
+                btn.style.background = key === v ? 'var(--accent-blue)' : 'transparent';
+                btn.style.color      = key === v ? '#fff' : 'var(--text-muted)';
+            });
+            // Actualizar etiqueta del eje en el DRO según plano
+            document.getElementById('view2DLabel') && (document.getElementById('view2DLabel').textContent =
+                v === 'top' ? 'Vista Superior (XY)' : v === 'front' ? 'Vista Frontal (XZ)' : 'Vista Lateral (YZ)');
+            drawWorkpieceInit();
+            drawToolOnly();
+        }
+
+        function getStockDims() {
+            if (simStockCustom) {
+                if (simStockShape === 'circular') {
+                    const d = parseFloat(document.getElementById('stockDiam').value) || 200;
+                    const z = parseFloat(document.getElementById('stockZCirc').value) || 50;
+                    return { w: d, h: d, d: z, isCircular: true };
+                } else {
+                    const x = parseFloat(document.getElementById('stockX').value) || 200;
+                    const y = parseFloat(document.getElementById('stockY').value) || 150;
+                    const z = parseFloat(document.getElementById('stockZ').value) || 50;
+                    return { w: x, h: y, d: z, isCircular: false };
+                }
+            }
+            // Auto-detectar desde variables de la macro activa
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+            let stockW = 160, stockH = 160, stockD = 30, isCircular = false;
+            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
+                isCircular = true;
+                stockW = vars[1] || 100;
+                stockH = stockW;
+                stockD = (vars[3] || vars[4] || vars[8] || 15) * 1.5;
+            } else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
+                stockW = vars[1] || 120;
+                stockH = vars[2] || 120;
+                stockD = (vars[5] || vars[6] || vars[7] || 15) * 1.5;
+                if (fname.includes("Ranura")) {
+                    stockW = vars[1] + 2 * vars[2] + 20;
+                    stockH = vars[2] * 2 + 20;
+                    stockD = (vars[5] || vars[6] || 15) * 1.5;
+                }
+            } else if (fname.includes("Arreglo Circular")) {
+                isCircular = true;
+                stockW = (vars[1] || 100) + (vars[3] || 8) + 20;
+                stockH = stockW;
+                stockD = (vars[6] || 15) * 1.5;
+            }
+            if (stockD < 10) stockD = 30;
+            return { w: stockW, h: stockH, d: stockD, isCircular };
+        }
+
+        function setStockShape(shape) {
+            simStockShape = shape;
+            simStockCustom = true;
+            document.getElementById('stockRectInputs').style.display = shape === 'rectangular' ? 'block' : 'none';
+            document.getElementById('stockCircInputs').style.display = shape === 'circular'    ? 'block' : 'none';
+            document.getElementById('stockShapeRectBtn').className = 'sim-btn' + (shape === 'rectangular' ? ' primary' : '');
+            document.getElementById('stockShapeCircBtn').className = 'sim-btn' + (shape === 'circular'    ? ' primary' : '');
+            applyStockDims();
+        }
+
+        function applyStockDims() {
+            simStockCustom = true;
+            const dims = getStockDims();
+            const info = dims.isCircular
+                ? `Ø${dims.w.toFixed(0)} × ${dims.d.toFixed(0)} mm`
+                : `${dims.w.toFixed(0)} × ${dims.h.toFixed(0)} × ${dims.d.toFixed(0)} mm`;
+            document.getElementById('stockDimsInfo').textContent = info;
+            // El grid depende del tamaño del stock: reiniciarlo (se pierden los cortes en curso)
+            initDepthGrid();
+            simCurrentIndex = 0;
+            if (simPoints.length > 0) {
+                simToolPos = { x: simPoints[0].x, y: simPoints[0].y, z: simPoints[0].z };
+            }
+            drawWorkpieceInit();
+            drawToolOnly();
+            if (simMode === '3d') updateThreeStock();
+        }
+
+        function resetStockDims() {
+            simStockCustom = false;
+            // Pre-rellenar los campos con los valores auto de la macro
+            const dims = getStockDims();
+            if (dims.isCircular) {
+                setStockShape('circular');
+                document.getElementById('stockDiam').value = Math.round(dims.w);
+                document.getElementById('stockZCirc').value = Math.round(dims.d);
+            } else {
+                setStockShape('rectangular');
+                document.getElementById('stockX').value = Math.round(dims.w);
+                document.getElementById('stockY').value = Math.round(dims.h);
+                document.getElementById('stockZ').value = Math.round(dims.d);
+            }
+            simStockCustom = false; // resetear de nuevo porque setStockShape lo pone en true
+            const info = dims.isCircular
+                ? `Ø${dims.w.toFixed(0)} × ${dims.d.toFixed(0)} mm (auto)`
+                : `${dims.w.toFixed(0)} × ${dims.h.toFixed(0)} × ${dims.d.toFixed(0)} mm (auto)`;
+            document.getElementById('stockDimsInfo').textContent = info;
+            drawWorkpieceInit();
+            drawToolOnly();
+            if (simMode === '3d') updateThreeStock();
+        }
+
+        function initStockDimsCard() {
+            simStockCustom = false;
+            const dims = getStockDims();
+            if (dims.isCircular) {
+                simStockShape = 'circular';
+                document.getElementById('stockRectInputs').style.display = 'none';
+                document.getElementById('stockCircInputs').style.display = 'block';
+                document.getElementById('stockShapeRectBtn').className = 'sim-btn';
+                document.getElementById('stockShapeCircBtn').className = 'sim-btn primary';
+                document.getElementById('stockDiam').value = Math.round(dims.w);
+                document.getElementById('stockZCirc').value = Math.round(dims.d);
+            } else {
+                simStockShape = 'rectangular';
+                document.getElementById('stockRectInputs').style.display = 'block';
+                document.getElementById('stockCircInputs').style.display = 'none';
+                document.getElementById('stockShapeRectBtn').className = 'sim-btn primary';
+                document.getElementById('stockShapeCircBtn').className = 'sim-btn';
+                document.getElementById('stockX').value = Math.round(dims.w);
+                document.getElementById('stockY').value = Math.round(dims.h);
+                document.getElementById('stockZ').value = Math.round(dims.d);
+            }
+            const info = dims.isCircular
+                ? `Ø${dims.w.toFixed(0)} × ${dims.d.toFixed(0)} mm (auto)`
+                : `${dims.w.toFixed(0)} × ${dims.h.toFixed(0)} × ${dims.d.toFixed(0)} mm (auto)`;
+            document.getElementById('stockDimsInfo').textContent = info;
+        }
+
         function simInit() {
             simWorkpieceCanvas = document.getElementById('simWorkpieceCanvas');
             simToolCanvas = document.getElementById('simToolCanvas');
@@ -3612,6 +3892,8 @@
 
             // Generar puntos de la trayectoria
             simPoints = generateSimulationPath(activeMacro.filename, vars);
+            // Reiniciar el mapa de profundidad para el stock/programa actuales
+            initDepthGrid();
             simCurrentIndex = 0;
             simIsPlaying = false;
             if (simAnimationId) cancelAnimationFrame(simAnimationId);
@@ -3619,7 +3901,9 @@
 
             // Reiniciar botones e indicadores
             document.getElementById('simPlayBtn').innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Simular</span>`;
+            document.getElementById('simPlayBtn').disabled = false;
             document.getElementById('simStopBtn').disabled = true;
+            document.getElementById('simStepBtn').disabled = simPoints.length < 2;
             document.getElementById('simStatusBadge').textContent = "Listo";
             document.getElementById('simStatusBadge').style.color = "#00bcff";
             document.getElementById('simStatusBadge').parentElement.style.borderColor = "rgba(0, 188, 255, 0.2)";
@@ -3629,8 +3913,11 @@
             document.getElementById('droX').textContent = "0.000";
             document.getElementById('droY').textContent = "0.000";
             document.getElementById('droZ').textContent = "5.000";
-            document.getElementById('droS').textContent = "0 RPM";
+            document.getElementById('droS').textContent = simProgramRPM > 0 ? simProgramRPM.toFixed(0) + " RPM" : "0 RPM";
             document.getElementById('droF').textContent = "0 mm/min";
+            document.getElementById('droF').style.color = "";
+            const droModeEl = document.getElementById('droMode');
+            if (droModeEl) { droModeEl.textContent = "— En espera"; droModeEl.style.color = "var(--text-muted)"; }
             document.getElementById('spindleLoadVal').textContent = "0%";
             document.getElementById('spindleLoadFill').style.width = "0%";
 
@@ -3711,65 +3998,404 @@
                 simCtxWorkpiece.stroke();
             }
 
+            // Redirigir a vista lateral si corresponde
+            if (sim2DView !== 'top') { drawWorkpieceInitSideView(); return; }
+
             // Pieza en bruto física (Stock)
+            const { w: stockW, h: stockH, d: stockD, isCircular } = getStockDims();
+
+            // Escala px/mm — a escala real, con margen de 80px cada lado
+            const margin = 80;
+            const scale = isCircular
+                ? Math.min((w - margin * 2) / stockW, (h - margin * 2) / stockW)
+                : Math.min((w - margin * 2) / stockW, (h - margin * 2) / stockH);
+            simScale2D = scale; // exportar para drawToolOnly
+
             simCtxWorkpiece.fillStyle = theme.stockColor;
-            
-            // Determinar dimensiones según macro
-            const vars = {};
-            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
-            const fname = activeMacro.filename;
-
-            let stockW = 160;
-            let stockH = 160;
-            let isCircular = false;
-
-            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
-                isCircular = true;
-                const dStock = vars[1] || 100;
-                stockW = dStock;
-            } 
-            else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
-                stockW = vars[1] || 120;
-                stockH = vars[2] || 120;
-                if (fname.includes("Ranura")) {
-                    stockW = vars[1] + 2 * vars[2] + 20;
-                    stockH = vars[2] * 2 + 20;
-                }
-            } 
-            else if (fname.includes("Arreglo Circular")) {
-                stockW = vars[1] + vars[3] + 20;
-                isCircular = true;
-            }
-
-            // Escala local
-            const scale = isCircular 
-                ? Math.min((w - 100) / stockW, (h - 100) / stockW)
-                : Math.min((w - 100) / stockW, (h - 100) / stockH);
-
             simCtxWorkpiece.save();
             simCtxWorkpiece.translate(cx, cy);
 
-            // Dibujar bloque con sombra premium
-            simCtxWorkpiece.shadowColor = 'rgba(0,0,0,0.5)';
-            simCtxWorkpiece.shadowBlur = 25;
+            // Sombra
+            simCtxWorkpiece.shadowColor = 'rgba(0,0,0,0.55)';
+            simCtxWorkpiece.shadowBlur = 28;
             simCtxWorkpiece.shadowOffsetY = 10;
 
             simCtxWorkpiece.beginPath();
             if (isCircular) {
-                simCtxWorkpiece.arc(0, 0, (stockW/2) * scale, 0, 2*Math.PI);
+                simCtxWorkpiece.arc(0, 0, (stockW / 2) * scale, 0, 2 * Math.PI);
             } else {
-                simCtxWorkpiece.rect((-stockW/2) * scale, (-stockH/2) * scale, stockW * scale, stockH * scale);
+                simCtxWorkpiece.rect((-stockW / 2) * scale, (-stockH / 2) * scale, stockW * scale, stockH * scale);
             }
             simCtxWorkpiece.fill();
-            
-            // Añadir borde sutil
-            simCtxWorkpiece.shadowBlur = 0;
-            simCtxWorkpiece.shadowOffsetY = 0;
-            simCtxWorkpiece.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+
+            // Borde sutil
+            simCtxWorkpiece.shadowBlur = 0; simCtxWorkpiece.shadowOffsetY = 0;
+            simCtxWorkpiece.strokeStyle = 'rgba(255,255,255,0.10)';
             simCtxWorkpiece.lineWidth = 1.5;
             simCtxWorkpiece.stroke();
 
+            // --- Cotas de las dimensiones del stock ---
+            simCtxWorkpiece.shadowBlur = 0;
+            const dimColor = 'rgba(255,255,255,0.45)';
+            const dimFont  = '10px "Fira Code", monospace';
+            simCtxWorkpiece.strokeStyle = dimColor;
+            simCtxWorkpiece.fillStyle   = dimColor;
+            simCtxWorkpiece.lineWidth   = 1;
+            simCtxWorkpiece.font        = dimFont;
+            simCtxWorkpiece.textAlign   = 'center';
+            simCtxWorkpiece.setLineDash([3, 3]);
+
+            if (isCircular) {
+                const r = (stockW / 2) * scale;
+                // Cota diámetro (horizontal)
+                const yDim = r + 18;
+                simCtxWorkpiece.beginPath();
+                simCtxWorkpiece.moveTo(-r, yDim); simCtxWorkpiece.lineTo(r, yDim);
+                simCtxWorkpiece.moveTo(-r, yDim - 4); simCtxWorkpiece.lineTo(-r, yDim + 4);
+                simCtxWorkpiece.moveTo( r, yDim - 4); simCtxWorkpiece.lineTo( r, yDim + 4);
+                simCtxWorkpiece.stroke();
+                simCtxWorkpiece.setLineDash([]);
+                simCtxWorkpiece.fillText(`Ø ${stockW.toFixed(0)} mm`, 0, yDim + 13);
+            } else {
+                const hw = (stockW / 2) * scale;
+                const hh = (stockH / 2) * scale;
+                // Cota ancho (arriba)
+                const yTop = -hh - 14;
+                simCtxWorkpiece.beginPath();
+                simCtxWorkpiece.moveTo(-hw, yTop); simCtxWorkpiece.lineTo(hw, yTop);
+                simCtxWorkpiece.moveTo(-hw, yTop - 4); simCtxWorkpiece.lineTo(-hw, yTop + 4);
+                simCtxWorkpiece.moveTo( hw, yTop - 4); simCtxWorkpiece.lineTo( hw, yTop + 4);
+                simCtxWorkpiece.stroke();
+                simCtxWorkpiece.setLineDash([]);
+                simCtxWorkpiece.fillText(`${stockW.toFixed(0)} mm`, 0, yTop - 4);
+                // Cota largo (derecha, vertical)
+                simCtxWorkpiece.setLineDash([3, 3]);
+                const xRight = hw + 14;
+                simCtxWorkpiece.beginPath();
+                simCtxWorkpiece.moveTo(xRight, -hh); simCtxWorkpiece.lineTo(xRight, hh);
+                simCtxWorkpiece.moveTo(xRight - 4, -hh); simCtxWorkpiece.lineTo(xRight + 4, -hh);
+                simCtxWorkpiece.moveTo(xRight - 4,  hh); simCtxWorkpiece.lineTo(xRight + 4,  hh);
+                simCtxWorkpiece.stroke();
+                simCtxWorkpiece.setLineDash([]);
+                simCtxWorkpiece.save();
+                simCtxWorkpiece.translate(xRight + 13, 0);
+                simCtxWorkpiece.rotate(Math.PI / 2);
+                simCtxWorkpiece.fillText(`${stockH.toFixed(0)} mm`, 0, 0);
+                simCtxWorkpiece.restore();
+            }
+
+            // --- Regla de escala (bottom-left) ---
+            simCtxWorkpiece.setLineDash([]);
+            const rulerMm  = isCircular ? Math.round(stockW / 2) : Math.round(Math.min(stockW, stockH) / 2);
+            const rulerPx  = rulerMm * scale;
+            const bx = -w / 2 + 16;
+            const by =  h / 2 - 16;
+            simCtxWorkpiece.strokeStyle = 'rgba(255,255,255,0.35)';
+            simCtxWorkpiece.lineWidth   = 1.5;
+            simCtxWorkpiece.beginPath();
+            simCtxWorkpiece.moveTo(bx, by); simCtxWorkpiece.lineTo(bx + rulerPx, by);
+            simCtxWorkpiece.moveTo(bx, by - 4); simCtxWorkpiece.lineTo(bx, by + 4);
+            simCtxWorkpiece.moveTo(bx + rulerPx, by - 4); simCtxWorkpiece.lineTo(bx + rulerPx, by + 4);
+            simCtxWorkpiece.stroke();
+            simCtxWorkpiece.fillStyle = 'rgba(255,255,255,0.4)';
+            simCtxWorkpiece.font = '9px "Fira Code", monospace';
+            simCtxWorkpiece.textAlign = 'left';
+            simCtxWorkpiece.fillText(`${rulerMm} mm`, bx, by - 7);
+
+            // Info altura Z (esquina inferior derecha)
+            simCtxWorkpiece.textAlign = 'right';
+            simCtxWorkpiece.fillStyle = 'rgba(255,122,0,0.65)';
+            simCtxWorkpiece.fillText(`Z: ${stockD.toFixed(0)} mm`, w / 2 - 10, by - 7);
+
             simCtxWorkpiece.restore();
+
+            // Repintar el material ya removido (persiste tras redibujar el stock)
+            renderDepthGridTop();
+        }
+
+        /* ─── VISTAS LATERALES 2D ─── */
+
+        function getSideViewScale(w, h, dims) {
+            // dims: { horizMm, vertMm }
+            // margen fijo de 70px en cada lado
+            return Math.min((w - 140) / dims.horizMm, (h - 140) / dims.vertMm);
+        }
+
+        function drawSideViewGrid(ctx, w, h) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+            ctx.lineWidth = 1;
+            const g = 20;
+            for (let x = 0; x < w; x += g) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+            for (let y = 0; y < h; y += g) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+        }
+
+        function drawWorkpieceInitSideView() {
+            const w = simWorkpieceCanvas.width / window.devicePixelRatio;
+            const h = simWorkpieceCanvas.height / window.devicePixelRatio;
+            const theme = MATERIAL_THEMES[simMaterial];
+            const { w: stockW, h: stockH, d: stockD, isCircular } = getStockDims();
+
+            simCtxWorkpiece.clearRect(0, 0, w, h);
+            drawSideViewGrid(simCtxWorkpiece, w, h);
+
+            // Dimensiones en el plano elegido
+            const horizMm = sim2DView === 'front'
+                ? (isCircular ? stockW : stockW)   // XZ → ancho = stockW
+                : (isCircular ? stockW : stockH);  // YZ → ancho = stockH
+            const vertMm  = stockD;
+
+            const scale = getSideViewScale(w, h, { horizMm, vertMm });
+            simScale2D = scale;
+
+            // Origen: centrado horizontalmente, superficie Z=0 en la parte SUPERIOR del bloque
+            const cx   = w / 2;
+            const zeroY = h / 2 - (vertMm / 2) * scale; // Y del píxel que representa Z=0 (cara superior)
+
+            simCtxWorkpiece.save();
+
+            // ── Bloque de material ──
+            const bLeft = cx - (horizMm / 2) * scale;
+            const bW    = horizMm * scale;
+            const bH    = vertMm  * scale;
+
+            simCtxWorkpiece.shadowColor  = 'rgba(0,0,0,0.5)';
+            simCtxWorkpiece.shadowBlur   = 20;
+            simCtxWorkpiece.shadowOffsetY = 8;
+            simCtxWorkpiece.fillStyle = theme.stockColor;
+            simCtxWorkpiece.fillRect(bLeft, zeroY, bW, bH);
+            simCtxWorkpiece.shadowBlur = 0; simCtxWorkpiece.shadowOffsetY = 0;
+            simCtxWorkpiece.strokeStyle = 'rgba(255,255,255,0.10)';
+            simCtxWorkpiece.lineWidth = 1.5;
+            simCtxWorkpiece.strokeRect(bLeft, zeroY, bW, bH);
+
+            // ── Línea Z=0 (superficie) — destacada ──
+            simCtxWorkpiece.strokeStyle = 'rgba(0, 255, 196, 0.55)';
+            simCtxWorkpiece.lineWidth   = 1.5;
+            simCtxWorkpiece.setLineDash([5, 4]);
+            simCtxWorkpiece.beginPath();
+            simCtxWorkpiece.moveTo(bLeft - 12, zeroY);
+            simCtxWorkpiece.lineTo(bLeft + bW + 12, zeroY);
+            simCtxWorkpiece.stroke();
+            simCtxWorkpiece.setLineDash([]);
+
+            // ── Cotas ──
+            const dimColor = 'rgba(255,255,255,0.45)';
+            simCtxWorkpiece.fillStyle   = dimColor;
+            simCtxWorkpiece.strokeStyle = dimColor;
+            simCtxWorkpiece.lineWidth   = 1;
+            simCtxWorkpiece.font        = '10px "Fira Code", monospace';
+            simCtxWorkpiece.textAlign   = 'center';
+
+            // Cota horizontal (anchura en el plano)
+            const yDimH = zeroY + bH + 16;
+            simCtxWorkpiece.setLineDash([3,3]);
+            simCtxWorkpiece.beginPath();
+            simCtxWorkpiece.moveTo(bLeft, yDimH); simCtxWorkpiece.lineTo(bLeft + bW, yDimH);
+            simCtxWorkpiece.moveTo(bLeft,     yDimH - 4); simCtxWorkpiece.lineTo(bLeft,     yDimH + 4);
+            simCtxWorkpiece.moveTo(bLeft + bW, yDimH - 4); simCtxWorkpiece.lineTo(bLeft + bW, yDimH + 4);
+            simCtxWorkpiece.stroke();
+            simCtxWorkpiece.setLineDash([]);
+            simCtxWorkpiece.fillText(`${horizMm.toFixed(0)} mm`, cx, yDimH + 13);
+
+            // Cota vertical (profundidad Z)
+            const xDimV = bLeft - 16;
+            simCtxWorkpiece.setLineDash([3,3]);
+            simCtxWorkpiece.beginPath();
+            simCtxWorkpiece.moveTo(xDimV, zeroY); simCtxWorkpiece.lineTo(xDimV, zeroY + bH);
+            simCtxWorkpiece.moveTo(xDimV - 4, zeroY);      simCtxWorkpiece.lineTo(xDimV + 4, zeroY);
+            simCtxWorkpiece.moveTo(xDimV - 4, zeroY + bH); simCtxWorkpiece.lineTo(xDimV + 4, zeroY + bH);
+            simCtxWorkpiece.stroke();
+            simCtxWorkpiece.setLineDash([]);
+            simCtxWorkpiece.save();
+            simCtxWorkpiece.translate(xDimV - 13, zeroY + bH / 2);
+            simCtxWorkpiece.rotate(-Math.PI / 2);
+            simCtxWorkpiece.fillText(`${vertMm.toFixed(0)} mm`, 0, 0);
+            simCtxWorkpiece.restore();
+
+            // ── Etiquetas de ejes ──
+            simCtxWorkpiece.fillStyle = 'rgba(255,122,0,0.75)';
+            simCtxWorkpiece.font      = '10px "Fira Code", monospace';
+            simCtxWorkpiece.textAlign = 'left';
+            const hLabel = sim2DView === 'front' ? 'X →' : 'Y →';
+            simCtxWorkpiece.fillText(hLabel, bLeft + bW + 8, zeroY - 4);
+
+            simCtxWorkpiece.save();
+            simCtxWorkpiece.translate(bLeft + bW + 8, zeroY + 14);
+            simCtxWorkpiece.fillText('Z ↓', 0, 0);
+            simCtxWorkpiece.restore();
+
+            // ── Label del plano (esquina superior izquierda) ──
+            simCtxWorkpiece.fillStyle = 'rgba(0,188,255,0.5)';
+            simCtxWorkpiece.font      = '9px "Fira Code", monospace';
+            simCtxWorkpiece.textAlign = 'left';
+            simCtxWorkpiece.fillText(
+                sim2DView === 'front' ? 'VISTA FRONTAL  (XZ)' : 'VISTA LATERAL  (YZ)',
+                8, 14
+            );
+
+            // ── Etiqueta Z=0 ──
+            simCtxWorkpiece.fillStyle = 'rgba(0,255,196,0.6)';
+            simCtxWorkpiece.textAlign = 'right';
+            simCtxWorkpiece.fillText('Z=0 ──', bLeft - 4, zeroY - 3);
+
+            simCtxWorkpiece.restore();
+        }
+
+        function drawToolOnlySideView() {
+            const w = simToolCanvas.width / window.devicePixelRatio;
+            const h = simToolCanvas.height / window.devicePixelRatio;
+            const theme = MATERIAL_THEMES[simMaterial];
+            const { w: stockW, h: stockH, d: stockD, isCircular } = getStockDims();
+
+            simCtxTool.clearRect(0, 0, w, h);
+
+            const horizMm = sim2DView === 'front'
+                ? (isCircular ? stockW : stockW)
+                : (isCircular ? stockW : stockH);
+
+            const scale = simScale2D || getSideViewScale(w, h, { horizMm, vertMm: stockD });
+            const cx    = w / 2;
+            const zeroY = h / 2 - (stockD / 2) * scale; // Y del píxel que representa Z=0
+
+            const vars  = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            const fname = activeMacro.filename;
+            const dHta  = getToolDiameter(fname, vars);
+            const rHtaPx = (dHta / 2) * scale;
+
+            // ── Helper: punto G-code → pixel en este plano ──
+            const toPx = p => ({
+                px: cx + (sim2DView === 'front' ? p.x : p.y) * scale,
+                py: zeroY - p.z * scale   // Z negativo → hacia abajo en pantalla
+            });
+
+            // ── Silueta de material removido (sección transversal desde el depth-grid) ──
+            // Front (XZ): proyecta la profundidad máxima por columna X.
+            // Side  (YZ): proyecta la profundidad máxima por fila Y.
+            if (simDepth) {
+                const cutRgb = hexToRgb(theme.cutColor);
+                const cellPx = simGridCellMm * scale + 1;
+                if (sim2DView === 'front') {
+                    for (let c = 0; c < simGridCols; c++) {
+                        let dMax = 0;
+                        for (let r = 0; r < simGridRows; r++) {
+                            const d = simDepth[r * simGridCols + c];
+                            if (d > dMax) dMax = d;
+                        }
+                        if (dMax <= 0) continue;
+                        const mX = -simStockWmm / 2 + (c + 0.5) * simGridCellMm;
+                        const px = cx + mX * scale;
+                        simCtxTool.fillStyle = `rgb(${cutRgb.r},${cutRgb.g},${cutRgb.b})`;
+                        simCtxTool.fillRect(px - cellPx / 2, zeroY, cellPx, dMax * scale);
+                    }
+                } else {
+                    for (let r = 0; r < simGridRows; r++) {
+                        let dMax = 0;
+                        for (let c = 0; c < simGridCols; c++) {
+                            const d = simDepth[r * simGridCols + c];
+                            if (d > dMax) dMax = d;
+                        }
+                        if (dMax <= 0) continue;
+                        const mY = -simStockHmm / 2 + (r + 0.5) * simGridCellMm;
+                        const px = cx + mY * scale;
+                        simCtxTool.fillStyle = `rgb(${cutRgb.r},${cutRgb.g},${cutRgb.b})`;
+                        simCtxTool.fillRect(px - cellPx / 2, zeroY, cellPx, dMax * scale);
+                    }
+                }
+            }
+
+            // ── Trayectoria completa (guía fantasma) ──
+            simCtxTool.strokeStyle = 'rgba(255,255,255,0.04)';
+            simCtxTool.lineWidth = 1;
+            simCtxTool.beginPath();
+            simPoints.forEach((p, i) => {
+                const { px, py } = toPx(p);
+                i === 0 ? simCtxTool.moveTo(px, py) : simCtxTool.lineTo(px, py);
+            });
+            simCtxTool.stroke();
+
+            // ── Trayectoria ejecutada (hasta simCurrentIndex) ──
+            let prev = null;
+            for (let i = 0; i <= simCurrentIndex && i < simPoints.length; i++) {
+                const p = simPoints[i];
+                const { px, py } = toPx(p);
+                if (prev) {
+                    const isRapid  = p.type === 'rapid';
+                    const isFinish = p.type === 'finish';
+                    simCtxTool.strokeStyle = isRapid  ? 'rgba(255,255,255,0.35)'
+                                           : isFinish ? 'rgba(0,255,196,0.75)'
+                                           :            'rgba(255,122,0,0.75)';
+                    simCtxTool.lineWidth = isRapid ? 1 : isFinish ? 2 : 1.8;
+                    simCtxTool.beginPath();
+                    simCtxTool.moveTo(prev.px, prev.py);
+                    simCtxTool.lineTo(px, py);
+                    simCtxTool.stroke();
+                }
+                prev = { px, py };
+            }
+
+            // ── Herramienta actual (vista lateral: endmill desde el lado) ──
+            const { px: tx, py: ty } = toPx(simToolPos);
+            const inCut = simToolPos.z <= 0;
+
+            const fluteColor  = inCut ? '#ff7a00' : '#00bcff';
+            const fluteFill   = inCut ? 'rgba(255,122,0,0.22)' : 'rgba(0,188,255,0.14)';
+            const fluteH      = 32; // altura visual de la flauta en px (fija, no a escala)
+            const shankW      = Math.max(2, rHtaPx * 0.55); // vástago más estrecho que la flauta
+
+            // Vástago (encima de las flautas, delgado, se extiende hacia arriba)
+            simCtxTool.strokeStyle = 'rgba(200,200,200,0.55)';
+            simCtxTool.lineWidth   = shankW * 2;
+            simCtxTool.lineCap     = 'round';
+            simCtxTool.beginPath();
+            simCtxTool.moveTo(tx, ty - fluteH);         // unión vástago/flautas
+            simCtxTool.lineTo(tx, ty - fluteH - 24);    // extremo superior del vástago
+            simCtxTool.stroke();
+            simCtxTool.lineCap = 'butt';
+
+            // Cuerpo de flautas (rectángulo — punta en ty, sube hasta ty-fluteH)
+            simCtxTool.fillStyle = fluteFill;
+            simCtxTool.fillRect(tx - rHtaPx, ty - fluteH, rHtaPx * 2, fluteH);
+            simCtxTool.strokeStyle = fluteColor;
+            simCtxTool.lineWidth   = 1.5;
+            simCtxTool.strokeRect(tx - rHtaPx, ty - fluteH, rHtaPx * 2, fluteH);
+
+            // Punta plana (extremo inferior = posición Z exacta)
+            simCtxTool.strokeStyle = fluteColor;
+            simCtxTool.lineWidth   = 2.5;
+            simCtxTool.beginPath();
+            simCtxTool.moveTo(tx - rHtaPx, ty);
+            simCtxTool.lineTo(tx + rHtaPx, ty);
+            simCtxTool.stroke();
+
+            // Punto central en la punta (marca de posición)
+            simCtxTool.fillStyle = '#ffffff';
+            simCtxTool.beginPath();
+            simCtxTool.arc(tx, ty, 2.5, 0, 2 * Math.PI);
+            simCtxTool.fill();
+
+            // Chispas hacia abajo si está cortando
+            if (inCut && simIsPlaying) {
+                simCtxTool.fillStyle = theme.sparkColor;
+                for (let i = 0; i < 5; i++) {
+                    const a = (Math.random() - 0.5) * Math.PI; // abanico hacia abajo
+                    const d = rHtaPx * 0.6 + Math.random() * 9;
+                    simCtxTool.fillRect(
+                        tx + d * Math.sin(a),
+                        ty + d * Math.abs(Math.cos(a)),
+                        2, 2
+                    );
+                }
+            }
+
+            // ── Línea de posición horizontal (guía) ──
+            simCtxTool.strokeStyle = 'rgba(255,255,255,0.08)';
+            simCtxTool.lineWidth = 1;
+            simCtxTool.setLineDash([4, 4]);
+            simCtxTool.beginPath();
+            simCtxTool.moveTo(0, ty); simCtxTool.lineTo(w, ty);
+            simCtxTool.stroke();
+            simCtxTool.setLineDash([]);
         }
 
         function getToolDiameter(fname, vars) {
@@ -3802,32 +4428,15 @@
 
             simCtxTool.clearRect(0, 0, w, h);
 
-            // Obtener escala
+            // Redirigir a vista lateral si corresponde
+            if (sim2DView !== 'top') { drawToolOnlySideView(); return; }
+
+            // Reutilizar escala calculada en drawWorkpieceInit (px/mm)
+            const scale = simScale2D || 1;
+
             const vars = {};
             activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
             const fname = activeMacro.filename;
-            let stockW = 160;
-            let stockH = 160;
-            let isCircular = false;
-            
-            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
-                isCircular = true;
-                stockW = vars[1] || 100;
-            } else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
-                stockW = vars[1] || 120;
-                stockH = vars[2] || 120;
-                if (fname.includes("Ranura")) {
-                    stockW = vars[1] + 2 * vars[2] + 20;
-                    stockH = vars[2] * 2 + 20;
-                }
-            } else if (fname.includes("Arreglo Circular")) {
-                stockW = vars[1] + vars[3] + 20;
-                isCircular = true;
-            }
-
-            const scale = isCircular 
-                ? Math.min((w - 100) / stockW, (h - 100) / stockW)
-                : Math.min((w - 100) / stockW, (h - 100) / stockH);
 
             // Fresa / Diámetro de corte
             const dHta = getToolDiameter(fname, vars);
@@ -3919,14 +4528,8 @@
                 document.getElementById('simStatusBadge').parentElement.style.borderColor = "rgba(52, 199, 89, 0.2)";
                 document.getElementById('simStatusBadge').parentElement.style.background = "rgba(52, 199, 89, 0.05)";
                 
-                // Actualizar DRO secundario
-                const vars = {};
-                activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
-                const calculatedRPM = vars[7] || vars[4] || 2000;
-                const calculatedFeed = vars[8] || vars[5] || 500;
-                
-                document.getElementById('droS').textContent = calculatedRPM.toFixed(0) + " RPM";
-                document.getElementById('droF').textContent = calculatedFeed.toFixed(0) + " mm/min";
+                // Mostrar RPM del programa de inmediato (el avance lo fija updateSimDRO por movimiento)
+                document.getElementById('droS').textContent = simProgramRPM.toFixed(0) + " RPM";
 
                 // Ejecutar bucle
                 simTick();
@@ -3943,6 +4546,139 @@
             if (simAnimationId) cancelAnimationFrame(simAnimationId);
             if (simTimerInterval) clearInterval(simTimerInterval);
             simInit();
+        }
+
+        // Actualiza el DRO (S, F, modo G y carga) según el movimiento actual.
+        // Distingue rápidos en el aire (G00) de cortes con avance programado (G01/G02/G03).
+        function updateSimDRO(point) {
+            const droS = document.getElementById('droS');
+            const droF = document.getElementById('droF');
+            const droMode = document.getElementById('droMode');
+            const loadVal = document.getElementById('spindleLoadVal');
+            const loadFill = document.getElementById('spindleLoadFill');
+
+            if (!point) return;
+
+            const isRapid = point.type === 'rapid';
+            const inCut   = point.z <= 0; // herramienta dentro del material
+            const gc      = point.gcode || '';
+
+            // Código G dominante del movimiento
+            let gMode = 'G00';
+            const gMatch = gc.match(/G0?([0-3])/i);
+            if (gMatch) gMode = 'G0' + gMatch[1];
+            else if (isRapid) gMode = 'G00';
+            else gMode = 'G01';
+
+            // Avance: rápidos => velocidad de traverse; cortes => F programado (parseado del gcode)
+            let feedVal, feedLabel, feedColor;
+            if (isRapid) {
+                feedVal = SIM_RAPID_RATE;
+                feedLabel = `~${SIM_RAPID_RATE} mm/min`;
+                feedColor = '#00bcff'; // azul: rápido (no es avance de corte)
+            } else {
+                const fMatch = gc.match(/F([\d.]+)/);
+                feedVal = fMatch ? parseFloat(fMatch[1]) : simProgramFeed;
+                feedLabel = `${feedVal.toFixed(0)} mm/min`;
+                feedColor = (point.type === 'finish') ? '#00ffc4' : '#ff7a00'; // verde acabado / naranja desbaste
+            }
+
+            // Husillo: gira siempre que hay programa; RPM constante
+            if (droS) droS.textContent = `${simProgramRPM.toFixed(0)} RPM`;
+            if (droF) {
+                droF.textContent = feedLabel;
+                droF.style.color = feedColor;
+            }
+
+            // Indicador de modo: G + estado (Cortando / En aire)
+            if (droMode) {
+                let estado, color;
+                if (isRapid) {
+                    estado = 'Rápido (aire)'; color = '#00bcff';
+                } else if (inCut) {
+                    estado = (point.type === 'finish') ? 'Acabado (cortando)' : 'Desbaste (cortando)';
+                    color = (point.type === 'finish') ? '#00ffc4' : '#ff7a00';
+                } else {
+                    estado = 'Avance (aire)'; color = '#ffcc00';
+                }
+                droMode.textContent = `${gMode} · ${estado}`;
+                droMode.style.color = color;
+            }
+
+            // Carga del husillo: alta cortando, baja en avance fuera de corte, nula en rápido
+            let load;
+            if (isRapid) load = 0;
+            else if (inCut) load = (point.type === 'finish') ? 30 : 55;
+            else load = 8;
+            if (loadVal)  loadVal.textContent = `${load}%`;
+            if (loadFill) loadFill.style.width = `${load}%`;
+        }
+
+        function simStepOnce() {
+            if (isEmergencyStop) return;
+            if (simPoints.length === 0) return;
+
+            // Pausar reproducción automática si estaba corriendo
+            if (simIsPlaying) {
+                simIsPlaying = false;
+                if (simAnimationId) cancelAnimationFrame(simAnimationId);
+                if (simTimerInterval) clearInterval(simTimerInterval);
+                document.getElementById('simPlayBtn').innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Simular</span>`;
+            }
+
+            if (simCurrentIndex >= simPoints.length - 1) return; // ya en el final
+
+            const prevThreePos = { x: simToolPos.x, y: simToolPos.y, z: simToolPos.z };
+
+            // Saltar directamente al siguiente punto waypoint
+            simCurrentIndex++;
+            const target = simPoints[simCurrentIndex];
+            simToolPos.x = target.x;
+            simToolPos.y = target.y;
+            simToolPos.z = target.z;
+
+            // Actualizar terminal
+            updateTerminalActiveLine(simCurrentIndex);
+
+            // Tallar a lo largo del segmento (el paso a paso salta directo al waypoint)
+            carveSegment(prevThreePos, target);
+
+            // Actualizar 3D
+            if (simMode === '3d') {
+                if (threeTool) threeTool.position.set(simToolPos.x, simToolPos.y, simToolPos.z);
+                updateThreeToolpathLine(prevThreePos, simToolPos, target.type || 'rapid');
+                if (sim3DDirty) updateThreeHeightmap();
+            }
+
+            // Actualizar DRO
+            document.getElementById('droX').textContent = simToolPos.x.toFixed(3);
+            document.getElementById('droY').textContent = simToolPos.y.toFixed(3);
+            document.getElementById('droZ').textContent = simToolPos.z.toFixed(3);
+            updateSimDRO(target);
+
+            drawToolOnly();
+
+            // Habilitar Detener para que el usuario pueda resetear
+            document.getElementById('simStopBtn').disabled = false;
+
+            // Actualizar contador y badge
+            document.getElementById('simLineCounter').textContent = `Línea: ${simCurrentIndex} / ${simPoints.length - 1}`;
+            document.getElementById('simStatusBadge').textContent = 'Paso a paso';
+            document.getElementById('simStatusBadge').style.color = '#ffcc00';
+            document.getElementById('simStatusBadge').parentElement.style.borderColor = 'rgba(255,204,0,0.2)';
+            document.getElementById('simStatusBadge').parentElement.style.background  = 'rgba(255,204,0,0.05)';
+
+            // Habilitar/deshabilitar botón paso si llegó al final
+            const stepBtn = document.getElementById('simStepBtn');
+            if (stepBtn) stepBtn.disabled = simCurrentIndex >= simPoints.length - 1;
+
+            // Detectar fin
+            if (simCurrentIndex >= simPoints.length - 1) {
+                document.getElementById('simPlayBtn').disabled = true;
+                document.getElementById('simStatusBadge').textContent = 'Completado';
+                document.getElementById('simStatusBadge').style.color = 'var(--success-color)';
+                addMockHistory();
+            }
         }
 
         function simTick() {
@@ -4021,97 +4757,194 @@
                 }
             }
 
-            // Actualizar interfaz (DRO)
+            // Actualizar interfaz (DRO) según el movimiento en curso
             document.getElementById('droX').textContent = simToolPos.x.toFixed(3);
             document.getElementById('droY').textContent = simToolPos.y.toFixed(3);
             document.getElementById('droZ').textContent = simToolPos.z.toFixed(3);
-
-            // Simular carga de husillo (Spindle Load)
-            if (simIsPlaying && simToolPos.z <= 0) {
-                const baseLoad = 45;
-                const jitter = Math.sin(Date.now() * 0.05) * 12;
-                const totalLoad = Math.max(10, Math.min(95, baseLoad + jitter));
-                document.getElementById('spindleLoadVal').textContent = totalLoad.toFixed(0) + "%";
-                document.getElementById('spindleLoadFill').style.width = totalLoad.toFixed(0) + "%";
-            } else {
-                document.getElementById('spindleLoadVal').textContent = "0%";
-                document.getElementById('spindleLoadFill').style.width = "0%";
-            }
+            updateSimDRO(simPoints[simCurrentIndex]);
 
             // Redibujar capa superior
             drawToolOnly();
+
+            // Refrescar el tallado 3D una vez por frame (no por sub-paso)
+            if (simMode === '3d' && sim3DDirty) updateThreeHeightmap();
 
             if (simIsPlaying) {
                 simAnimationId = requestAnimationFrame(simTick);
             }
         }
 
-        function carveWorkpiece() {
-            const w = simWorkpieceCanvas.width / window.devicePixelRatio;
-            const h = simWorkpieceCanvas.height / window.devicePixelRatio;
-            const cx = w / 2;
-            const cy = h / 2;
-            const theme = MATERIAL_THEMES[simMaterial];
+        /* ─── MAPA DE PROFUNDIDAD (remoción real de material) ─── */
 
-            // Obtener variables de la macro
+        function hexToRgb(hex) {
+            const m = hex.replace('#', '');
+            return {
+                r: parseInt(m.substring(0, 2), 16),
+                g: parseInt(m.substring(2, 4), 16),
+                b: parseInt(m.substring(4, 6), 16)
+            };
+        }
+        function lerpRgb(a, b, t) {
+            return {
+                r: Math.round(a.r + (b.r - a.r) * t),
+                g: Math.round(a.g + (b.g - a.g) * t),
+                b: Math.round(a.b + (b.b - a.b) * t)
+            };
+        }
+
+        // Inicializa la rejilla de profundidad para el stock y programa actuales
+        function initDepthGrid() {
+            const dims = getStockDims();
+            simStockWmm = dims.w;
+            simStockHmm = dims.h;
+
+            // Resolución: ~200 celdas en la dimensión mayor (equilibrio detalle/rendimiento)
+            const maxDim = Math.max(dims.w, dims.h);
+            simGridCellMm = Math.max(0.5, maxDim / 200);
+
+            simGridCols = Math.max(1, Math.ceil(dims.w / simGridCellMm));
+            simGridRows = Math.max(1, Math.ceil(dims.h / simGridCellMm));
+            simDepth = new Float32Array(simGridCols * simGridRows); // 0 = intacto
+
+            // Profundidad máxima del programa (para sombreado) = corte más hondo de la trayectoria
+            let maxD = 0;
+            simPoints.forEach(p => { if (p.z < 0 && -p.z > maxD) maxD = -p.z; });
+            simMaxCutDepth = Math.max(1, maxD);
+        }
+
+        // Marca como removidas las celdas bajo la herramienta a la profundidad actual
+        function carveDepthGrid() {
+            if (!simDepth) return;
+
             const vars = {};
             activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
-            const fname = activeMacro.filename;
-            let stockW = 160;
-            let stockH = 160;
-            let isCircular = false;
-            
-            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
-                isCircular = true;
-                stockW = vars[1] || 100;
-            } else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
-                stockW = vars[1] || 120;
-                stockH = vars[2] || 120;
-                if (fname.includes("Ranura")) {
-                    stockW = vars[1] + 2 * vars[2] + 20;
-                    stockH = vars[2] * 2 + 20;
+            const dHta = getToolDiameter(activeMacro.filename, vars);
+            const rMm  = dHta / 2;
+            const depthMm = Math.max(0, -simToolPos.z); // cuánto se ha bajado bajo Z=0
+
+            if (depthMm <= 0) return;
+
+            // Herramienta en coords de celda (origen = esquina inf-izq del stock en machine coords)
+            const tcx = (simToolPos.x + simStockWmm / 2) / simGridCellMm;
+            const tcy = (simToolPos.y + simStockHmm / 2) / simGridCellMm;
+            const rCells = rMm / simGridCellMm;
+
+            const c0 = Math.max(0, Math.floor(tcx - rCells));
+            const c1 = Math.min(simGridCols - 1, Math.ceil(tcx + rCells));
+            const r0 = Math.max(0, Math.floor(tcy - rCells));
+            const r1 = Math.min(simGridRows - 1, Math.ceil(tcy + rCells));
+            const r2 = rCells * rCells;
+
+            const changed = [];
+            for (let r = r0; r <= r1; r++) {
+                for (let c = c0; c <= c1; c++) {
+                    const dx = (c + 0.5) - tcx;
+                    const dy = (r + 0.5) - tcy;
+                    if (dx * dx + dy * dy > r2) continue; // fuera del radio de la fresa
+                    const idx = r * simGridCols + c;
+                    if (depthMm > simDepth[idx]) {
+                        simDepth[idx] = depthMm;
+                        changed.push(c, r);
+                    }
                 }
-            } else if (fname.includes("Arreglo Circular")) {
-                stockW = vars[1] + vars[3] + 20;
-                isCircular = true;
             }
 
-            const scale = isCircular 
-                ? Math.min((w - 100) / stockW, (h - 100) / stockW)
-                : Math.min((w - 100) / stockW, (h - 100) / stockH);
+            // Señalar que el 3D necesita refrescar el heightmap
+            if (changed.length > 0) sim3DDirty = true;
 
-            // Fresa / Diámetro de corte
-            const dHta = getToolDiameter(fname, vars);
-            const rHta = (dHta / 2) * scale;
+            // Pintar incrementalmente las celdas que cambiaron y refrescar vecinas cortadas
+            // (así las aristas de pared "fantasma" se actualizan al profundizar el contorno)
+            if (simMode === '2d' && sim2DView === 'top') {
+                for (let i = 0; i < changed.length; i += 2) {
+                    const c = changed[i], r = changed[i + 1];
+                    paintDepthCellTop(c, r);
+                    if (c > 0 && simDepth[r * simGridCols + c - 1] > 0) paintDepthCellTop(c - 1, r);
+                    if (c < simGridCols - 1 && simDepth[r * simGridCols + c + 1] > 0) paintDepthCellTop(c + 1, r);
+                    if (r > 0 && simDepth[(r - 1) * simGridCols + c] > 0) paintDepthCellTop(c, r - 1);
+                    if (r < simGridRows - 1 && simDepth[(r + 1) * simGridCols + c] > 0) paintDepthCellTop(c, r + 1);
+                }
+            }
+        }
 
-            const toolPxX = cx + simToolPos.x * scale;
-            const toolPxY = cy - simToolPos.y * scale;
+        // Color de una celda según su profundidad removida
+        function depthCellColor(depthMm) {
+            const theme = MATERIAL_THEMES[simMaterial];
+            const stockRgb = hexToRgb(theme.stockColor);
+            const cutRgb   = hexToRgb(theme.cutColor);
+            // Pared poco profunda algo más oscura que el stock; fondo profundo = cutColor
+            const shallow = lerpRgb(stockRgb, cutRgb, 0.45);
+            const ratio = Math.min(1, depthMm / simMaxCutDepth);
+            const col = lerpRgb(shallow, cutRgb, ratio);
+            return col;
+        }
 
-            // Dibujar corte en la capa de pieza
-            simCtxWorkpiece.save();
-            
-            // Determinar si es desbaste o acabado para variar el tono
-            const currentPoint = simPoints[simCurrentIndex];
-            const isFinish = currentPoint && (currentPoint.type === 'finish');
-            
-            // Usar una variación más oscura/profunda para simular profundidad Z
-            const zDepthRatio = Math.min(1.0, Math.abs(simToolPos.z) / (vars[4] || vars[5] || 15));
-            const darkness = 0.5 + (zDepthRatio * 0.5); // más oscuro entre más profundo
-            
-            simCtxWorkpiece.fillStyle = isFinish ? theme.finishColor : theme.cutColor;
-            
-            simCtxWorkpiece.beginPath();
-            simCtxWorkpiece.arc(toolPxX, toolPxY, rHta, 0, 2*Math.PI);
-            simCtxWorkpiece.fill();
+        // Pinta una celda del grid en la vista superior (mapeo machine→pixel idéntico al stock)
+        function paintDepthCellTop(c, r) {
+            const w = simWorkpieceCanvas.width / window.devicePixelRatio;
+            const h = simWorkpieceCanvas.height / window.devicePixelRatio;
+            const cx = w / 2, cy = h / 2;
+            const scale = simScale2D || 1;
 
-            // Bordes del corte (sutil línea brillante en las paredes)
-            simCtxWorkpiece.strokeStyle = isFinish ? 'rgba(0, 255, 196, 0.1)' : 'rgba(255, 122, 0, 0.1)';
-            simCtxWorkpiece.lineWidth = 1;
-            simCtxWorkpiece.beginPath();
-            simCtxWorkpiece.arc(toolPxX, toolPxY, rHta, 0, 2*Math.PI);
-            simCtxWorkpiece.stroke();
+            const idx = r * simGridCols + c;
+            const depthMm = simDepth[idx];
+            if (depthMm <= 0) return;
 
-            simCtxWorkpiece.restore();
+            // Centro de la celda en machine coords
+            const mX = -simStockWmm / 2 + (c + 0.5) * simGridCellMm;
+            const mY = -simStockHmm / 2 + (r + 0.5) * simGridCellMm;
+            const px = cx + mX * scale;
+            const py = cy - mY * scale;
+            const cellPx = simGridCellMm * scale + 1; // +1 para evitar costuras
+
+            const col = depthCellColor(depthMm);
+            simCtxWorkpiece.fillStyle = `rgb(${col.r},${col.g},${col.b})`;
+            simCtxWorkpiece.fillRect(px - cellPx / 2, py - cellPx / 2, cellPx, cellPx);
+
+            // Resalte de pared: si una celda vecina está intacta, dibujar arista clara (efecto 3D)
+            const neighborUncut =
+                (c > 0 && simDepth[idx - 1] === 0) ||
+                (c < simGridCols - 1 && simDepth[idx + 1] === 0) ||
+                (r > 0 && simDepth[idx - simGridCols] === 0) ||
+                (r < simGridRows - 1 && simDepth[idx + simGridCols] === 0);
+            if (neighborUncut) {
+                simCtxWorkpiece.strokeStyle = 'rgba(255,255,255,0.12)';
+                simCtxWorkpiece.lineWidth = 1;
+                simCtxWorkpiece.strokeRect(px - cellPx / 2, py - cellPx / 2, cellPx, cellPx);
+            }
+        }
+
+        // Repinta todo el material removido (tras redibujar el stock base)
+        function renderDepthGridTop() {
+            if (!simDepth) return;
+            for (let r = 0; r < simGridRows; r++) {
+                for (let c = 0; c < simGridCols; c++) {
+                    if (simDepth[r * simGridCols + c] > 0) paintDepthCellTop(c, r);
+                }
+            }
+        }
+
+        function carveWorkpiece() {
+            // El corte se modela en la rejilla de profundidad (sirve para todas las vistas).
+            // La pintura incremental solo ocurre en vista superior; las laterales se redibujan por frame.
+            carveDepthGrid();
+        }
+
+        // Talla a lo largo de un segmento (from→to) muestreando posiciones intermedias,
+        // para que un salto directo (paso a paso) no deje huecos en cortes laterales.
+        function carveSegment(from, to) {
+            const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            const stepMm = Math.max(0.5, simGridCellMm * 0.75);
+            const steps = Math.max(1, Math.ceil(dist / stepMm));
+            for (let s = 1; s <= steps; s++) {
+                const t = s / steps;
+                simToolPos.x = from.x + dx * t;
+                simToolPos.y = from.y + dy * t;
+                simToolPos.z = from.z + dz * t;
+                if (simToolPos.z <= 0) carveDepthGrid();
+            }
+            // Asegurar posición final exacta
+            simToolPos.x = to.x; simToolPos.y = to.y; simToolPos.z = to.z;
         }
 
         function updateTerminalActiveLine(pointIdx) {
@@ -4210,6 +5043,10 @@
             
             const calculatedRPM = vc > 0 && toolDiam > 0 ? Math.round((vc * 1000) / (Math.PI * toolDiam)) : (directRPM > 0 ? Math.round(directRPM) : 2000);
             const feed = vc > 0 && toolDiam > 0 && teeth > 0 && fz > 0 ? Math.round(calculatedRPM * teeth * fz) : (directFeed > 0 ? Math.round(directFeed) : 500);
+
+            // Exportar para que el DRO los muestre durante la simulación
+            simProgramRPM = calculatedRPM;
+            simProgramFeed = feed;
             
             if (macroName.includes("Arreglo Circular")) {
                 // #1=D círculo, #2=Agujeros, #3=D broca, #6=Prof total, #7=Estrategia, #8=Paso picoteo, #9=Seguridad, #10=X, #11=Y, #12=Z inicial, #13=Ang inicial, #14=Agujero inicio, #15=Agujero final
@@ -4911,6 +5748,7 @@
                 workpieceCanvas.style.display = 'none';
                 toolCanvas.style.display = 'none';
                 container3d.style.display = 'block';
+                document.getElementById('view2DSelector').style.display = 'none';
                 
                 if (!threeRenderer) {
                     initThree();
@@ -4927,6 +5765,7 @@
                 workpieceCanvas.style.display = 'block';
                 toolCanvas.style.display = 'block';
                 container3d.style.display = 'none';
+                document.getElementById('view2DSelector').style.display = 'flex';
                 
                 drawWorkpieceInit();
                 drawToolOnly();
@@ -5015,65 +5854,167 @@
             threeRenderer.setSize(w, h);
         }
 
+        // Muestrea la profundidad removida (mm) en coords de máquina (x,y) desde el depth-grid
+        function sampleDepthAt(x, y) {
+            if (!simDepth) return 0;
+            let c = Math.floor((x + simStockWmm / 2) / simGridCellMm);
+            let r = Math.floor((y + simStockHmm / 2) / simGridCellMm);
+            if (c < 0) c = 0; else if (c >= simGridCols) c = simGridCols - 1;
+            if (r < 0) r = 0; else if (r >= simGridRows) r = simGridRows - 1;
+            return simDepth[r * simGridCols + c];
+        }
+
+        // Construye el casco (paredes + fondo, tapa abierta) del bloque
+        function buildStockShell(stockW, stockH, stockD, isCircular, theme) {
+            const mat = new THREE.MeshStandardMaterial({
+                color: theme.stockColor, roughness: 0.55, metalness: 0.5,
+                side: THREE.DoubleSide
+            });
+            const group = new THREE.Group();
+
+            if (isCircular) {
+                const r = stockW / 2;
+                // Pared lateral (cilindro sin tapas)
+                const sideGeom = new THREE.CylinderGeometry(r, r, stockD, 64, 1, true);
+                sideGeom.rotateX(Math.PI / 2);          // eje a lo largo de Z
+                const side = new THREE.Mesh(sideGeom, mat);
+                side.position.set(0, 0, -stockD / 2);
+                group.add(side);
+                // Fondo (disco)
+                const botGeom = new THREE.CircleGeometry(r, 64);
+                const bot = new THREE.Mesh(botGeom, mat);
+                bot.position.set(0, 0, -stockD);
+                bot.rotation.x = Math.PI;               // mira hacia abajo
+                group.add(bot);
+            } else {
+                // 4 paredes + fondo como planos (tapa superior abierta)
+                const hw = stockW / 2, hh = stockH / 2;
+                const wallY = new THREE.PlaneGeometry(stockW, stockD);
+                const wallX = new THREE.PlaneGeometry(stockH, stockD);
+                // Pared frontal (y = -hh)
+                let m = new THREE.Mesh(wallY, mat); m.rotation.x = Math.PI / 2; m.position.set(0, -hh, -stockD / 2); group.add(m);
+                // Pared trasera (y = +hh)
+                m = new THREE.Mesh(wallY, mat); m.rotation.x = -Math.PI / 2; m.position.set(0, hh, -stockD / 2); group.add(m);
+                // Pared izquierda (x = -hw)
+                m = new THREE.Mesh(wallX, mat); m.rotation.y = -Math.PI / 2; m.rotation.z = Math.PI / 2; m.position.set(-hw, 0, -stockD / 2); group.add(m);
+                // Pared derecha (x = +hw)
+                m = new THREE.Mesh(wallX, mat); m.rotation.y = Math.PI / 2; m.rotation.z = Math.PI / 2; m.position.set(hw, 0, -stockD / 2); group.add(m);
+                // Fondo
+                const bot = new THREE.Mesh(new THREE.PlaneGeometry(stockW, stockH), mat);
+                bot.position.set(0, 0, -stockD); bot.rotation.x = Math.PI;
+                group.add(bot);
+            }
+            return group;
+        }
+
+        // Construye la superficie superior tallable (heightmap) y guarda referencias para actualizarla
+        function buildStockTop(stockW, stockH, isCircular, theme) {
+            const segX = Math.min(Math.max(simGridCols, 1), 140);
+            const segY = Math.min(Math.max(simGridRows, 1), 140);
+            const nx = segX + 1, ny = segY + 1;
+            const r = stockW / 2;
+
+            const positions = [];
+            const colors = [];
+            const xy = [];
+            const indexMap = new Int32Array(nx * ny).fill(-1);
+            const stockRgb = hexToRgb(theme.stockColor);
+
+            let vi = 0;
+            for (let j = 0; j < ny; j++) {
+                for (let i = 0; i < nx; i++) {
+                    const x = -stockW / 2 + (i / segX) * stockW;
+                    const y = -stockH / 2 + (j / segY) * stockH;
+                    // Para stock circular, omitir vértices fuera del radio (con pequeño margen)
+                    if (isCircular && (x * x + y * y) > (r * r) * 1.02) continue;
+                    indexMap[j * nx + i] = vi++;
+                    positions.push(x, y, 0);
+                    xy.push(x, y);
+                    colors.push(stockRgb.r / 255, stockRgb.g / 255, stockRgb.b / 255);
+                }
+            }
+
+            const indices = [];
+            for (let j = 0; j < segY; j++) {
+                for (let i = 0; i < segX; i++) {
+                    const a = indexMap[j * nx + i];
+                    const b = indexMap[j * nx + i + 1];
+                    const c = indexMap[(j + 1) * nx + i];
+                    const d = indexMap[(j + 1) * nx + i + 1];
+                    if (a < 0 || b < 0 || c < 0 || d < 0) continue; // celda fuera del círculo
+                    indices.push(a, c, b, b, c, d);
+                }
+            }
+
+            const geom = new THREE.BufferGeometry();
+            geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geom.setIndex(indices);
+            geom.computeVertexNormals();
+
+            const mat = new THREE.MeshStandardMaterial({
+                vertexColors: true, roughness: 0.6, metalness: 0.45,
+                side: THREE.DoubleSide
+            });
+            const mesh = new THREE.Mesh(geom, mat);
+            mesh.castShadow = true; mesh.receiveShadow = true;
+
+            threeTopGeom = geom;
+            threeTopMesh = mesh;
+            threeTopXY = new Float32Array(xy);
+            threeTopCount = vi;
+            return mesh;
+        }
+
+        // Actualiza los vértices superiores según el depth-grid (z hundida + color por profundidad)
+        function updateThreeHeightmap() {
+            if (!threeTopGeom || !simDepth) return;
+            const pos = threeTopGeom.attributes.position;
+            const col = threeTopGeom.attributes.color;
+            const theme = MATERIAL_THEMES[simMaterial];
+            const stockRgb = hexToRgb(theme.stockColor);
+            const cutRgb = hexToRgb(theme.cutColor);
+            const shallow = lerpRgb(stockRgb, cutRgb, 0.45);
+
+            for (let v = 0; v < threeTopCount; v++) {
+                const x = threeTopXY[v * 2];
+                const y = threeTopXY[v * 2 + 1];
+                const depth = sampleDepthAt(x, y);
+                pos.setZ(v, -depth);
+                if (depth > 0) {
+                    const ratio = Math.min(1, depth / simMaxCutDepth);
+                    const c = lerpRgb(shallow, cutRgb, ratio);
+                    col.setXYZ(v, c.r / 255, c.g / 255, c.b / 255);
+                } else {
+                    col.setXYZ(v, stockRgb.r / 255, stockRgb.g / 255, stockRgb.b / 255);
+                }
+            }
+            pos.needsUpdate = true;
+            col.needsUpdate = true;
+            threeTopGeom.computeVertexNormals();
+            sim3DDirty = false;
+        }
+
         function updateThreeStock() {
             if (!threeScene) return;
-            if (threeStock) threeScene.remove(threeStock);
-            
-            const vars = {};
-            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
-            const fname = activeMacro.filename;
+            if (threeStock) {
+                threeScene.remove(threeStock);
+                threeStock.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+            }
+
             const theme = MATERIAL_THEMES[simMaterial];
-            
-            let stockW = 160;
-            let stockH = 160;
-            let stockD = 30;
-            let isCircular = false;
-            
-            if (fname.includes("cajera_circular") || fname.includes("central") || fname.includes("Roscas") || fname.includes("oring")) {
-                isCircular = true;
-                const dStock = vars[1] || 100;
-                stockW = dStock;
-                stockD = (vars[3] || vars[4] || vars[8] || 15) * 1.5;
-            } 
-            else if (fname.includes("cajera_rectangular") || fname.includes("Ranura") || fname.includes("Patron Rectangular")) {
-                stockW = vars[1] || 120;
-                stockH = vars[2] || 120;
-                stockD = (vars[5] || vars[6] || vars[7] || 15) * 1.5;
-                if (fname.includes("Ranura")) {
-                    stockW = vars[1] + 2 * vars[2] + 20;
-                    stockH = vars[2] * 2 + 20;
-                    stockD = (vars[5] || vars[6] || 15) * 1.5;
-                }
-            } 
-            else if (fname.includes("Arreglo Circular")) {
-                stockW = vars[1] + vars[3] + 20;
-                stockD = (vars[6] || 15) * 1.5;
-                isCircular = true;
-            }
-            
-            if (stockD < 10) stockD = 30;
-            
-            let geometry;
-            if (isCircular) {
-                geometry = new THREE.CylinderGeometry(stockW / 2, stockW / 2, stockD, 40);
-                geometry.rotateX(Math.PI / 2);
-            } else {
-                geometry = new THREE.BoxGeometry(stockW, stockH, stockD);
-            }
-            
-            const material = new THREE.MeshStandardMaterial({
-                color: theme.stockColor,
-                roughness: 0.5,
-                metalness: 0.6,
-                transparent: true,
-                opacity: 0.85
-            });
-            
-            threeStock = new THREE.Mesh(geometry, material);
-            threeStock.position.set(0, 0, -stockD / 2);
-            threeStock.receiveShadow = true;
-            threeStock.castShadow = true;
+            const { w: stockW, h: stockH, d: stockD, isCircular } = getStockDims();
+
+            // Grupo = casco (paredes+fondo) + superficie superior tallable
+            const group = new THREE.Group();
+            group.add(buildStockShell(stockW, stockH, stockD, isCircular, theme));
+            group.add(buildStockTop(stockW, stockH, isCircular, theme));
+
+            threeStock = group;
             threeScene.add(threeStock);
+
+            // Reflejar el material ya removido
+            updateThreeHeightmap();
 
             // Ajustar el frustum de la cámara ortográfica dinámicamente según el tamaño de la pieza
             if (threeCamera) {
