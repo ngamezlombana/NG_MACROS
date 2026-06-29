@@ -2907,17 +2907,61 @@
         /* --- GENERACIÓN DEL G-CODE --- */
         // Construye el string de G-code con los valores actuales (fuente única de verdad)
         function buildGCodeString() {
-            let lines = activeMacro.full_content.split('\n');
+            if (!activeMacro) return "";
+            
+            const vars = {};
+            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
+            
+            // Generar la trayectoria para resolver los cálculos de coordenadas
+            const path = generateSimulationPath(activeMacro.filename, vars);
+            
+            // Obtener las variables calculadas de RPM y avance
+            const toolNum = vars[20] || 1;
+            const rpm = simProgramRPM || 2000;
+            const feed = simProgramFeed || 500;
+            const filenameComment = activeMacro.filename.replace(".nc", "").toUpperCase();
+            
+            let gcodeLines = [];
+            
+            // Cabecera del programa G-code estático
+            gcodeLines.push(`%`);
+            gcodeLines.push(`O${Math.floor(1000 + Math.random() * 9000)} (${filenameComment} - CODIGO ESTATICO)`);
+            gcodeLines.push(`(================================================)`);
+            gcodeLines.push(`( PROGRAMA GENERADO POR NG CNC - VALORES FIJOS  )`);
+            gcodeLines.push(`(================================================)`);
+            
+            // Parámetros de entrada originales como comentarios de referencia
+            gcodeLines.push(`( PARAMETROS DE ENTRADA: )`);
             activeMacro.variables.forEach(v => {
                 const valStr = Number.isInteger(v.value) ? v.value.toString() : v.value.toFixed(2);
-                let newLine = `#${v.num} = ${valStr}`;
-                if (v.comment) {
-                    const spaces = "   ";
-                    newLine += `${spaces}(${v.comment})`;
-                }
-                lines[v.line_idx] = newLine;
+                gcodeLines.push(`( #${v.num} = ${valStr} - ${v.comment} )`);
             });
-            return lines.join('\n');
+            gcodeLines.push(`(================================================)`);
+            
+            // Comandos de inicialización
+            gcodeLines.push(`T${toolNum} M06 (LLAMAR HERRAMIENTA)`);
+            gcodeLines.push(`G90 G54 G17 G40 G80 G49`);
+            gcodeLines.push(`S${rpm} M03 (ENCENDER HUSILLO)`);
+            gcodeLines.push(`M08 (ENCENDER REFRIGERANTE)`);
+            gcodeLines.push(``);
+            
+            // Recorrer los puntos de movimiento y añadir sus comandos
+            path.forEach(pt => {
+                if (pt.gcode && pt.gcode.trim() !== "") {
+                    gcodeLines.push(pt.gcode);
+                }
+            });
+            
+            // Comandos de finalización seguros
+            gcodeLines.push(``);
+            gcodeLines.push(`M09 (APAGAR REFRIGERANTE)`);
+            gcodeLines.push(`M05 (APAGAR HUSILLO)`);
+            gcodeLines.push(`G90 G53 G00 Z0.0 (RETORNO A HOME Z)`);
+            gcodeLines.push(`G53 G00 X0.0 Y0.0 (RETORNO A HOME X/Y)`);
+            gcodeLines.push(`M30 (FIN DE PROGRAMA)`);
+            gcodeLines.push(`%`);
+            
+            return gcodeLines.join('\n');
         }
 
         function generateGCode() {
