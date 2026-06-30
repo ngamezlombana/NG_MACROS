@@ -2904,64 +2904,285 @@
             }
         }
 
+        /* --- FUNCIONES AUXILIARES PARA GENERACIÓN DE G-CODE --- */
+
+        // Formatea un número para salida CNC
+        function formatCNCValue(val) {
+            if (val === null || val === undefined || isNaN(val)) return '0';
+            if (Number.isInteger(val)) return val.toString();
+            if (Math.abs(val - Math.round(val)) < 1e-9) return Math.round(val).toString();
+            return parseFloat(val.toFixed(4)).toString();
+        }
+
+        // Evalúa una expresión CNC macro (#N ya sustituidos por valores)
+        function evaluateCNCExpression(expr, varMap) {
+            let jsExpr = expr.replace(/#(\d+)/g, (match, numStr) => {
+                const num = parseInt(numStr);
+                if (varMap[num] !== undefined) return `(${varMap[num]})`;
+                return match;
+            });
+            if (jsExpr.includes('#')) return null; // Aún hay variables no resueltas
+            jsExpr = jsExpr.replace(/\[/g, '(').replace(/\]/g, ')');
+            jsExpr = jsExpr.replace(/\bROUND\b/gi, 'Math.round');
+            jsExpr = jsExpr.replace(/\bABS\b/gi, 'Math.abs');
+            jsExpr = jsExpr.replace(/\bSQRT\b/gi, 'Math.sqrt');
+            jsExpr = jsExpr.replace(/\bFIX\b/gi, 'Math.floor');
+            jsExpr = jsExpr.replace(/\bFUP\b/gi, 'Math.ceil');
+            jsExpr = jsExpr.replace(/\bCOS\b/gi, '((d)=>Math.cos(d*Math.PI/180))');
+            jsExpr = jsExpr.replace(/\bSIN\b/gi, '((d)=>Math.sin(d*Math.PI/180))');
+            jsExpr = jsExpr.replace(/\bTAN\b/gi, '((d)=>Math.tan(d*Math.PI/180))');
+            jsExpr = jsExpr.replace(/\bACOS\b/gi, '((v)=>Math.acos(v)*180/Math.PI)');
+            jsExpr = jsExpr.replace(/\bASIN\b/gi, '((v)=>Math.asin(v)*180/Math.PI)');
+            jsExpr = jsExpr.replace(/\bATAN\b/gi, '((v)=>Math.atan(v)*180/Math.PI)');
+            try {
+                const result = eval(jsExpr);
+                if (typeof result === 'number' && isFinite(result)) return result;
+                return null;
+            } catch (e) { return null; }
+        }
+
+        // Sustituye referencias #N por sus valores numéricos en un texto
+        function substituteVarsInText(text, varMap) {
+            return text.replace(/#(\d+)/g, (match, numStr) => {
+                const num = parseInt(numStr);
+                if (varMap[num] !== undefined) return formatCNCValue(varMap[num]);
+                return match;
+            });
+        }
+
+        // Evalúa expresiones entre corchetes [expr] en una línea donde sea posible
+        function evaluateBracketsInLine(line) {
+            let result = line;
+            let maxIter = 30;
+            while (result.includes('[') && maxIter-- > 0) {
+                const prev = result;
+                result = result.replace(
+                    /(\b(?:ROUND|ABS|SQRT|FIX|FUP|COS|SIN|TAN|ACOS|ASIN|ATAN)\b)?\s*\[([^\[\]]+)\]/gi,
+                    (match, funcName, inner) => {
+                        // Saltar si contiene operadores de comparación CNC
+                        if (/\b(LT|GT|LE|GE|EQ|NE|AND|OR|XOR)\b/i.test(inner)) return match;
+                        // Saltar si aún contiene variables #N sin resolver
+                        if (inner.includes('#')) return match;
+                        let jsExpr = inner.trim();
+                        try {
+                            const val = eval(jsExpr);
+                            if (typeof val === 'number' && isFinite(val)) {
+                                if (funcName) {
+                                    const fn = funcName.toUpperCase();
+                                    let r;
+                                    if (fn === 'ROUND') r = Math.round(val);
+                                    else if (fn === 'ABS') r = Math.abs(val);
+                                    else if (fn === 'SQRT') r = Math.sqrt(val);
+                                    else if (fn === 'FIX') r = Math.floor(val);
+                                    else if (fn === 'FUP') r = Math.ceil(val);
+                                    else if (fn === 'COS') r = Math.cos(val * Math.PI / 180);
+                                    else if (fn === 'SIN') r = Math.sin(val * Math.PI / 180);
+                                    else if (fn === 'TAN') r = Math.tan(val * Math.PI / 180);
+                                    else if (fn === 'ACOS') r = Math.acos(val) * 180 / Math.PI;
+                                    else if (fn === 'ASIN') r = Math.asin(val) * 180 / Math.PI;
+                                    else if (fn === 'ATAN') r = Math.atan(val) * 180 / Math.PI;
+                                    else r = val;
+                                    return formatCNCValue(r);
+                                }
+                                return formatCNCValue(val);
+                            }
+                        } catch (e) {}
+                        return match;
+                    }
+                );
+                if (result === prev) break;
+            }
+            return result;
+        }
+
         /* --- GENERACIÓN DEL G-CODE --- */
-        // Construye el string de G-code con los valores actuales (fuente única de verdad)
+        // Construye el G-code manteniendo la estructura de la macro original,
+        // sustituyendo las variables #N por sus valores numéricos resueltos.
+        // El encabezado muestra los valores de referencia (solo informativo).
+        // La estructura original garantiza posicionamiento X/Y antes de Z (seguridad contra bridas).
         function buildGCodeString() {
             if (!activeMacro) return "";
-            
-            const vars = {};
-            activeMacro.variables.forEach(v => { vars[v.num] = v.value; });
-            
-            // Generar la trayectoria para resolver los cálculos de coordenadas
-            const path = generateSimulationPath(activeMacro.filename, vars);
-            
-            // Obtener las variables calculadas de RPM y avance
-            const toolNum = vars[20] || 1;
-            const rpm = simProgramRPM || 2000;
-            const feed = simProgramFeed || 500;
-            const filenameComment = activeMacro.filename.replace(".nc", "").toUpperCase();
-            
-            let gcodeLines = [];
-            
-            // Cabecera del programa G-code estático
-            gcodeLines.push(`%`);
-            gcodeLines.push(`O${Math.floor(1000 + Math.random() * 9000)} (${filenameComment} - CODIGO ESTATICO)`);
-            gcodeLines.push(`(================================================)`);
-            gcodeLines.push(`( PROGRAMA GENERADO POR NG CNC - VALORES FIJOS  )`);
-            gcodeLines.push(`(================================================)`);
-            
-            // Parámetros de entrada originales como comentarios de referencia
-            gcodeLines.push(`( PARAMETROS DE ENTRADA: )`);
+
+            // 1. Mapa de variables de entrada del usuario
+            const inputVarNums = new Set();
+            const varMap = {};
             activeMacro.variables.forEach(v => {
-                const valStr = Number.isInteger(v.value) ? v.value.toString() : v.value.toFixed(2);
-                gcodeLines.push(`( #${v.num} = ${valStr} - ${v.comment} )`);
+                inputVarNums.add(v.num);
+                varMap[v.num] = v.value;
             });
-            gcodeLines.push(`(================================================)`);
-            
-            // Comandos de inicialización
-            gcodeLines.push(`T${toolNum} M06 (LLAMAR HERRAMIENTA)`);
-            gcodeLines.push(`G90 G54 G17 G40 G80 G49`);
-            gcodeLines.push(`S${rpm} M03 (ENCENDER HUSILLO)`);
-            gcodeLines.push(`M08 (ENCENDER REFRIGERANTE)`);
-            gcodeLines.push(``);
-            
-            // Recorrer los puntos de movimiento y añadir sus comandos
-            path.forEach(pt => {
-                if (pt.gcode && pt.gcode.trim() !== "") {
-                    gcodeLines.push(pt.gcode);
+
+            const lines = activeMacro.full_content.split('\n');
+
+            // 2. Identificar variables runtime (reasignadas o auto-referenciales)
+            //    Estas NO se resuelven porque cambian durante la ejecución del programa.
+            const assignmentCount = {};
+            const selfRef = new Set();
+            for (const line of lines) {
+                const trimmed = line.trim();
+                const codePart = trimmed.replace(/\([^)]*\)/g, '').trim();
+                // Asignaciones directas: #N = ...
+                const m = codePart.match(/^#(\d+)\s*=/);
+                if (m) {
+                    const num = parseInt(m[1]);
+                    if (inputVarNums.has(num)) continue;
+                    assignmentCount[num] = (assignmentCount[num] || 0) + 1;
+                    const afterEq = codePart.substring(codePart.indexOf('=') + 1);
+                    if (new RegExp('#' + num + '\\b').test(afterEq)) selfRef.add(num);
                 }
+                // Asignaciones en líneas THEN: IF [...] THEN #N = ...
+                const thenM = codePart.match(/THEN\s+#(\d+)\s*=/i);
+                if (thenM) {
+                    const num = parseInt(thenM[1]);
+                    assignmentCount[num] = (assignmentCount[num] || 0) + 1;
+                }
+            }
+
+            const runtimeVars = new Set();
+            for (const [numStr, count] of Object.entries(assignmentCount)) {
+                const num = parseInt(numStr);
+                if (count > 1 || selfRef.has(num)) runtimeVars.add(num);
+            }
+
+            // 3. Evaluar constantes calculadas para completar el mapa de variables
+            for (const line of lines) {
+                const trimmed = line.trim();
+                const codePart = trimmed.replace(/\([^)]*\)$/g, '').trim();
+                const m = codePart.match(/^#(\d+)\s*=\s*(.*)/);
+                if (m) {
+                    const num = parseInt(m[1]);
+                    if (inputVarNums.has(num) || runtimeVars.has(num)) continue;
+                    const expr = m[2].trim();
+                    const result = evaluateCNCExpression(expr, varMap);
+                    if (result !== null) varMap[num] = result;
+                }
+            }
+
+            // 4. Detectar la sección de variables de entrada para omitirla del cuerpo
+            //    Las macros usan (========) como delimitadores: 3 líneas de este tipo
+            //    encierran la sección de variables de entrada del operario.
+            let skipStart = -1, skipEnd = -1;
+            const eqLineIndices = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (/^\(={3,}\)\s*$/.test(lines[i].trim())) {
+                    eqLineIndices.push(i);
+                }
+            }
+            if (eqLineIndices.length >= 3) {
+                skipStart = eqLineIndices[0];
+                skipEnd = eqLineIndices[2];
+            }
+
+            // 5. Construir la salida
+            const out = [];
+
+            // Título original del programa
+            out.push(lines[0]);
+            out.push('');
+
+            // Encabezado con valores de referencia (solo informativo, no afecta el código)
+            out.push('(================================================)');
+            out.push('( VALORES DE REFERENCIA - SOLO INFORMATIVO       )');
+            out.push('(================================================)');
+            activeMacro.variables.forEach(v => {
+                const valStr = formatCNCValue(v.value);
+                out.push(`( ${v.comment} = ${valStr} )`);
             });
-            
-            // Comandos de finalización seguros
-            gcodeLines.push(``);
-            gcodeLines.push(`M09 (APAGAR REFRIGERANTE)`);
-            gcodeLines.push(`M05 (APAGAR HUSILLO)`);
-            gcodeLines.push(`G90 G53 G00 Z0.0 (RETORNO A HOME Z)`);
-            gcodeLines.push(`G53 G00 X0.0 Y0.0 (RETORNO A HOME X/Y)`);
-            gcodeLines.push(`M30 (FIN DE PROGRAMA)`);
-            gcodeLines.push(`%`);
-            
-            return gcodeLines.join('\n');
+            out.push('(================================================)');
+
+            // 6. Procesar cada línea del código original
+            for (let i = 1; i < lines.length; i++) {
+                // Omitir la sección de variables de entrada (ya están en el encabezado)
+                if (skipStart >= 0 && i >= skipStart && i <= skipEnd) continue;
+                // Omitir línea vacía inmediatamente después de la sección de variables
+                if (skipEnd >= 0 && i === skipEnd + 1 && lines[i].trim() === '') continue;
+
+                const trimmed = lines[i].trim();
+
+                // Línea vacía: preservar
+                if (trimmed === '') { out.push(''); continue; }
+
+                // Comentario puro sin variables: preservar tal cual
+                if (/^\([^)]*\)$/.test(trimmed) && !trimmed.includes('#')) {
+                    out.push(trimmed);
+                    continue;
+                }
+
+                // Separar la parte de código de la parte de comentario
+                let codePart = trimmed;
+                let commentPart = '';
+                // Buscar el último comentario (texto) al final de la línea
+                const cm = trimmed.match(/^(.*?)\s*(\([^)]*\))\s*$/);
+                if (cm && !cm[1].match(/^\s*$/) && !cm[1].startsWith('(')) {
+                    codePart = cm[1].trim();
+                    commentPart = cm[2];
+                } else if (cm && cm[1].match(/^\s*$/)) {
+                    // La línea ES un comentario puro pero tiene #N dentro
+                    codePart = '';
+                    commentPart = cm[2];
+                }
+
+                // --- Caso: Asignación de variable #N = expresión ---
+                const assignM = codePart.match(/^#(\d+)\s*=\s*(.*)/);
+                if (assignM) {
+                    const num = parseInt(assignM[1]);
+                    // Variables de entrada: ya están en el encabezado, omitir
+                    if (inputVarNums.has(num)) continue;
+
+                    const expr = assignM[2].trim();
+
+                    if (!runtimeVars.has(num) && varMap[num] !== undefined) {
+                        // Constante resuelta: mostrar el resultado directo
+                        const valStr = formatCNCValue(varMap[num]);
+                        out.push(commentPart ? `#${num} = ${valStr} ${commentPart}` : `#${num} = ${valStr}`);
+                    } else {
+                        // Variable runtime: sustituir constantes conocidas en la expresión
+                        let subExpr = substituteVarsInText(expr, varMap);
+                        subExpr = evaluateBracketsInLine(subExpr);
+                        // Intentar evaluar completamente si ya no quedan variables
+                        if (!subExpr.includes('#')) {
+                            try {
+                                let jsE = subExpr.replace(/\[/g,'(').replace(/\]/g,')');
+                                const v = eval(jsE);
+                                if (typeof v === 'number' && isFinite(v)) subExpr = formatCNCValue(v);
+                            } catch(e) {}
+                        }
+                        out.push(commentPart ? `#${num} = ${subExpr} ${commentPart}` : `#${num} = ${subExpr}`);
+                    }
+                    continue;
+                }
+
+                // --- Caso: Línea IF...THEN #N = expresión ---
+                const thenM = codePart.match(/^(IF\s*\[.*?\]\s*THEN)\s+#(\d+)\s*=\s*(.*)/i);
+                if (thenM) {
+                    let ifPart = substituteVarsInText(thenM[1], varMap);
+                    ifPart = evaluateBracketsInLine(ifPart);
+                    let thenExpr = substituteVarsInText(thenM[3].trim(), varMap);
+                    thenExpr = evaluateBracketsInLine(thenExpr);
+                    if (!thenExpr.includes('#') && !thenExpr.includes('[')) {
+                        try {
+                            const v = eval(thenExpr);
+                            if (typeof v === 'number' && isFinite(v)) thenExpr = formatCNCValue(v);
+                        } catch(e) {}
+                    }
+                    out.push(commentPart
+                        ? `${ifPart} #${thenM[2]} = ${thenExpr} ${commentPart}`
+                        : `${ifPart} #${thenM[2]} = ${thenExpr}`);
+                    continue;
+                }
+
+                // --- Caso: Comentario puro con #N (raro, pero manejar) ---
+                if (codePart === '' && commentPart !== '') {
+                    out.push(substituteVarsInText(commentPart, varMap));
+                    continue;
+                }
+
+                // --- Caso general: sustituir variables y evaluar corchetes ---
+                let processed = substituteVarsInText(codePart, varMap);
+                processed = evaluateBracketsInLine(processed);
+                out.push(commentPart ? `${processed} ${commentPart}` : processed);
+            }
+
+            return out.join('\n');
         }
 
         function generateGCode() {
