@@ -1209,7 +1209,9 @@
         }
 
         if (viewName === 'simulador') {
-            setTimeout(simInit, 50);
+            setTimeout(function() {
+                simInit();
+            }, 60);
         } else if (viewName === 'libreria') {
             renderToolTable();
         } else if (viewName === 'hoja-taller') {
@@ -2402,7 +2404,7 @@
         ctx.restore();
     }
 
-    /* ========================================================= */
+        /* ========================================================= */
     /* 6. MOTOR DE SIMULACIÓN 2D Y 3D WEBGL (THREE.JS)           */
     /* ========================================================= */
     let simMode = '3d';
@@ -2414,29 +2416,62 @@
     let simSpeed = 5;
     let simIsRunning = false;
 
+    function setSimView(mode) {
+        switchSimView(mode);
+    }
+
     function switchSimView(mode) {
         simMode = mode;
         const btn3d = document.getElementById('btnView3D');
         const btnXy = document.getElementById('btnViewXY');
         const btnXz = document.getElementById('btnViewXZ');
 
-        btn3d.className = "px-3 py-1 rounded text-xs font-bold transition-all " + (mode === '3d' ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface");
-        btnXy.className = "px-3 py-1 rounded text-xs font-bold transition-all " + (mode === 'xy' ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface");
-        btnXz.className = "px-3 py-1 rounded text-xs font-bold transition-all " + (mode === 'xz' ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface");
+        if (btn3d) btn3d.className = "sim-view-btn px-3 py-1 rounded text-xs font-bold transition-all " + (mode === '3d' ? "bg-primary text-on-primary border border-primary/50 shadow-sm" : "text-on-surface-variant hover:text-on-surface");
+        if (btnXy) btnXy.className = "sim-view-btn px-3 py-1 rounded text-xs font-bold transition-all " + (mode === 'xy' ? "bg-primary text-on-primary border border-primary/50 shadow-sm" : "text-on-surface-variant hover:text-on-surface");
+        if (btnXz) btnXz.className = "sim-view-btn px-3 py-1 rounded text-xs font-bold transition-all " + (mode === 'xz' ? "bg-primary text-on-primary border border-primary/50 shadow-sm" : "text-on-surface-variant hover:text-on-surface");
+
+        const c3d = document.getElementById('sim3dContainer');
+        const c2d = document.getElementById('sim2dCanvas');
 
         if (mode === '3d') {
-            document.getElementById('sim3dContainer').classList.remove('hidden');
-            document.getElementById('sim2dCanvas').classList.add('hidden');
+            if (c3d) c3d.classList.remove('hidden');
+            if (c2d) c2d.classList.add('hidden');
+            init3DScene();
+            resize3DScene();
         } else {
-            document.getElementById('sim3dContainer').classList.add('hidden');
-            document.getElementById('sim2dCanvas').classList.remove('hidden');
+            if (c3d) c3d.classList.add('hidden');
+            if (c2d) c2d.classList.remove('hidden');
             render2DSimCanvas(mode);
+        }
+    }
+
+    function simInit() {
+        init3DScene();
+        resize3DScene();
+        if (simMode !== '3d') {
+            render2DSimCanvas(simMode);
+        }
+    }
+
+    function resize3DScene() {
+        const container = document.getElementById('sim3dContainer');
+        if (!container || !threeRenderer || !threeCamera) return;
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        if (w > 0 && h > 0) {
+            threeCamera.aspect = w / h;
+            threeCamera.updateProjectionMatrix();
+            threeRenderer.setSize(w, h);
         }
     }
 
     function init3DScene() {
         const container = document.getElementById('sim3dContainer');
-        if (!container || threeScene) return;
+        if (!container) return;
+        if (threeScene) {
+            resize3DScene();
+            return;
+        }
 
         const w = container.clientWidth || 600;
         const h = container.clientHeight || 440;
@@ -2444,35 +2479,48 @@
         threeScene = new THREE.Scene();
         threeScene.background = new THREE.Color(0x070e1d);
 
-        threeCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+        threeCamera = new THREE.PerspectiveCamera(45, (w && h) ? w / h : 1.33, 0.1, 1000);
         threeCamera.position.set(130, 150, 170);
 
-        threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+        threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
         threeRenderer.setSize(w, h);
-        threeRenderer.setPixelRatio(window.devicePixelRatio);
+        threeRenderer.setPixelRatio(window.devicePixelRatio || 1);
         container.appendChild(threeRenderer.domElement);
 
-        threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
-        threeControls.enableDamping = true;
-        threeControls.dampingFactor = 0.05;
+        if (typeof THREE.OrbitControls === 'function') {
+            threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+            threeControls.enableDamping = true;
+            threeControls.dampingFactor = 0.05;
+            threeControls.target.set(0, 0, 0);
+        }
 
-        const amb = new THREE.AmbientLight(0xffffff, 0.7);
+        const amb = new THREE.AmbientLight(0xffffff, 0.85);
         threeScene.add(amb);
-        const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-        dir.position.set(100, 200, 100);
-        threeScene.add(dir);
+        const dir1 = new THREE.DirectionalLight(0xffffff, 0.9);
+        dir1.position.set(100, 200, 100);
+        threeScene.add(dir1);
+        const dir2 = new THREE.DirectionalLight(0xffc174, 0.4);
+        dir2.position.set(-100, -50, -100);
+        threeScene.add(dir2);
 
-        const grid = new THREE.GridHelper(200, 20, 0xffc174, 0x1f2937);
+        const grid = new THREE.GridHelper(250, 25, 0xffc174, 0x2e3545);
+        grid.position.y = -0.1;
         threeScene.add(grid);
 
-        // Bloque de Material en Bruto
-        const stockGeom = new THREE.BoxGeometry(100, 30, 100);
-        const stockMat = new THREE.MeshStandardMaterial({ color: 0x2e3545, transparent: true, opacity: 0.65, roughness: 0.4 });
+        // Bloque de Material en Bruto inicial
+        const stockGeom = new THREE.CylinderGeometry(75, 75, 30, 48);
+        const stockMat = new THREE.MeshStandardMaterial({
+            color: 0x2e3545,
+            transparent: true,
+            opacity: 0.65,
+            roughness: 0.35,
+            metalness: 0.2
+        });
         threeStock = new THREE.Mesh(stockGeom, stockMat);
         threeStock.position.set(0, -15, 0);
         threeScene.add(threeStock);
 
-        // Herramienta cilíndrica con punta
+        // Herramienta cilíndrica con punta roja
         const toolGeom = new THREE.CylinderGeometry(5, 5, 40, 16);
         const toolMat = new THREE.MeshStandardMaterial({ color: 0xff3b30, metalness: 0.8, roughness: 0.2 });
         threeTool = new THREE.Mesh(toolGeom, toolMat);
@@ -2484,12 +2532,15 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            threeControls.update();
-            threeRenderer.render(threeScene, threeCamera);
+            if (threeControls) threeControls.update();
+            if (threeRenderer && threeScene && threeCamera) {
+                threeRenderer.render(threeScene, threeCamera);
+            }
         }
         animate();
 
         buildSimulationPoints();
+        resize3DScene();
     }
 
     /* GENERADOR DE TRAYECTORIAS Y PUNTOS DE SIMULACIÓN ESPECÍFICO POR MACRO */
@@ -2551,16 +2602,13 @@
             const hx = cx + rPcd * Math.cos(angRad);
             const hy = cy + rPcd * Math.sin(angRad);
 
-            // Posicionamiento rápido a plano de seguridad sobre el barreno
             simPoints.push({ x: hx, y: hy, z: safeZ, type: 'G0' });
             simPoints.push({ x: hx, y: hy, z: zInit + 1.0, type: 'G0' });
 
             if (strategy === 0) {
-                // Taladrado Directo
                 simPoints.push({ x: hx, y: hy, z: totalZ, type: 'G1' });
                 simPoints.push({ x: hx, y: hy, z: safeZ, type: 'G0' });
             } else {
-                // Ciclo de Picoteo (Peck Drilling)
                 let curZ = zInit;
                 while (curZ > totalZ) {
                     let nextZ = curZ - peckStep;
@@ -2667,7 +2715,6 @@
 
         for (let z = -stepZ; z >= -depth; z -= stepZ) {
             simPoints.push({ x: cx, y: cy, z: z, type: 'G1' });
-            // Trayectoria racetrack
             const hL = len / 2;
             const pts = [
                 { x: hL, y: -rSlot }, { x: hL, y: rSlot },
@@ -2747,10 +2794,8 @@
         simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
         simPoints.push({ x: cx, y: cy, z: -depth, type: 'G0' });
 
-        // Entrada tangencial
         simPoints.push({ x: cx + rThread, y: cy, z: -depth, type: 'G1' });
 
-        // Interpolación helicoidal subiendo en Z
         let curZ = -depth;
         while (curZ < 0) {
             for (let a = 0; a <= Math.PI * 2; a += 0.35) {
@@ -2784,7 +2829,6 @@
                 simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: curZ, type: 'G1' });
             }
         }
-        // Pasada final de fondo
         for (let a = 0; a <= Math.PI * 2; a += 0.35) {
             simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: -depth, type: 'G1' });
         }
@@ -2828,7 +2872,12 @@
     function update3DWorkpieceAndPath() {
         if (!threeScene || !threePathGroup) return;
 
-        threePathGroup.clear();
+        // Limpieza segura de hijos anteriores sin fugas de memoria
+        while (threePathGroup.children.length > 0) {
+            const obj = threePathGroup.children[0];
+            if (obj.geometry) obj.geometry.dispose();
+            threePathGroup.remove(obj);
+        }
 
         const type = getMacroType();
 
@@ -2904,13 +2953,21 @@
     }
 
     function startSimulation() {
+        if (!threeScene) init3DScene();
         if (simPoints.length === 0) buildSimulationPoints();
         simIsRunning = true;
-        document.getElementById('simPlayBtn').disabled = true;
-        document.getElementById('simPauseBtn').disabled = false;
-        document.getElementById('simStopBtn').disabled = false;
-        document.getElementById('simStatusBadge').textContent = "AUTO RUN";
-        document.getElementById('simStatusBadge').className = "px-2 py-0.5 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30";
+        const playBtn = document.getElementById('simPlayBtn');
+        const pauseBtn = document.getElementById('simPauseBtn');
+        const stopBtn = document.getElementById('simStopBtn');
+        const badge = document.getElementById('simStatusBadge');
+
+        if (playBtn) playBtn.disabled = true;
+        if (pauseBtn) pauseBtn.disabled = false;
+        if (stopBtn) stopBtn.disabled = false;
+        if (badge) {
+            badge.textContent = "AUTO RUN";
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-primary/15 text-primary border border-primary/30";
+        }
 
         if (simTimer) clearInterval(simTimer);
         simTimer = setInterval(() => {
@@ -2926,32 +2983,65 @@
     function pauseSimulation() {
         simIsRunning = false;
         clearInterval(simTimer);
-        document.getElementById('simPlayBtn').disabled = false;
-        document.getElementById('simPauseBtn').disabled = true;
-        document.getElementById('simStatusBadge').textContent = "PAUSADO";
+        const playBtn = document.getElementById('simPlayBtn');
+        const pauseBtn = document.getElementById('simPauseBtn');
+        const badge = document.getElementById('simStatusBadge');
+
+        if (playBtn) playBtn.disabled = false;
+        if (pauseBtn) pauseBtn.disabled = true;
+        if (badge) badge.textContent = "PAUSADO";
     }
 
     function stepSimulation() {
+        if (!threeScene) init3DScene();
         pauseSimulation();
         if (simPoints.length === 0) buildSimulationPoints();
         if (simCurrentIdx < simPoints.length - 1) {
             simCurrentIdx++;
             updateSimPosition(simPoints[simCurrentIdx]);
         }
-        document.getElementById('simStatusBadge').textContent = "SINGLE BLOCK";
+        const badge = document.getElementById('simStatusBadge');
+        if (badge) badge.textContent = "SINGLE BLOCK";
     }
 
     function stopSimulation() {
         simIsRunning = false;
         clearInterval(simTimer);
         simCurrentIdx = 0;
-        document.getElementById('simPlayBtn').disabled = false;
-        document.getElementById('simPauseBtn').disabled = true;
-        document.getElementById('simStopBtn').disabled = true;
-        document.getElementById('simStatusBadge').textContent = "LISTO";
+        const playBtn = document.getElementById('simPlayBtn');
+        const pauseBtn = document.getElementById('simPauseBtn');
+        const stopBtn = document.getElementById('simStopBtn');
+        const badge = document.getElementById('simStatusBadge');
+
+        if (playBtn) playBtn.disabled = false;
+        if (pauseBtn) pauseBtn.disabled = true;
+        if (stopBtn) stopBtn.disabled = true;
+        if (badge) {
+            badge.textContent = "LISTO";
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-surface-container-high text-on-surface-variant border border-outline-variant/30";
+        }
+
         if (simPoints.length > 0 && threeTool) {
             threeTool.position.set(simPoints[0].x, simPoints[0].z + 20, simPoints[0].y);
+            const sx = simPoints[0].x.toFixed(3);
+            const sy = simPoints[0].y.toFixed(3);
+            const sz = simPoints[0].z.toFixed(3);
+            const dx = document.getElementById('simDroX');
+            const dy = document.getElementById('simDroY');
+            const dz = document.getElementById('simDroZ');
+            if (dx) dx.textContent = sx;
+            if (dy) dy.textContent = sy;
+            if (dz) dz.textContent = sz;
+            const qx = document.getElementById('quickDroX');
+            const qy = document.getElementById('quickDroY');
+            const qz = document.getElementById('quickDroZ');
+            if (qx) qx.textContent = sx;
+            if (qy) qy.textContent = sy;
+            if (qz) qz.textContent = sz;
         }
+
+        const counter = document.getElementById('simLineCounter');
+        if (counter) counter.textContent = `Puntos: 0 / ${simPoints.length}`;
     }
 
     function updateSimPosition(pt) {
@@ -2960,12 +3050,23 @@
             threeTool.position.set(pt.x, pt.z + 20, pt.y);
         }
 
-        document.getElementById('simDroX').textContent = pt.x.toFixed(3);
-        document.getElementById('simDroY').textContent = pt.y.toFixed(3);
-        document.getElementById('simDroZ').textContent = pt.z.toFixed(3);
-        document.getElementById('quickDroX').textContent = pt.x.toFixed(3);
-        document.getElementById('quickDroY').textContent = pt.y.toFixed(3);
-        document.getElementById('quickDroZ').textContent = pt.z.toFixed(3);
+        const sx = pt.x.toFixed(3);
+        const sy = pt.y.toFixed(3);
+        const sz = pt.z.toFixed(3);
+
+        const dx = document.getElementById('simDroX');
+        const dy = document.getElementById('simDroY');
+        const dz = document.getElementById('simDroZ');
+        if (dx) dx.textContent = sx;
+        if (dy) dy.textContent = sy;
+        if (dz) dz.textContent = sz;
+
+        const qx = document.getElementById('quickDroX');
+        const qy = document.getElementById('quickDroY');
+        const qz = document.getElementById('quickDroZ');
+        if (qx) qx.textContent = sx;
+        if (qy) qy.textContent = sy;
+        if (qz) qz.textContent = sz;
 
         const counter = document.getElementById('simLineCounter');
         if (counter) counter.textContent = `Punto: ${simCurrentIdx} / ${simPoints.length}`;
@@ -2979,7 +3080,8 @@
 
     function changeSimSpeed(val) {
         simSpeed = parseInt(val) || 5;
-        document.getElementById('simSpeedLabel').textContent = simSpeed + "x";
+        const lbl = document.getElementById('simSpeedLabel');
+        if (lbl) lbl.textContent = simSpeed + "x";
         if (simIsRunning) {
             startSimulation();
         }
@@ -3030,12 +3132,10 @@
         const cx = w / 2, cy = h / 2;
 
         if (view === 'xy') {
-            // Cuadrícula
             ctx.strokeStyle = "rgba(220, 226, 247, 0.05)";
             for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
             for (let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
-            // Trazado de puntos
             if (simPoints.length > 1) {
                 const scale = 1.2;
                 ctx.beginPath();
@@ -3049,7 +3149,6 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Herramienta actual
                 if (simPoints[simCurrentIdx]) {
                     const curP = simPoints[simCurrentIdx];
                     const sx = cx + curP.x * scale;
@@ -3066,12 +3165,10 @@
             ctx.font = "bold 12px 'JetBrains Mono'";
             ctx.fillText("PROYECCIÓN ORTOGONAL EN VIVO: PLANO XY (G17)", 20, 30);
         } else {
-            // Perfil XZ
             ctx.strokeStyle = "rgba(220, 226, 247, 0.05)";
             for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
             for (let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
-            // Línea Z0
             ctx.strokeStyle = "#ffc174";
             ctx.lineWidth = 1.5;
             ctx.setLineDash([4, 2]);
@@ -3264,6 +3361,7 @@
 
         window.addEventListener('resize', () => {
             draw2DCadSchematic();
+            resize3DScene();
         });
     });
     </script>
