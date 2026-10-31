@@ -492,12 +492,17 @@
                             <div class="bg-surface-container-high px-space-md py-2 border-b border-outline-variant/30 flex items-center justify-between">
                                 <div class="flex items-center gap-2 text-secondary font-bold text-xs uppercase tracking-wider">
                                     <span class="material-symbols-outlined text-[18px]">scatter_plot</span>
-                                    <span>Visualización 2D de Trayectoria (Plano G17)</span>
+                                    <span id="cadViewTitle">Visualización 2D (Plano XY - G17)</span>
                                 </div>
-                                <button onclick="recenterCanvas2D()" class="text-on-surface-variant hover:text-primary transition-colors text-xs flex items-center gap-1" title="Centrar">
-                                    <span class="material-symbols-outlined text-[14px]">center_focus_strong</span>
-                                    <span>Centrar</span>
-                                </button>
+                                <div class="flex items-center gap-1.5">
+                                    <div class="flex bg-surface-container-lowest p-0.5 rounded border border-outline-variant/30 text-[10px]">
+                                        <button id="btnCadXY" onclick="setCadViewMode('xy')" class="px-2 py-0.5 rounded font-bold transition-all bg-primary/20 text-primary">PLANO XY</button>
+                                        <button id="btnCadSection" onclick="setCadViewMode('section')" class="px-2 py-0.5 rounded font-bold transition-all text-on-surface-variant hover:text-on-surface">PERFIL Z</button>
+                                    </div>
+                                    <button onclick="recenterCanvas2D()" class="text-on-surface-variant hover:text-primary transition-colors text-xs flex items-center gap-1 ml-1" title="Centrar">
+                                        <span class="material-symbols-outlined text-[14px]">center_focus_strong</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="relative bg-surface-container-lowest p-space-sm flex items-center justify-center min-h-[300px]">
                                 <canvas id="toolpathCanvas" class="w-full h-72 block"></canvas>
@@ -1232,6 +1237,7 @@
         renderMacroParameterGroups();
         updateGCodeOutput();
         draw2DCadSchematic();
+        buildSimulationPoints();
     }
 
     function renderMacroPills() {
@@ -1364,6 +1370,7 @@
             updateGCodeOutput();
             draw2DCadSchematic();
             calculateCuttingParameters();
+            buildSimulationPoints();
         }
     }
 
@@ -1484,15 +1491,56 @@
         link.click();
     }
 
+        /* ========================================================= */
+    /* 5. ESQUEMA 2D CAD INTERACTIVO Y VISTA TÉCNICA             */
     /* ========================================================= */
-    /* 5. ESQUEMA 2D CAD INTERACTIVO (CANVAS G17)                */
-    /* ========================================================= */
+    let cadViewMode = 'xy'; // 'xy' or 'section'
+
+    function setCadViewMode(mode) {
+        cadViewMode = mode;
+        const btnXY = document.getElementById('btnCadXY');
+        const btnSec = document.getElementById('btnCadSection');
+        const titleEl = document.getElementById('cadViewTitle');
+        if (mode === 'xy') {
+            if (btnXY) btnXY.className = "px-2 py-0.5 rounded font-bold transition-all bg-primary/20 text-primary";
+            if (btnSec) btnSec.className = "px-2 py-0.5 rounded font-bold transition-all text-on-surface-variant hover:text-on-surface";
+            if (titleEl) titleEl.textContent = "Visualización 2D (Plano XY - G17)";
+        } else {
+            if (btnXY) btnXY.className = "px-2 py-0.5 rounded font-bold transition-all text-on-surface-variant hover:text-on-surface";
+            if (btnSec) btnSec.className = "px-2 py-0.5 rounded font-bold transition-all bg-secondary/20 text-secondary";
+            if (titleEl) titleEl.textContent = "Perfil Técnico Z (Corte Transversal)";
+        }
+        draw2DCadSchematic();
+    }
+
+    function getMacroVar(num, fallback = 0) {
+        if (!activeMacro || !activeMacro.variables) return fallback;
+        const v = activeMacro.variables.find(item => item.num === num);
+        return (v !== undefined && v.value !== undefined && !isNaN(parseFloat(v.value))) ? parseFloat(v.value) : fallback;
+    }
+
+    function getMacroType() {
+        if (!activeMacro) return 'generic';
+        const fn = (activeMacro.filename || '').toLowerCase();
+        const t = (activeMacro.title || '').toUpperCase();
+        if (fn.includes('arreglo circular') || t.includes('PATRON CIRCULAR')) return 'circular_holes';
+        if (fn.includes('patron rectangular') || t.includes('PATRON RECTANGULAR')) return 'rect_holes';
+        if (fn.includes('macho circular') || t.includes('MACHO CIRCULAR')) return 'circular_boss';
+        if (fn.includes('ranura cerrada') || t.includes('RANURA CERRADA')) return 'closed_slot';
+        if (fn.includes('cajera_circular') || t.includes('CAJA CIRCULAR')) return 'circular_pocket';
+        if (fn.includes('cajera_rectangular') || t.includes('CAJA RECTANGULAR')) return 'rect_pocket';
+        if (fn.includes('roscas') || t.includes('FRESADO DE ROSCAS')) return 'thread_mill';
+        if (fn.includes('oring') || t.includes('RANURA CIRCULAR HELICOIDAL')) return 'oring_groove';
+        if (fn.includes('define circulo') || t.includes('CONTORNO INTERNO')) return 'internal_contour';
+        return 'generic';
+    }
+
     function draw2DCadSchematic() {
         const canvas = document.getElementById('toolpathCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
-        const w = canvas.parentElement.clientWidth || 300;
+        const w = canvas.parentElement.clientWidth || 320;
         const h = canvas.parentElement.clientHeight || 280;
         canvas.width = w;
         canvas.height = h;
@@ -1502,7 +1550,8 @@
         const cx = w / 2;
         const cy = h / 2;
 
-        ctx.strokeStyle = "rgba(220, 226, 247, 0.05)";
+        // Cuadrícula técnica de fondo
+        ctx.strokeStyle = "rgba(220, 226, 247, 0.04)";
         ctx.lineWidth = 1;
         for (let x = 0; x < w; x += 25) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
@@ -1511,65 +1560,846 @@
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
         }
 
-        ctx.strokeStyle = "rgba(255, 122, 0, 0.3)";
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
-        ctx.setLineDash([]);
-
         if (!activeMacro) return;
 
-        let diam = 80, length = 100, width = 80, toolDiam = 10;
-        activeMacro.variables.forEach(v => {
-            const c = v.comment.toUpperCase();
-            if (c.includes('DIAMETRO') && !c.includes('HERRAMIENTA') && !c.includes('BROCA')) diam = v.value;
-            if (c.includes('LARGO') || c.includes('LONGITUD')) length = v.value;
-            if (c.includes('ANCHO')) width = v.value;
-            if (c.includes('HERRAMIENTA') || c.includes('BROCA')) toolDiam = v.value;
-        });
-
-        const scale = Math.min(w, h) / 180;
-
-        if (activeMacro.filename.toLowerCase().includes('circular') || activeMacro.filename.toLowerCase().includes('circulo') || activeMacro.filename.toLowerCase().includes('oring')) {
-            const r = Math.max(10, (diam / 2) * scale);
-            ctx.strokeStyle = "#4cd7f6";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.strokeStyle = "rgba(255, 193, 116, 0.4)";
-            ctx.lineWidth = 1;
-            for (let step = r * 0.3; step < r; step += r * 0.25) {
-                ctx.beginPath();
-                ctx.arc(cx, cy, step, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        } else {
-            const rw = Math.max(20, length * scale);
-            const rh = Math.max(20, width * scale);
-            ctx.strokeStyle = "#4cd7f6";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(cx - rw / 2, cy - rh / 2, rw, rh);
-
-            ctx.strokeStyle = "rgba(255, 193, 116, 0.4)";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(cx - rw / 3, cy - rh / 3, rw * 0.66, rh * 0.66);
+        if (cadViewMode === 'section') {
+            drawCadSectionView(ctx, w, h, cx, cy);
+            return;
         }
 
-        ctx.fillStyle = "#ff3b30";
-        ctx.beginPath();
-        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#ffc174";
-        ctx.font = "10px 'JetBrains Mono'";
-        ctx.fillText(`X0.00 Y0.00`, cx + 6, cy - 6);
+        const type = getMacroType();
+        switch (type) {
+            case 'circular_holes':
+                drawCadCircularHolePattern(ctx, w, h, cx, cy);
+                break;
+            case 'rect_holes':
+                drawCadRectangularHolePattern(ctx, w, h, cx, cy);
+                break;
+            case 'circular_boss':
+                drawCadCircularBoss(ctx, w, h, cx, cy);
+                break;
+            case 'closed_slot':
+                drawCadClosedSlot(ctx, w, h, cx, cy);
+                break;
+            case 'circular_pocket':
+                drawCadCircularPocket(ctx, w, h, cx, cy);
+                break;
+            case 'rect_pocket':
+                drawCadRectangularPocket(ctx, w, h, cx, cy);
+                break;
+            case 'thread_mill':
+                drawCadThreadMilling(ctx, w, h, cx, cy);
+                break;
+            case 'oring_groove':
+                drawCadOringGroove(ctx, w, h, cx, cy);
+                break;
+            case 'internal_contour':
+                drawCadInternalContour(ctx, w, h, cx, cy);
+                break;
+            default:
+                drawCadGeneric(ctx, w, h, cx, cy);
+                break;
+        }
     }
 
     function recenterCanvas2D() {
         draw2DCadSchematic();
+    }
+
+    /* 1. CAD: PATRÓN CIRCULAR DE AGUJEROS (PCD) */
+    function drawCadCircularHolePattern(ctx, w, h, cx, cy) {
+        const pcd = getMacroVar(1, 150);
+        const numHoles = Math.max(1, Math.round(getMacroVar(2, 12)));
+        const drillDiam = Math.max(1, getMacroVar(3, 10));
+        const depth = Math.abs(getMacroVar(6, 25));
+        const strategy = Math.round(getMacroVar(7, 1));
+        const peckStep = getMacroVar(8, 5);
+        const safeZ = getMacroVar(9, 5);
+        const centerX = getMacroVar(10, 0);
+        const centerY = getMacroVar(11, 0);
+        const startAngle = getMacroVar(13, 0);
+        const startHole = Math.max(1, Math.round(getMacroVar(14, 1)));
+        const endHole = Math.min(numHoles, Math.round(getMacroVar(15, numHoles)));
+
+        const stockDiam = pcd + drillDiam * 3.6;
+        const maxDim = Math.max(stockDiam, pcd + 35, 60);
+        const scale = (Math.min(w, h) * 0.72) / maxDim;
+
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        // 1. Plato / Brida base en corte
+        const rStock = (stockDiam / 2) * scale;
+        const stockGrad = ctx.createRadialGradient(ox, oy, rStock * 0.2, ox, oy, rStock);
+        stockGrad.addColorStop(0, "rgba(20, 27, 43, 0.95)");
+        stockGrad.addColorStop(1, "rgba(10, 16, 28, 0.98)");
+        ctx.fillStyle = stockGrad;
+        ctx.beginPath();
+        ctx.arc(ox, oy, rStock, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(220, 226, 247, 0.25)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(ox, oy, rStock - 3, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 2. Ejes Coordenados G54
+        ctx.strokeStyle = "rgba(255, 122, 0, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(ox - rStock - 15, oy); ctx.lineTo(ox + rStock + 15, oy);
+        ctx.moveTo(ox, oy - rStock - 15); ctx.lineTo(ox, oy + rStock + 15);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText("+X", ox + rStock + 6, oy - 4);
+        ctx.fillText("+Y", ox + 4, oy - rStock - 6);
+
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath();
+        ctx.arc(ox, oy, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffc174";
+        ctx.fillText(`G54 (X${centerX.toFixed(1)}, Y${centerY.toFixed(1)})`, ox + 6, oy + 12);
+
+        // 3. Círculo Primitivo PCD
+        const rPcd = (pcd / 2) * scale;
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.75)";
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.arc(ox, oy, rPcd, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 4. Guía de Ángulo Inicial
+        if (Math.abs(startAngle) > 0.01) {
+            const rad0 = (startAngle * Math.PI) / 180;
+            ctx.strokeStyle = "rgba(255, 193, 116, 0.4)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(ox + (rPcd + 15) * Math.cos(rad0), oy - (rPcd + 15) * Math.sin(rad0));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.strokeStyle = "rgba(255, 193, 116, 0.6)";
+            ctx.beginPath();
+            ctx.arc(ox, oy, 25, 0, -rad0, true);
+            ctx.stroke();
+            ctx.fillStyle = "#ffc174";
+            ctx.fillText(`${startAngle}°`, ox + 30 * Math.cos(rad0 / 2), oy - 30 * Math.sin(rad0 / 2));
+        }
+
+        // 5. Agujeros / Barrenos distribuidos
+        const rDrill = Math.max(3.5, (drillDiam / 2) * scale);
+        const angleStep = 360 / numHoles;
+
+        for (let k = 1; k <= numHoles; k++) {
+            const angDeg = startAngle + (k - 1) * angleStep;
+            const angRad = (angDeg * Math.PI) / 180;
+            const hx = ox + rPcd * Math.cos(angRad);
+            const hy = oy - rPcd * Math.sin(angRad);
+            const isActive = (k >= startHole && k <= endHole);
+
+            ctx.strokeStyle = isActive ? "rgba(76, 215, 246, 0.25)" : "rgba(255, 255, 255, 0.05)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+            ctx.lineTo(hx, hy);
+            ctx.stroke();
+
+            if (isActive) {
+                const holeGrad = ctx.createRadialGradient(hx, hy, rDrill * 0.2, hx, hy, rDrill);
+                holeGrad.addColorStop(0, "#050b17");
+                holeGrad.addColorStop(0.7, "#0f1f38");
+                holeGrad.addColorStop(1, "rgba(245, 158, 11, 0.5)");
+                ctx.fillStyle = holeGrad;
+                ctx.beginPath();
+                ctx.arc(hx, hy, rDrill, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = "#f59e0b";
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.arc(hx, hy, rDrill, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.strokeStyle = "#ffc174";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(hx - 3, hy); ctx.lineTo(hx + 3, hy);
+                ctx.moveTo(hx, hy - 3); ctx.lineTo(hx, hy + 3);
+                ctx.stroke();
+
+                const labelDist = rDrill + 10;
+                const lx = hx + labelDist * Math.cos(angRad);
+                const ly = hy - labelDist * Math.sin(angRad);
+
+                ctx.fillStyle = "#ffc174";
+                ctx.font = "bold 9px 'JetBrains Mono'";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`#${k}`, lx, ly);
+            } else {
+                ctx.fillStyle = "rgba(20, 25, 35, 0.5)";
+                ctx.beginPath();
+                ctx.arc(hx, hy, rDrill, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = "rgba(160, 175, 200, 0.3)";
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.arc(hx, hy, rDrill, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                const labelDist = rDrill + 9;
+                const lx = hx + labelDist * Math.cos(angRad);
+                const ly = hy - labelDist * Math.sin(angRad);
+                ctx.fillStyle = "rgba(160, 175, 200, 0.4)";
+                ctx.font = "8px 'JetBrains Mono'";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`#${k}`, lx, ly);
+            }
+        }
+        ctx.textAlign = "start";
+        ctx.textBaseline = "alphabetic";
+
+        // HUD informativo
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 240, 52);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(8, 8, 240, 52);
+
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`PCD: Ø${pcd.toFixed(1)} mm | ${numHoles} AGUJEROS`, 14, 23);
+
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`BROCA: Ø${drillDiam.toFixed(1)} mm | Z: -${depth.toFixed(1)} mm`, 14, 37);
+        ctx.fillText(`ACTIVOS: #${startHole} A #${endHole} | ${strategy === 1 ? 'PICOTEO Q=' + peckStep + 'mm' : 'DIRECTO'}`, 14, 50);
+    }
+
+    /* 2. CAD: PATRÓN RECTANGULAR PERIMETRAL DE AGUJEROS */
+    function drawCadRectangularHolePattern(ctx, w, h, cx, cy) {
+        const lx = getMacroVar(1, 150);
+        const ly = getMacroVar(2, 100);
+        const nx = Math.max(2, Math.round(getMacroVar(3, 2)));
+        const ny = Math.max(2, Math.round(getMacroVar(4, 2)));
+        const depth = Math.abs(getMacroVar(7, 20));
+        const drillDiam = 10.0;
+        const centerX = getMacroVar(11, 0);
+        const centerY = getMacroVar(12, 0);
+
+        const margin = 30;
+        const scale = (Math.min(w, h) * 0.68) / Math.max(lx + margin, ly + margin, 80);
+
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const sw = lx * scale;
+        const sh = ly * scale;
+
+        // Placa rectangular base
+        ctx.fillStyle = "rgba(20, 27, 43, 0.95)";
+        ctx.fillRect(ox - sw / 2 - 12, oy - sh / 2 - 12, sw + 24, sh + 24);
+        ctx.strokeStyle = "rgba(220, 226, 247, 0.25)";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(ox - sw / 2 - 12, oy - sh / 2 - 12, sw + 24, sh + 24);
+
+        // Marco perimetral
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.6)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(ox - sw / 2, oy - sh / 2, sw, sh);
+        ctx.setLineDash([]);
+
+        // Ejes G54
+        ctx.strokeStyle = "rgba(255, 122, 0, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(ox - sw / 2 - 20, oy); ctx.lineTo(ox + sw / 2 + 20, oy);
+        ctx.moveTo(ox, oy - sh / 2 - 20); ctx.lineTo(ox, oy + sh / 2 + 20);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+        // Agujeros calculados
+        const rHole = Math.max(3.5, 4.5 * scale);
+        const holes = [];
+
+        const stepX = lx / (nx - 1);
+        const stepY = ly / (ny - 1);
+        const startX = -lx / 2;
+        const startY = -ly / 2;
+
+        // Bottom edge
+        for (let i = 0; i < nx; i++) holes.push({ x: startX + i * stepX, y: startY });
+        // Right edge
+        for (let j = 1; j < ny; j++) holes.push({ x: lx / 2, y: startY + j * stepY });
+        // Top edge
+        for (let i = nx - 2; i >= 0; i--) holes.push({ x: startX + i * stepX, y: ly / 2 });
+        // Left edge
+        for (let j = ny - 2; j >= 1; j--) holes.push({ x: startX, y: startY + j * stepY });
+
+        holes.forEach((pt, idx) => {
+            const hx = ox + pt.x * scale;
+            const hy = oy - pt.y * scale;
+
+            ctx.fillStyle = "#050b17";
+            ctx.beginPath(); ctx.arc(hx, hy, rHole, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = "#f59e0b";
+            ctx.lineWidth = 1.8;
+            ctx.beginPath(); ctx.arc(hx, hy, rHole, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.fillStyle = "#ffc174";
+            ctx.font = "8px 'JetBrains Mono'";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${idx + 1}`, hx, hy - rHole - 6);
+        });
+        ctx.textAlign = "start";
+        ctx.textBaseline = "alphabetic";
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`PATRÓN RECTANGULAR: ${holes.length} AGUJEROS`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`MARCO: ${lx}x${ly} mm | AGUJEROS: ${nx}X x ${ny}Y`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm`, 14, 48);
+    }
+
+    /* 3. CAD: MACHO CIRCULAR CENTRAL (ISLA) */
+    function drawCadCircularBoss(ctx, w, h, cx, cy) {
+        const dOuter = getMacroVar(1, 250);
+        const dBoss = getMacroVar(2, 85);
+        const toolDiam = getMacroVar(3, 10);
+        const depth = Math.abs(getMacroVar(4, 10));
+        const centerX = getMacroVar(13, 0);
+        const centerY = getMacroVar(14, 0);
+
+        const scale = (Math.min(w, h) * 0.72) / Math.max(dOuter + 20, 100);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const rOut = (dOuter / 2) * scale;
+        const rBoss = (dBoss / 2) * scale;
+
+        // Bruto exterior
+        ctx.fillStyle = "rgba(20, 27, 43, 0.95)";
+        ctx.beginPath(); ctx.arc(ox, oy, rOut, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(220, 226, 247, 0.3)";
+        ctx.lineWidth = 1.5; ctx.stroke();
+
+        // Pasadas de desbaste anulares
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.lineWidth = 1;
+        for (let r = rBoss + 10 * scale; r < rOut; r += 12 * scale) {
+            ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI * 2); ctx.stroke();
+        }
+
+        // Isla central (Macho circular final)
+        const bossGrad = ctx.createRadialGradient(ox, oy, rBoss * 0.3, ox, oy, rBoss);
+        bossGrad.addColorStop(0, "rgba(245, 158, 11, 0.6)");
+        bossGrad.addColorStop(1, "rgba(217, 119, 6, 0.85)");
+        ctx.fillStyle = bossGrad;
+        ctx.beginPath(); ctx.arc(ox, oy, rBoss, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#ffc174";
+        ctx.lineWidth = 2; ctx.stroke();
+
+        // Centro G54
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`MACHO CENTRAL: Ø${dBoss.toFixed(1)} mm`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`BRUTO EXT: Ø${dOuter.toFixed(1)} mm | HTA: Ø${toolDiam} mm`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm`, 14, 48);
+    }
+
+    /* 4. CAD: RANURA CERRADA INCLINADA */
+    function drawCadClosedSlot(ctx, w, h, cx, cy) {
+        const len = getMacroVar(1, 100);
+        const rSlot = getMacroVar(2, 20);
+        const angle = getMacroVar(3, 0);
+        const toolDiam = getMacroVar(4, 12);
+        const depth = Math.abs(getMacroVar(5, 15));
+        const centerX = getMacroVar(12, 0);
+        const centerY = getMacroVar(13, 0);
+
+        const totalL = len + 2 * rSlot;
+        const scale = (Math.min(w, h) * 0.65) / Math.max(totalL + 30, 80);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        ctx.save();
+        ctx.translate(ox, oy);
+        ctx.rotate((-angle * Math.PI) / 180);
+
+        const sl = len * scale;
+        const sr = rSlot * scale;
+
+        // Perfil ranura cerrada (estadio / obround)
+        ctx.fillStyle = "rgba(5, 11, 23, 0.95)";
+        ctx.beginPath();
+        ctx.arc(sl / 2, 0, sr, -Math.PI / 2, Math.PI / 2);
+        ctx.arc(-sl / 2, 0, sr, Math.PI / 2, -Math.PI / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Línea central de simetría
+        ctx.strokeStyle = "rgba(255, 193, 116, 0.6)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(-sl / 2 - sr - 10, 0);
+        ctx.lineTo(sl / 2 + sr + 10, 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Pasadas internas de desbaste
+        if (sr > 10) {
+            ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(sl / 2, 0, sr * 0.5, -Math.PI / 2, Math.PI / 2);
+            ctx.arc(-sl / 2, 0, sr * 0.5, Math.PI / 2, -Math.PI / 2);
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Centro G54
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`RANURA CERRADA: L=${len} | R=${rSlot} mm`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`INCLINACIÓN: ${angle}° | ANCHO TOTAL: ${rSlot * 2} mm`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm | HTA Ø${toolDiam}`, 14, 48);
+    }
+
+    /* 5. CAD: CAJERA CIRCULAR */
+    function drawCadCircularPocket(ctx, w, h, cx, cy) {
+        const diam = getMacroVar(1, 80);
+        const toolDiam = getMacroVar(2, 12);
+        const depth = Math.abs(getMacroVar(3, 20));
+        const centerX = getMacroVar(10, 0);
+        const centerY = getMacroVar(11, 0);
+        const radialStep = getMacroVar(12, 8);
+
+        const scale = (Math.min(w, h) * 0.72) / Math.max(diam + 30, 60);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const r = (diam / 2) * scale;
+
+        // Cavidad cajera circular
+        ctx.fillStyle = "rgba(5, 11, 23, 0.95)";
+        ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI * 2); ctx.fill();
+
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Trayectorias concéntricas de desbaste
+        ctx.strokeStyle = "rgba(255, 193, 116, 0.4)";
+        ctx.lineWidth = 1;
+        const sStep = Math.max(4, radialStep * scale);
+        for (let rad = sStep; rad < r; rad += sStep) {
+            ctx.beginPath(); ctx.arc(ox, oy, rad, 0, Math.PI * 2); ctx.stroke();
+        }
+
+        // Centro helicoidal
+        ctx.strokeStyle = "#ff3b30";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(ox, oy, 6, 0, Math.PI * 2); ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`CAJERA CIRCULAR: Ø${diam.toFixed(1)} mm`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`HERRAMIENTA: Ø${toolDiam} mm | PASO RADIAL: ${radialStep} mm`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm`, 14, 48);
+    }
+
+    /* 6. CAD: CAJERA RECTANGULAR */
+    function drawCadRectangularPocket(ctx, w, h, cx, cy) {
+        const lx = getMacroVar(1, 120);
+        const ly = getMacroVar(2, 80);
+        const cr = getMacroVar(3, 15);
+        const toolDiam = getMacroVar(4, 12);
+        const depth = Math.abs(getMacroVar(5, 20));
+        const centerX = getMacroVar(12, 0);
+        const centerY = getMacroVar(13, 0);
+
+        const scale = (Math.min(w, h) * 0.68) / Math.max(lx + 25, ly + 25, 60);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const sw = lx * scale;
+        const sh = ly * scale;
+        const sr = Math.min(cr * scale, sw / 2, sh / 2);
+
+        // Rectángulo redondeado
+        ctx.fillStyle = "rgba(5, 11, 23, 0.95)";
+        ctx.beginPath();
+        ctx.roundRect(ox - sw / 2, oy - sh / 2, sw, sh, sr);
+        ctx.fill();
+
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Pasadas concéntricas
+        ctx.strokeStyle = "rgba(255, 193, 116, 0.35)";
+        ctx.lineWidth = 1;
+        for (let factor = 0.66; factor > 0.2; factor -= 0.3) {
+            ctx.beginPath();
+            ctx.roundRect(ox - (sw * factor) / 2, oy - (sh * factor) / 2, sw * factor, sh * factor, Math.max(2, sr * factor));
+            ctx.stroke();
+        }
+
+        // Centro G54
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`CAJERA RECTANGULAR: ${lx}x${ly} mm`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`RADIO ESQUINAS: R${cr} mm | HTA Ø${toolDiam} mm`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm`, 14, 48);
+    }
+
+    /* 7. CAD: FRESADO DE ROSCAS HELICOIDAL */
+    function drawCadThreadMilling(ctx, w, h, cx, cy) {
+        const dNom = getMacroVar(1, 64);
+        const toolDiam = getMacroVar(2, 20);
+        const depth = Math.abs(getMacroVar(3, 30));
+        const pitch = getMacroVar(4, 2.0);
+        const centerX = getMacroVar(10, 0);
+        const centerY = getMacroVar(11, 0);
+
+        const scale = (Math.min(w, h) * 0.72) / Math.max(dNom + 30, 60);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const rMajor = (dNom / 2) * scale;
+        const rMinor = ((dNom - pitch * 1.08) / 2) * scale;
+
+        // Círculo raíz de rosca
+        ctx.fillStyle = "rgba(5, 11, 23, 0.95)";
+        ctx.beginPath(); ctx.arc(ox, oy, rMajor, 0, Math.PI * 2); ctx.fill();
+
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2; ctx.stroke();
+
+        // Cresta de rosca
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 2]);
+        ctx.beginPath(); ctx.arc(ox, oy, rMinor, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Flecha circular de interpolación helicoidal CCW
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.8)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(ox, oy, rMajor - 6, Math.PI * 0.2, Math.PI * 1.8);
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`FRESADO DE ROSCA: M${dNom.toFixed(0)} x ${pitch.toFixed(1)}`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`DIÁM. NOMINAL: Ø${dNom} mm | PASO: ${pitch} mm`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm | FRESA Ø${toolDiam}`, 14, 48);
+    }
+
+    /* 8. CAD: RANURA TIPO O-RINGS */
+    function drawCadOringGroove(ctx, w, h, cx, cy) {
+        const dCenter = getMacroVar(1, 100);
+        const toolDiam = getMacroVar(2, 12);
+        const depth = Math.abs(getMacroVar(3, 15));
+        const pitchZ = getMacroVar(4, 2.0);
+        const centerX = getMacroVar(9, 0);
+        const centerY = getMacroVar(10, 0);
+
+        const scale = (Math.min(w, h) * 0.72) / Math.max(dCenter + toolDiam * 2 + 20, 60);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const rMid = (dCenter / 2) * scale;
+        const rIn = ((dCenter - toolDiam) / 2) * scale;
+        const rOut = ((dCenter + toolDiam) / 2) * scale;
+
+        // Pared exterior de ranura
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(ox, oy, rOut, 0, Math.PI * 2); ctx.stroke();
+
+        // Pared interior de ranura
+        ctx.beginPath(); ctx.arc(ox, oy, rIn, 0, Math.PI * 2); ctx.stroke();
+
+        // Trayectoria centro de la fresa (Helicoidal)
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.arc(ox, oy, rMid, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Centro G54
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`RANURA O-RING: Ø CENTRO ${dCenter.toFixed(1)} mm`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`ANCHO RANURA: ${toolDiam} mm | PITCH Z: ${pitchZ} mm/rev`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm`, 14, 48);
+    }
+
+    /* 9. CAD: DEFINE CÍRCULO (CONTORNO INTERNO) */
+    function drawCadInternalContour(ctx, w, h, cx, cy) {
+        const diam = getMacroVar(1, 102);
+        const toolDiam = getMacroVar(2, 12);
+        const depth = Math.abs(getMacroVar(5, 18));
+        const rTangential = getMacroVar(17, 5);
+        const centerX = getMacroVar(15, 0);
+        const centerY = getMacroVar(16, 0);
+
+        const scale = (Math.min(w, h) * 0.72) / Math.max(diam + 30, 60);
+        const ox = cx + centerX * scale;
+        const oy = cy - centerY * scale;
+
+        const r = (diam / 2) * scale;
+        const rIn = Math.max(4, rTangential * scale);
+
+        // Contorno final
+        ctx.fillStyle = "rgba(5, 11, 23, 0.95)";
+        ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2; ctx.stroke();
+
+        // Entrada tangencial en arco
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(ox + r - rIn, oy, rIn, Math.PI, 0, true);
+        ctx.stroke();
+
+        // Centro G54
+        ctx.fillStyle = "#ff3b30";
+        ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+        // HUD
+        ctx.fillStyle = "rgba(12, 19, 34, 0.88)";
+        ctx.fillRect(8, 8, 230, 48);
+        ctx.strokeStyle = "rgba(76, 215, 246, 0.35)";
+        ctx.strokeRect(8, 8, 230, 48);
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px 'JetBrains Mono'";
+        ctx.fillText(`CONTORNO INTERNO: Ø${diam.toFixed(1)} mm`, 14, 22);
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "9px 'JetBrains Mono'";
+        ctx.fillText(`HERRAMIENTA: Ø${toolDiam} mm | ARCO ENTRADA: R${rTangential} mm`, 14, 35);
+        ctx.fillText(`PROFUNDIDAD: Z -${depth.toFixed(1)} mm`, 14, 48);
+    }
+
+    /* 10. CAD GENÉRICO */
+    function drawCadGeneric(ctx, w, h, cx, cy) {
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx, cy, 70, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "10px 'JetBrains Mono'";
+        ctx.fillText("VISTA GENERAL DE MECANIZADO", cx - 80, cy);
+    }
+
+    /* 11. CAD: VISTA DE SECCIÓN / PERFIL TÉCNICO Z */
+    function drawCadSectionView(ctx, w, h, cx, cy) {
+        const depth = Math.abs(getMacroVar(6, getMacroVar(5, getMacroVar(7, 25))));
+        const safeZ = getMacroVar(9, getMacroVar(10, getMacroVar(14, 5)));
+        const drillDiam = getMacroVar(3, getMacroVar(2, getMacroVar(4, 10)));
+        const peckStep = getMacroVar(8, getMacroVar(9, getMacroVar(6, 5)));
+
+        const bx = cx - 110;
+        const by = cy - 40;
+        const bw = 220;
+        const bh = 100;
+
+        // Bloque de material en corte
+        ctx.fillStyle = "#141b2b";
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeStyle = "#2e3545";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(bx, by, bw, bh);
+
+        // Rayado técnico en diagonal
+        ctx.strokeStyle = "rgba(220, 226, 247, 0.06)";
+        ctx.lineWidth = 1;
+        for (let i = -100; i < bw + 100; i += 18) {
+            ctx.beginPath();
+            ctx.moveTo(bx + i, by);
+            ctx.lineTo(bx + i + bh, by + bh);
+            ctx.stroke();
+        }
+
+        // Línea Cero Pieza Z0.00
+        ctx.strokeStyle = "#ffc174";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 2]);
+        ctx.beginPath();
+        ctx.moveTo(bx - 30, by); ctx.lineTo(bx + bw + 30, by);
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "bold 9px 'JetBrains Mono'";
+        ctx.fillText("Z0.0 (G54 SUPERFICIE)", bx - 25, by - 6);
+
+        // Plano de Seguridad R (+5.0)
+        const rY = by - 22;
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(bx - 30, rY); ctx.lineTo(bx + bw + 30, rY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#4cd7f6";
+        ctx.fillText(`PLANO SEGURIDAD R (+${safeZ.toFixed(1)} mm)`, bx - 25, rY - 6);
+
+        // Canal del barreno taladrado
+        const hw = Math.max(14, Math.min(38, drillDiam * 1.8));
+        const hh = Math.min(75, Math.max(30, depth * 2.2));
+        const hx = cx - hw / 2;
+
+        ctx.fillStyle = "#070e1d";
+        ctx.fillRect(hx, by, hw, hh);
+
+        // Punta conificada 140°
+        ctx.beginPath();
+        ctx.moveTo(hx, by + hh);
+        ctx.lineTo(cx, by + hh + hw * 0.35);
+        ctx.lineTo(hx + hw, by + hh);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(hx, by, hw, hh);
+        ctx.beginPath();
+        ctx.moveTo(hx, by + hh);
+        ctx.lineTo(cx, by + hh + hw * 0.35);
+        ctx.lineTo(hx + hw, by + hh);
+        ctx.stroke();
+
+        // Pasadas de picoteo escalonadas (Peck steps Q)
+        if (peckStep > 0 && depth > peckStep) {
+            const stepPx = (hh / depth) * peckStep;
+            ctx.strokeStyle = "rgba(245, 158, 11, 0.7)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            let qIdx = 1;
+            for (let qy = by + stepPx; qy < by + hh - 2; qy += stepPx) {
+                ctx.beginPath(); ctx.moveTo(hx, qy); ctx.lineTo(hx + hw, qy); ctx.stroke();
+                ctx.fillStyle = "#f59e0b";
+                ctx.font = "8px 'JetBrains Mono'";
+                ctx.fillText(`Q${qIdx}`, hx + hw + 4, qy + 3);
+                qIdx++;
+            }
+            ctx.setLineDash([]);
+        }
+
+        // Cota de profundidad total
+        ctx.strokeStyle = "#ffc174";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hx - 15, by); ctx.lineTo(hx - 15, by + hh);
+        ctx.moveTo(hx - 20, by); ctx.lineTo(hx - 10, by);
+        ctx.moveTo(hx - 20, by + hh); ctx.lineTo(hx - 10, by + hh);
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffc174";
+        ctx.font = "bold 9px 'JetBrains Mono'";
+        ctx.save();
+        ctx.translate(hx - 22, by + hh / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "center";
+        ctx.fillText(`Z -${depth.toFixed(1)} mm`, 0, 0);
+        ctx.restore();
     }
 
     /* ========================================================= */
@@ -1580,30 +2410,31 @@
     let threeStock, threeTool, threePathGroup;
     let simPoints = [];
     let simCurrentIdx = 0;
-    let simIsRunning = false;
     let simTimer = null;
     let simSpeed = 5;
+    let simIsRunning = false;
 
-    function setSimView(view) {
-        simMode = view;
-        document.querySelectorAll('.sim-view-btn').forEach(b => {
-            b.classList.remove('bg-surface-container-high', 'border', 'border-primary/40');
-            b.classList.add('text-on-surface-variant');
-        });
-        if (view === '3d') {
-            document.getElementById('btnView3D').classList.add('bg-surface-container-high', 'border', 'border-primary/40');
+    function switchSimView(mode) {
+        simMode = mode;
+        const btn3d = document.getElementById('btnView3D');
+        const btnXy = document.getElementById('btnViewXY');
+        const btnXz = document.getElementById('btnViewXZ');
+
+        btn3d.className = "px-3 py-1 rounded text-xs font-bold transition-all " + (mode === '3d' ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface");
+        btnXy.className = "px-3 py-1 rounded text-xs font-bold transition-all " + (mode === 'xy' ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface");
+        btnXz.className = "px-3 py-1 rounded text-xs font-bold transition-all " + (mode === 'xz' ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface");
+
+        if (mode === '3d') {
             document.getElementById('sim3dContainer').classList.remove('hidden');
             document.getElementById('sim2dCanvas').classList.add('hidden');
         } else {
-            const btn = view === 'xy' ? document.getElementById('btnViewXY') : document.getElementById('btnViewXZ');
-            if (btn) btn.classList.add('bg-surface-container-high', 'border', 'border-primary/40');
             document.getElementById('sim3dContainer').classList.add('hidden');
             document.getElementById('sim2dCanvas').classList.remove('hidden');
-            render2DSimCanvas(view);
+            render2DSimCanvas(mode);
         }
     }
 
-    function simInit() {
+    function init3DScene() {
         const container = document.getElementById('sim3dContainer');
         if (!container || threeScene) return;
 
@@ -1614,11 +2445,11 @@
         threeScene.background = new THREE.Color(0x070e1d);
 
         threeCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-        threeCamera.position.set(120, 140, 120);
+        threeCamera.position.set(130, 150, 170);
 
         threeRenderer = new THREE.WebGLRenderer({ antialias: true });
         threeRenderer.setSize(w, h);
-        threeRenderer.setPixelRatio(window.devicePixelRatio || 1);
+        threeRenderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(threeRenderer.domElement);
 
         threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
@@ -1634,12 +2465,14 @@
         const grid = new THREE.GridHelper(200, 20, 0xffc174, 0x1f2937);
         threeScene.add(grid);
 
+        // Bloque de Material en Bruto
         const stockGeom = new THREE.BoxGeometry(100, 30, 100);
-        const stockMat = new THREE.MeshStandardMaterial({ color: 0x2e3545, transparent: true, opacity: 0.6, roughness: 0.4 });
+        const stockMat = new THREE.MeshStandardMaterial({ color: 0x2e3545, transparent: true, opacity: 0.65, roughness: 0.4 });
         threeStock = new THREE.Mesh(stockGeom, stockMat);
         threeStock.position.set(0, -15, 0);
         threeScene.add(threeStock);
 
+        // Herramienta cilíndrica con punta
         const toolGeom = new THREE.CylinderGeometry(5, 5, 40, 16);
         const toolMat = new THREE.MeshStandardMaterial({ color: 0xff3b30, metalness: 0.8, roughness: 0.2 });
         threeTool = new THREE.Mesh(toolGeom, toolMat);
@@ -1659,40 +2492,415 @@
         buildSimulationPoints();
     }
 
+    /* GENERADOR DE TRAYECTORIAS Y PUNTOS DE SIMULACIÓN ESPECÍFICO POR MACRO */
     function buildSimulationPoints() {
         simPoints = [];
-        const cx = 0, cy = 0;
-        let r = 40;
-        let totalZ = -15;
+        const type = getMacroType();
 
-        if (activeMacro) {
-            activeMacro.variables.forEach(v => {
-                const c = v.comment.toUpperCase();
-                if (c.includes('DIAMETRO') && !c.includes('HERRAMIENTA')) r = Math.max(10, v.value / 2);
-                if (c.includes('PROFUNDIDAD')) totalZ = -Math.abs(v.value);
-            });
+        if (type === 'circular_holes') {
+            buildSimCircularHolePattern();
+        } else if (type === 'rect_holes') {
+            buildSimRectangularHolePattern();
+        } else if (type === 'circular_boss') {
+            buildSimCircularBoss();
+        } else if (type === 'closed_slot') {
+            buildSimClosedSlot();
+        } else if (type === 'circular_pocket') {
+            buildSimCircularPocket();
+        } else if (type === 'rect_pocket') {
+            buildSimRectangularPocket();
+        } else if (type === 'thread_mill') {
+            buildSimThreadMilling();
+        } else if (type === 'oring_groove') {
+            buildSimOringGroove();
+        } else if (type === 'internal_contour') {
+            buildSimInternalContour();
+        } else {
+            buildSimGeneric();
         }
 
-        simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
-        simPoints.push({ x: cx, y: cy, z: 5, type: 'G0' });
-
-        for (let z = 0; z >= totalZ; z -= 3) {
-            simPoints.push({ x: cx, y: cy, z: z, type: 'G1' });
-            for (let angle = 0; angle <= Math.PI * 4; angle += 0.3) {
-                const curR = (angle / (Math.PI * 4)) * r;
-                simPoints.push({
-                    x: cx + Math.cos(angle) * curR,
-                    y: cy + Math.sin(angle) * curR,
-                    z: z,
-                    type: 'G1'
-                });
-            }
-        }
-
-        simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
+        update3DWorkpieceAndPath();
 
         const counter = document.getElementById('simLineCounter');
         if (counter) counter.textContent = `Puntos: 0 / ${simPoints.length}`;
+    }
+
+    /* 1. SIM: PATRÓN CIRCULAR DE TALADRADO (PCD) */
+    function buildSimCircularHolePattern() {
+        const pcd = getMacroVar(1, 150);
+        const numHoles = Math.max(1, Math.round(getMacroVar(2, 12)));
+        const depth = Math.abs(getMacroVar(6, 25));
+        const strategy = Math.round(getMacroVar(7, 1));
+        const peckStep = Math.max(0.5, getMacroVar(8, 5));
+        const safeZ = getMacroVar(9, 5) + getMacroVar(12, 0);
+        const zInit = getMacroVar(12, 0);
+        const startAngle = getMacroVar(13, 0);
+        const startHole = Math.max(1, Math.round(getMacroVar(14, 1)));
+        const endHole = Math.min(numHoles, Math.round(getMacroVar(15, numHoles)));
+        const cx = getMacroVar(10, 0);
+        const cy = getMacroVar(11, 0);
+        const rPcd = pcd / 2;
+        const angleStep = 360 / numHoles;
+        const totalZ = zInit - depth;
+
+        simPoints.push({ x: cx, y: cy, z: safeZ + 25, type: 'G0' });
+
+        for (let k = startHole; k <= endHole; k++) {
+            const angDeg = startAngle + (k - 1) * angleStep;
+            const angRad = (angDeg * Math.PI) / 180;
+            const hx = cx + rPcd * Math.cos(angRad);
+            const hy = cy + rPcd * Math.sin(angRad);
+
+            // Posicionamiento rápido a plano de seguridad sobre el barreno
+            simPoints.push({ x: hx, y: hy, z: safeZ, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: zInit + 1.0, type: 'G0' });
+
+            if (strategy === 0) {
+                // Taladrado Directo
+                simPoints.push({ x: hx, y: hy, z: totalZ, type: 'G1' });
+                simPoints.push({ x: hx, y: hy, z: safeZ, type: 'G0' });
+            } else {
+                // Ciclo de Picoteo (Peck Drilling)
+                let curZ = zInit;
+                while (curZ > totalZ) {
+                    let nextZ = curZ - peckStep;
+                    if (nextZ < totalZ) nextZ = totalZ;
+                    simPoints.push({ x: hx, y: hy, z: curZ + 1.0, type: 'G0' });
+                    simPoints.push({ x: hx, y: hy, z: nextZ, type: 'G1' });
+                    simPoints.push({ x: hx, y: hy, z: safeZ, type: 'G0' });
+                    curZ = nextZ;
+                }
+            }
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ + 30, type: 'G0' });
+    }
+
+    /* 2. SIM: PATRÓN RECTANGULAR PERIMETRAL */
+    function buildSimRectangularHolePattern() {
+        const lx = getMacroVar(1, 150);
+        const ly = getMacroVar(2, 100);
+        const nx = Math.max(2, Math.round(getMacroVar(3, 2)));
+        const ny = Math.max(2, Math.round(getMacroVar(4, 2)));
+        const depth = Math.abs(getMacroVar(7, 20));
+        const strategy = Math.round(getMacroVar(8, 1));
+        const peckStep = Math.max(0.5, getMacroVar(9, 5));
+        const safeZ = getMacroVar(10, 5) + getMacroVar(13, 0);
+        const zInit = getMacroVar(13, 0);
+        const cx = getMacroVar(11, 0);
+        const cy = getMacroVar(12, 0);
+        const totalZ = zInit - depth;
+
+        const holes = [];
+        const stepX = lx / (nx - 1);
+        const stepY = ly / (ny - 1);
+        const startX = -lx / 2;
+        const startY = -ly / 2;
+
+        for (let i = 0; i < nx; i++) holes.push({ x: cx + startX + i * stepX, y: cy + startY });
+        for (let j = 1; j < ny; j++) holes.push({ x: cx + lx / 2, y: cy + startY + j * stepY });
+        for (let i = nx - 2; i >= 0; i--) holes.push({ x: cx + startX + i * stepX, y: cy + ly / 2 });
+        for (let j = ny - 2; j >= 1; j--) holes.push({ x: cx + startX, y: cy + startY + j * stepY });
+
+        simPoints.push({ x: cx, y: cy, z: safeZ + 25, type: 'G0' });
+
+        holes.forEach(pt => {
+            simPoints.push({ x: pt.x, y: pt.y, z: safeZ, type: 'G0' });
+            simPoints.push({ x: pt.x, y: pt.y, z: zInit + 1.0, type: 'G0' });
+
+            if (strategy === 0) {
+                simPoints.push({ x: pt.x, y: pt.y, z: totalZ, type: 'G1' });
+                simPoints.push({ x: pt.x, y: pt.y, z: safeZ, type: 'G0' });
+            } else {
+                let curZ = zInit;
+                while (curZ > totalZ) {
+                    let nextZ = curZ - peckStep;
+                    if (nextZ < totalZ) nextZ = totalZ;
+                    simPoints.push({ x: pt.x, y: pt.y, z: curZ + 1.0, type: 'G0' });
+                    simPoints.push({ x: pt.x, y: pt.y, z: nextZ, type: 'G1' });
+                    simPoints.push({ x: pt.x, y: pt.y, z: safeZ, type: 'G0' });
+                    curZ = nextZ;
+                }
+            }
+        });
+        simPoints.push({ x: cx, y: cy, z: safeZ + 30, type: 'G0' });
+    }
+
+    /* 3. SIM: MACHO CIRCULAR CENTRAL */
+    function buildSimCircularBoss() {
+        const dOut = getMacroVar(1, 250);
+        const dBoss = getMacroVar(2, 85);
+        const depth = Math.abs(getMacroVar(4, 10));
+        const stepZ = Math.max(1, getMacroVar(5, 2.5));
+        const stepR = Math.max(2, getMacroVar(6, 6));
+        const cx = getMacroVar(13, 0);
+        const cy = getMacroVar(14, 0);
+        const safeZ = getMacroVar(9, 50);
+
+        const rOut = dOut / 2;
+        const rBoss = dBoss / 2;
+
+        simPoints.push({ x: cx + rOut + 10, y: cy, z: safeZ, type: 'G0' });
+
+        for (let z = -stepZ; z >= -depth; z -= stepZ) {
+            simPoints.push({ x: cx + rOut, y: cy, z: z, type: 'G1' });
+            for (let r = rOut; r >= rBoss; r -= stepR) {
+                for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.4) {
+                    simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: z, type: 'G1' });
+                }
+            }
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 4. SIM: RANURA CERRADA INCLINADA */
+    function buildSimClosedSlot() {
+        const len = getMacroVar(1, 100);
+        const rSlot = getMacroVar(2, 20);
+        const angle = (getMacroVar(3, 0) * Math.PI) / 180;
+        const depth = Math.abs(getMacroVar(5, 15));
+        const stepZ = Math.max(1, getMacroVar(6, 5));
+        const cx = getMacroVar(12, 0);
+        const cy = getMacroVar(13, 0);
+        const safeZ = getMacroVar(11, 50);
+
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+
+        for (let z = -stepZ; z >= -depth; z -= stepZ) {
+            simPoints.push({ x: cx, y: cy, z: z, type: 'G1' });
+            // Trayectoria racetrack
+            const hL = len / 2;
+            const pts = [
+                { x: hL, y: -rSlot }, { x: hL, y: rSlot },
+                { x: -hL, y: rSlot }, { x: -hL, y: -rSlot },
+                { x: hL, y: -rSlot }
+            ];
+            pts.forEach(p => {
+                const rx = p.x * Math.cos(angle) - p.y * Math.sin(angle);
+                const ry = p.x * Math.sin(angle) + p.y * Math.cos(angle);
+                simPoints.push({ x: cx + rx, y: cy + ry, z: z, type: 'G1' });
+            });
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 5. SIM: CAJERA CIRCULAR */
+    function buildSimCircularPocket() {
+        const diam = getMacroVar(1, 80);
+        const depth = Math.abs(getMacroVar(3, 20));
+        const stepZ = Math.max(1, getMacroVar(4, 5));
+        const radialStep = Math.max(2, getMacroVar(12, 8));
+        const cx = getMacroVar(10, 0);
+        const cy = getMacroVar(11, 0);
+        const safeZ = getMacroVar(9, 50);
+        const rMax = diam / 2;
+
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+
+        for (let z = -stepZ; z >= -depth; z -= stepZ) {
+            simPoints.push({ x: cx, y: cy, z: z, type: 'G1' });
+            for (let r = radialStep; r <= rMax; r += radialStep) {
+                for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.35) {
+                    simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: z, type: 'G1' });
+                }
+            }
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 6. SIM: CAJERA RECTANGULAR */
+    function buildSimRectangularPocket() {
+        const lx = getMacroVar(1, 120);
+        const ly = getMacroVar(2, 80);
+        const depth = Math.abs(getMacroVar(5, 20));
+        const stepZ = Math.max(1, getMacroVar(6, 5));
+        const cx = getMacroVar(12, 0);
+        const cy = getMacroVar(13, 0);
+        const safeZ = getMacroVar(11, 50);
+
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+
+        for (let z = -stepZ; z >= -depth; z -= stepZ) {
+            simPoints.push({ x: cx, y: cy, z: z, type: 'G1' });
+            for (let f = 0.3; f <= 1.0; f += 0.35) {
+                const w = (lx * f) / 2;
+                const h = (ly * f) / 2;
+                simPoints.push({ x: cx - w, y: cy - h, z: z, type: 'G1' });
+                simPoints.push({ x: cx + w, y: cy - h, z: z, type: 'G1' });
+                simPoints.push({ x: cx + w, y: cy + h, z: z, type: 'G1' });
+                simPoints.push({ x: cx - w, y: cy + h, z: z, type: 'G1' });
+                simPoints.push({ x: cx - w, y: cy - h, z: z, type: 'G1' });
+            }
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 7. SIM: FRESADO DE ROSCAS */
+    function buildSimThreadMilling() {
+        const dNom = getMacroVar(1, 64);
+        const depth = Math.abs(getMacroVar(3, 30));
+        const pitch = Math.max(0.5, getMacroVar(4, 2.0));
+        const cx = getMacroVar(10, 0);
+        const cy = getMacroVar(11, 0);
+        const safeZ = getMacroVar(9, 50);
+        const rThread = dNom / 2;
+
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G0' });
+
+        // Entrada tangencial
+        simPoints.push({ x: cx + rThread, y: cy, z: -depth, type: 'G1' });
+
+        // Interpolación helicoidal subiendo en Z
+        let curZ = -depth;
+        while (curZ < 0) {
+            for (let a = 0; a <= Math.PI * 2; a += 0.35) {
+                const zStep = (0.35 / (Math.PI * 2)) * pitch;
+                curZ += zStep;
+                simPoints.push({ x: cx + rThread * Math.cos(a), y: cy + rThread * Math.sin(a), z: curZ, type: 'G1' });
+            }
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 8. SIM: RANURA O-RING */
+    function buildSimOringGroove() {
+        const dCenter = getMacroVar(1, 100);
+        const depth = Math.abs(getMacroVar(3, 15));
+        const pitchZ = Math.max(0.5, getMacroVar(4, 2.0));
+        const cx = getMacroVar(9, 0);
+        const cy = getMacroVar(10, 0);
+        const safeZ = getMacroVar(8, 50);
+        const r = dCenter / 2;
+
+        simPoints.push({ x: cx + r, y: cy, z: safeZ, type: 'G0' });
+        simPoints.push({ x: cx + r, y: cy, z: 1.0, type: 'G0' });
+
+        let curZ = 0;
+        while (curZ > -depth) {
+            for (let a = 0; a <= Math.PI * 2; a += 0.35) {
+                const zStep = (0.35 / (Math.PI * 2)) * pitchZ;
+                curZ -= zStep;
+                if (curZ < -depth) curZ = -depth;
+                simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: curZ, type: 'G1' });
+            }
+        }
+        // Pasada final de fondo
+        for (let a = 0; a <= Math.PI * 2; a += 0.35) {
+            simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: -depth, type: 'G1' });
+        }
+        simPoints.push({ x: cx + r, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 9. SIM: DEFINE CÍRCULO */
+    function buildSimInternalContour() {
+        const diam = getMacroVar(1, 102);
+        const depth = Math.abs(getMacroVar(5, 18));
+        const stepZ = Math.max(0.5, getMacroVar(6, 3.0));
+        const cx = getMacroVar(15, 0);
+        const cy = getMacroVar(16, 0);
+        const safeZ = getMacroVar(14, 50);
+        const r = diam / 2;
+
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+
+        for (let z = -stepZ; z >= -depth; z -= stepZ) {
+            simPoints.push({ x: cx, y: cy, z: z, type: 'G1' });
+            for (let a = 0; a <= Math.PI * 2; a += 0.35) {
+                simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: z, type: 'G1' });
+            }
+        }
+        simPoints.push({ x: cx, y: cy, z: safeZ, type: 'G0' });
+    }
+
+    /* 10. SIM: GENÉRICO */
+    function buildSimGeneric() {
+        simPoints.push({ x: 0, y: 0, z: 25, type: 'G0' });
+        for (let z = 0; z >= -15; z -= 3) {
+            for (let a = 0; a <= Math.PI * 4; a += 0.4) {
+                const curR = (a / (Math.PI * 4)) * 35;
+                simPoints.push({ x: Math.cos(a) * curR, y: Math.sin(a) * curR, z: z, type: 'G1' });
+            }
+        }
+        simPoints.push({ x: 0, y: 0, z: 25, type: 'G0' });
+    }
+
+    /* ACTUALIZAR MODELO 3D DE THREE.JS Y LÍNEAS DE TRAYECTORIA */
+    function update3DWorkpieceAndPath() {
+        if (!threeScene || !threePathGroup) return;
+
+        threePathGroup.clear();
+
+        const type = getMacroType();
+
+        // Actualizar geometría de la pieza en bruto (Stock)
+        if (threeStock) {
+            threeStock.geometry.dispose();
+
+            if (type === 'circular_holes' || type === 'circular_boss' || type === 'circular_pocket' || type === 'thread_mill' || type === 'oring_groove' || type === 'internal_contour') {
+                let rad = 60;
+                let hgt = 35;
+                if (type === 'circular_holes') {
+                    rad = (getMacroVar(1, 150) / 2) + 20;
+                    hgt = Math.abs(getMacroVar(6, 25)) + 15;
+                } else if (type === 'circular_boss') {
+                    rad = (getMacroVar(1, 250) / 2) + 10;
+                    hgt = Math.abs(getMacroVar(4, 10)) + 15;
+                } else {
+                    rad = (getMacroVar(1, 100) / 2) + 15;
+                }
+                threeStock.geometry = new THREE.CylinderGeometry(rad, rad, hgt, 48);
+                threeStock.position.set(0, -hgt / 2, 0);
+            } else {
+                let lx = getMacroVar(1, 120) + 20;
+                let ly = getMacroVar(2, 80) + 20;
+                let hgt = 35;
+                threeStock.geometry = new THREE.BoxGeometry(lx, hgt, ly);
+                threeStock.position.set(0, -hgt / 2, 0);
+            }
+        }
+
+        // Trazado de líneas 3D para la trayectoria
+        if (simPoints.length > 1) {
+            const rapidMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.5 });
+            const feedMat = new THREE.LineBasicMaterial({ color: 0x4cd7f6, linewidth: 2 });
+
+            for (let i = 0; i < simPoints.length - 1; i++) {
+                const p1 = simPoints[i];
+                const p2 = simPoints[i + 1];
+
+                const geom = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(p1.x, p1.z, p1.y),
+                    new THREE.Vector3(p2.x, p2.z, p2.y)
+                ]);
+
+                const line = new THREE.Line(geom, p2.type === 'G0' ? rapidMat : feedMat);
+                threePathGroup.add(line);
+            }
+        }
+
+        // Marcadores 3D para los barrenos del patrón circular
+        if (type === 'circular_holes') {
+            const pcd = getMacroVar(1, 150);
+            const numHoles = Math.max(1, Math.round(getMacroVar(2, 12)));
+            const drillDiam = Math.max(1, getMacroVar(3, 10));
+            const startAngle = getMacroVar(13, 0);
+            const rPcd = pcd / 2;
+            const angleStep = 360 / numHoles;
+            const holeGeom = new THREE.CylinderGeometry(drillDiam / 2, drillDiam / 2, 2, 16);
+            const holeMat = new THREE.MeshBasicMaterial({ color: 0x070e1d });
+
+            for (let k = 1; k <= numHoles; k++) {
+                const aRad = ((startAngle + (k - 1) * angleStep) * Math.PI) / 180;
+                const hMesh = new THREE.Mesh(holeGeom, holeMat);
+                hMesh.position.set(rPcd * Math.cos(aRad), 0.5, rPcd * Math.sin(aRad));
+                threePathGroup.add(hMesh);
+            }
+        }
+
+        if (simPoints.length > 0 && threeTool) {
+            const p0 = simPoints[0];
+            threeTool.position.set(p0.x, p0.z + 20, p0.y);
+        }
     }
 
     function startSimulation() {
@@ -1741,7 +2949,9 @@
         document.getElementById('simPauseBtn').disabled = true;
         document.getElementById('simStopBtn').disabled = true;
         document.getElementById('simStatusBadge').textContent = "LISTO";
-        if (threeTool) threeTool.position.set(0, 20, 0);
+        if (simPoints.length > 0 && threeTool) {
+            threeTool.position.set(simPoints[0].x, simPoints[0].z + 20, simPoints[0].y);
+        }
     }
 
     function updateSimPosition(pt) {
@@ -1761,6 +2971,10 @@
         if (counter) counter.textContent = `Punto: ${simCurrentIdx} / ${simPoints.length}`;
 
         highlightSimTerminalLine(simCurrentIdx);
+
+        if (simMode !== '3d') {
+            render2DSimCanvas(simMode);
+        }
     }
 
     function changeSimSpeed(val) {
@@ -1813,26 +3027,90 @@
         canvas.width = w; canvas.height = h;
 
         ctx.clearRect(0, 0, w, h);
-        ctx.strokeStyle = "#4cd7f6";
-        ctx.lineWidth = 1.5;
-
         const cx = w / 2, cy = h / 2;
-        ctx.beginPath();
+
         if (view === 'xy') {
-            ctx.arc(cx, cy, 100, 0, Math.PI * 2);
-            ctx.stroke();
+            // Cuadrícula
+            ctx.strokeStyle = "rgba(220, 226, 247, 0.05)";
+            for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+            // Trazado de puntos
+            if (simPoints.length > 1) {
+                const scale = 1.2;
+                ctx.beginPath();
+                simPoints.forEach((p, idx) => {
+                    const sx = cx + p.x * scale;
+                    const sy = cy - p.y * scale;
+                    if (idx === 0) ctx.moveTo(sx, sy);
+                    else ctx.lineTo(sx, sy);
+                });
+                ctx.strokeStyle = "rgba(76, 215, 246, 0.4)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Herramienta actual
+                if (simPoints[simCurrentIdx]) {
+                    const curP = simPoints[simCurrentIdx];
+                    const sx = cx + curP.x * scale;
+                    const sy = cy - curP.y * scale;
+
+                    ctx.fillStyle = "#ff3b30";
+                    ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 1.5; ctx.stroke();
+                }
+            }
+
             ctx.fillStyle = "#ffc174";
-            ctx.font = "12px 'JetBrains Mono'";
-            ctx.fillText("PROYECCIÓN ORTOGONAL 1:1 PLANO XY (G17)", 20, 30);
+            ctx.font = "bold 12px 'JetBrains Mono'";
+            ctx.fillText("PROYECCIÓN ORTOGONAL EN VIVO: PLANO XY (G17)", 20, 30);
         } else {
-            ctx.strokeRect(cx - 120, cy - 20, 240, 80);
+            // Perfil XZ
+            ctx.strokeStyle = "rgba(220, 226, 247, 0.05)";
+            for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+            // Línea Z0
+            ctx.strokeStyle = "#ffc174";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 2]);
+            ctx.beginPath(); ctx.moveTo(40, cy); ctx.lineTo(w - 40, cy); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "#ffc174";
+            ctx.font = "10px 'JetBrains Mono'";
+            ctx.fillText("Z0.0 (SUPERFICIE PIEZA)", 50, cy - 8);
+
+            if (simPoints.length > 1) {
+                const scale = 1.2;
+                ctx.beginPath();
+                simPoints.forEach((p, idx) => {
+                    const sx = cx + p.x * scale;
+                    const sz = cy - p.z * scale;
+                    if (idx === 0) ctx.moveTo(sx, sz);
+                    else ctx.lineTo(sx, sz);
+                });
+                ctx.strokeStyle = "rgba(76, 215, 246, 0.6)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                if (simPoints[simCurrentIdx]) {
+                    const curP = simPoints[simCurrentIdx];
+                    const sx = cx + curP.x * scale;
+                    const sz = cy - curP.z * scale;
+
+                    ctx.fillStyle = "#ff3b30";
+                    ctx.beginPath(); ctx.arc(sx, sz, 6, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+
             ctx.fillStyle = "#56e5a9";
-            ctx.font = "12px 'JetBrains Mono'";
-            ctx.fillText("VISTA PERFIL PROFUNDIDADES PLANO XZ (G18)", 20, 30);
+            ctx.font = "bold 12px 'JetBrains Mono'";
+            ctx.fillText("VISTA PERFIL PROFUNDIDADES EN VIVO: PLANO XZ (G18)", 20, 30);
         }
     }
 
-    /* ========================================================= */
+/* ========================================================= */
     /* 7. LIBRERÍA DE HERRAMIENTAS (24 ATC)                     */
     /* ========================================================= */
     const DEFAULT_TOOLS = [
