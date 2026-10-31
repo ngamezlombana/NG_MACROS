@@ -67,7 +67,7 @@ for filename in nc_files:
 
 # Output as a JS file for the browser
 output_path = os.path.join(workspace_dir, "macros_data.js")
-js_content = f"const MACROS_DATA = {json.dumps(macros, indent=2)};"
+js_content = f"var MACROS_DATA = {json.dumps(macros, indent=2)};\nif (typeof window !== 'undefined') {{ window.MACROS_DATA = MACROS_DATA; }}\n"
 with open(output_path, "w", encoding="utf-8") as f:
     f.write(js_content)
 
