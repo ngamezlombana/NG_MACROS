@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-lowest":"#070e1d","on-background":"#dce2f7","on-primary":"#472a00","on-tertiary-container":"#004e34","on-primary-fixed":"#2a1700","surface-tint":"#ffb95f","on-secondary":"#003640","surface-container-high":"#232a3a","on-primary-container":"#613b00","on-tertiary-fixed-variant":"#005236","primary-fixed":"#ffddb8","tertiary-fixed":"#6ffbbe","secondary-fixed-dim":"#4cd7f6","on-secondary-container":"#00424e","background":"#0c1322","surface":"#0c1322","tertiary-container":"#30c88f","tertiary-fixed-dim":"#4edea3","on-primary-fixed-variant":"#653e00","on-error-container":"#ffdad6","outline-variant":"#534434","error":"#ffb4ab","surface-dim":"#0c1322","secondary":"#4cd7f6","primary-container":"#f59e0b","on-tertiary-fixed":"#002113","error-container":"#93000a","inverse-on-surface":"#293040","surface-container-low":"#141b2b","on-secondary-fixed":"#001f26","secondary-fixed":"#acedff","on-secondary-fixed-variant":"#004e5c","primary-fixed-dim":"#ffb95f","outline":"#a08e7a","inverse-surface":"#dce2f7","surface-variant":"#2e3545","secondary-container":"#03b5d3","inverse-primary":"#855300","tertiary":"#56e5a9","surface-bright":"#323949","on-surface-variant":"#d8c3ad","on-surface":"#dce2f7","on-tertiary":"#003824","on-error":"#690005","primary":"#ffc174","surface-container-highest":"#2e3545","surface-container":"#191f2f"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"space-lg":"1rem",margin:"1rem","space-xs":"0.25rem","margin-mobile":"0.75rem","gutter-mobile":"0.5rem","space-md":"0.75rem",gutter:"0.75rem","space-sm":"0.5rem","space-xl":"1.5rem"},fontFamily:{"headline-lg":["Inter"],"headline-md":["Inter"],"code-terminal":["JetBrains Mono"],"label-caps":["Inter"],"dro-display":["JetBrains Mono"],"body-base":["Inter"],"title-sm":["Inter"],"headline-lg-mobile":["Inter"],"body-bold":["Inter"],"code-base":["JetBrains Mono"]},fontSize:{"headline-lg":["24px",{lineHeight:"32px",letterSpacing:"0.02em",fontWeight:"700"}],"headline-md":["18px",{lineHeight:"26px",letterSpacing:"0.01em",fontWeight:"700"}],"code-terminal":["11px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"400"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"700"}],"dro-display":["18px",{lineHeight:"22px",letterSpacing:"0.04em",fontWeight:"700"}],"body-base":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"title-sm":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"headline-lg-mobile":["20px",{lineHeight:"28px",letterSpacing:"0.01em",fontWeight:"700"}],"body-bold":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"600"}],"code-base":["12px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"500"}]}}}}</script></head><body class="bg-background font-body-base text-body-base text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-16 w-full px-space-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><img alt="NG_MACROS Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UA_cGkfQPbZALH5Yrf73Uj7a8-8OEPBrfCnhYY1QNAHHZP-O7vcb100zh5Q4x7tJxeFRa3WAY9l0-sdYnFrrcs94GTVsOuo4qp91lsKQFAztnR1KD-wZ2oTO7y9urfgCA00u7BC5ySSU_jsqizymCIhY417sQwskc2C6QzAVTf9004aOoTKZ9tZ81nQh06Pg6GhjvqjM8IIPsfdWtUqnyUIJdc_SSLTklYiowvPok"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-wider text-primary leading-none">NG_MACROS</span><span class="font-code-terminal text-code-terminal text-on-surface-variant uppercase tracking-widest mt-1">CNC Precision Cockpit v4.2</span></div></div><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-sm py-space-xs rounded-lg"><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-primary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">CTRL:</span><span class="font-code-base text-code-base text-primary">FANUC / ISO</span></div><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-secondary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">UNIT:</span><span class="font-code-base text-code-base text-secondary">METRIC G21</span></div><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-tertiary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">STATUS:</span><span class="font-code-base text-code-base text-tertiary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>EN CORTE G83 (SINGLE BLOCK)</span></div></div><div class="hidden lg:flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-1 rounded"><div class="flex items-baseline gap-1 px-space-xs border-l border-error"><span class="font-code-terminal text-code-terminal text-error font-bold">X</span><span class="font-dro-display text-dro-display text-on-surface tabular-nums">+063.301</span></div><div class="flex items-baseline gap-1 px-space-xs border-l border-tertiary"><span class="font-code-terminal text-code-terminal text-tertiary font-bold">Y</span><span class="font-dro-display text-dro-display text-on-surface tabular-nums">+040.000</span></div><div class="flex items-baseline gap-1 px-space-xs border-l border-secondary"><span class="font-code-terminal text-code-terminal text-secondary font-bold">Z</span><span class="font-dro-display text-dro-display text-primary tabular-nums">-018.450</span></div></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex flex-col text-right"><span class="font-label-caps text-label-caps text-primary">TURNO ACTIVO: A-01</span><span class="font-code-terminal text-code-terminal text-on-surface-variant">OP: M. VÁSQUEZ</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-72 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md"><div class="flex flex-col gap-space-md px-space-sm"><div class="px-space-sm py-space-xs bg-surface-container-low rounded"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase block">MODOS DE OPERACIÓN</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-body-bold rounded"><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="modulos-de-fresado" href="#"><span class="font-title-sm text-title-sm">Módulos de Fresado</span><span class="font-code-terminal text-code-terminal">CYCLE</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="libreria-de-herramientas" href="#"><span class="font-title-sm text-title-sm">Librería de Herramientas</span><span class="font-code-terminal text-code-terminal">TOOL</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="simulador-g-code" href="#"><span class="font-title-sm text-title-sm">Simulador G-Code</span><span class="font-code-terminal text-code-terminal">NC</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="ajustes-de-maquina" href="#"><span class="font-title-sm text-title-sm">Ajustes de Máquina</span><span class="font-code-terminal text-code-terminal">CFG</span></a></nav></div><div class="px-space-md flex flex-col gap-space-sm"><div class="p-space-sm bg-surface-container-low rounded"><div class="flex items-center justify-between mb-1"><span class="font-label-caps text-label-caps text-on-surface-variant">FEED OVERRIDE</span><span class="font-code-base text-code-base text-primary">100%</span></div><div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden"><div class="bg-primary h-full w-full"></div></div></div><div class="flex items-center justify-between px-space-xs"><span class="font-code-terminal text-code-terminal text-on-surface-variant">SPINDLE: S2400 M03</span><span class="font-code-terminal text-code-terminal text-tertiary">SYNC OK</span></div></div></aside><div class="pl-72"><main class="relative pt-16 min-h-screen bg-background w-full px-space-lg"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-md py-space-sm pb-space-xl">
+<!-- Top Cockpit Sub-Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-low px-space-md py-space-sm rounded-lg shadow-sm">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="font-label-caps text-label-caps uppercase text-tertiary">CICLO ACTIVO:</span>
+<span class="font-code-base text-code-base text-on-surface">MACRO #504 / G84 RIGID TAPPING</span>
+</div>
+<div class="hidden sm:flex items-center gap-space-xs pl-space-md">
+<span class="font-label-caps text-label-caps uppercase text-on-surface-variant">SINCRO SPINDLE:</span>
+<span class="font-code-terminal text-code-terminal text-primary px-space-xs py-0.5 rounded bg-surface-container-highest">FANUC M29 / HAAS G84.2</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-1 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant">MODO AVANCE:</span>
+<button class="font-code-terminal text-code-terminal text-primary-container px-space-xs py-0.5 bg-surface-container rounded hover:bg-surface-variant transition-colors" id="toggleFeedMode" type="button">G94 (mm/min)</button>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-1 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant">PLANO SEG.:</span>
+<span class="font-code-base text-code-base text-secondary tabular-nums">Z +50.000</span>
+</div>
+</div>
+</div>
+<!-- Main Cockpit Grid: 3 Columns -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md items-start">
+<!-- COLUMN 1: Geometría & Parámetros Base (XL: col-span-4) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Tarjeta: Selección de Rosca y Geometría -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-md shadow-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">precision_manufacturing</span>
+<h2 class="font-headline-md text-headline-md text-primary uppercase">1. Geometría de Roscado</h2>
+</div>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">GRP_01</span>
+</div>
+<!-- Selector de Rosca Estándar -->
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase flex justify-between" for="threadSpec">
+<span>Especificación de Rosca (ISO Métrico)</span>
+<span class="text-primary font-code-terminal text-code-terminal">TABLA DIN 13</span>
+</label>
+<div class="relative bg-surface-container-highest rounded flex items-center">
+<select class="w-full bg-transparent px-space-sm py-2 font-code-base text-code-base text-on-surface focus:outline-none cursor-pointer appearance-none" id="threadSpec">
+<option class="bg-surface-container-high text-on-surface" value="M3">M3 x 0.50 (Broca Ø2.5 mm)</option>
+<option class="bg-surface-container-high text-on-surface" value="M4">M4 x 0.70 (Broca Ø3.3 mm)</option>
+<option class="bg-surface-container-high text-on-surface" value="M5">M5 x 0.80 (Broca Ø4.2 mm)</option>
+<option class="bg-surface-container-high text-on-surface" value="M6">M6 x 1.00 (Broca Ø5.0 mm)</option>
+<option class="bg-surface-container-high text-on-surface" selected="" value="M8">M8 x 1.25 (Paso Estándar Normalizado)</option>
+<option class="bg-surface-container-high text-on-surface" value="M10">M10 x 1.50 (Broca Ø8.5 mm)</option>
+<option class="bg-surface-container-high text-on-surface" value="M12">M12 x 1.75 (Broca Ø10.2 mm)</option>
+<option class="bg-surface-container-high text-on-surface" value="M16">M16 x 2.00 (Broca Ø14.0 mm)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<!-- Alerta de Broca Previa Verificada -->
+<div class="bg-surface-container-lowest p-space-sm rounded flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface uppercase">Broca Previa Requerida</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">D_broca = D_nom - Paso = 8.0 - 1.25</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-dro-display text-dro-display text-tertiary tabular-nums" id="pilotDrillVal">Ø 6.80</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant ml-1">mm</span>
+</div>
+</div>
+<!-- Profundidad de Roscado Z_fin (#100) -->
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase flex justify-between">
+<span>Profundidad Roscada Útil (Z_FIN)</span>
+<span class="text-primary font-code-terminal text-code-terminal">MACRO #100</span>
+</label>
+<div class="flex items-center bg-surface-container-highest rounded overflow-hidden">
+<span class="bg-surface-container-high px-space-sm py-2 font-code-terminal text-code-terminal text-primary">#100</span>
+<input class="w-full bg-transparent px-space-sm py-2 font-code-base text-code-base text-on-surface text-right focus:outline-none" id="inputZFin" step="0.1" type="number" value="-22.000"/>
+<span class="px-space-sm font-label-caps text-label-caps text-on-surface-variant uppercase">MM</span>
+</div>
+</div>
+<!-- Plano de Retroceso R (#101) -->
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase flex justify-between">
+<span>Plano de Retroceso / Inicio (R)</span>
+<span class="text-secondary font-code-terminal text-code-terminal">MACRO #101</span>
+</label>
+<div class="flex items-center bg-surface-container-highest rounded overflow-hidden">
+<span class="bg-surface-container-high px-space-sm py-2 font-code-terminal text-code-terminal text-secondary">#101</span>
+<input class="w-full bg-transparent px-space-sm py-2 font-code-base text-code-base text-on-surface text-right focus:outline-none" id="inputRPlane" step="0.5" type="number" value="4.000"/>
+<span class="px-space-sm font-label-caps text-label-caps text-on-surface-variant uppercase">MM</span>
+</div>
+</div>
+<!-- Coordenadas Base Origen X / Y -->
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">POSICIÓN X (#102)</label>
+<div class="flex items-center bg-surface-container-highest rounded overflow-hidden">
+<span class="bg-surface-container-high px-space-xs py-2 font-code-terminal text-code-terminal text-error font-bold">X</span>
+<input class="w-full bg-transparent px-space-xs py-2 font-code-base text-code-base text-on-surface text-right focus:outline-none" id="inputPosX" step="0.001" type="number" value="63.301"/>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">POSICIÓN Y (#103)</label>
+<div class="flex items-center bg-surface-container-highest rounded overflow-hidden">
+<span class="bg-surface-container-high px-space-xs py-2 font-code-terminal text-code-terminal text-tertiary font-bold">Y</span>
+<input class="w-full bg-transparent px-space-xs py-2 font-code-base text-code-base text-on-surface text-right focus:outline-none" id="inputPosY" step="0.001" type="number" value="40.000"/>
+</div>
+</div>
+</div>
+<!-- Patrón de Distribución -->
+<div class="flex flex-col gap-1 pt-space-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">DISTRIBUCIÓN / REPETICIÓN</label>
+<div class="grid grid-cols-3 gap-space-xs">
+<button class="px-space-xs py-2 rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps uppercase text-center transition-all" type="button">PUNTO ÚNICO</button>
+<button class="px-space-xs py-2 rounded bg-surface-container-highest text-on-surface-variant font-label-caps text-label-caps uppercase text-center hover:text-on-surface transition-all" type="button">PCD CIRCULAR</button>
+<button class="px-space-xs py-2 rounded bg-surface-container-highest text-on-surface-variant font-label-caps text-label-caps uppercase text-center hover:text-on-surface transition-all" type="button">MATRIZ LINEAL</button>
+</div>
+</div>
+</div>
+<!-- Tarjeta de Herramienta Activa -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-sm shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">HERRAMIENTA T06 EN CARGADOR</span>
+<span class="px-space-xs py-0.5 rounded bg-tertiary/10 text-tertiary font-code-terminal text-code-terminal uppercase">CORRECTOR H06</span>
+</div>
+<div class="flex items-center gap-space-md bg-surface-container-lowest p-space-sm rounded">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">construction</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-bold text-body-bold text-on-surface">Macho M8 DIN 371 HSS-E Forma B</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">Canales Helicoidales 45° TiN • Agujero Ciego</span>
+</div>
+</div>
+</div>
+</div>
+<!-- COLUMN 2: Condiciones de Corte, Cinemática & Sección Técnica Z-X (XL: col-span-4) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Tarjeta: Cinemática y Sincronismo -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-md shadow-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">sync</span>
+<h2 class="font-headline-md text-headline-md text-secondary uppercase">2. Condiciones Sincronizadas</h2>
+</div>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">GRP_02</span>
+</div>
+<!-- Velocidad de Giro S -->
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase flex justify-between">
+<span>Velocidad de Husillo (S)</span>
+<span class="text-primary font-code-terminal text-code-terminal">MACRO #112</span>
+</label>
+<div class="flex items-center bg-surface-container-highest rounded overflow-hidden">
+<span class="bg-surface-container-high px-space-sm py-2 font-code-terminal text-code-terminal text-primary">#112</span>
+<input class="w-full bg-transparent px-space-sm py-2 font-code-base text-code-base text-on-surface text-right focus:outline-none" id="inputSpindle" step="50" type="number" value="600"/>
+<span class="px-space-sm font-label-caps text-label-caps text-on-surface-variant uppercase">RPM</span>
+</div>
+</div>
+<!-- Calculo de Avance Automático F -->
+<div class="bg-surface-container-lowest p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">AVANCE SINCRONIZADO CALCULADO (F)</span>
+<span class="px-space-xs py-0.5 rounded bg-primary/10 text-primary font-code-terminal text-code-terminal">F = S × P</span>
+</div>
+<div class="flex items-baseline justify-between pt-1">
+<div class="flex flex-col">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">Fórmula: 600 RPM × 1.25 mm/rev</span>
+<span class="font-label-caps text-label-caps text-tertiary">100% INCLUIDO EN CICLO RÍGIDO</span>
+</div>
+<div class="text-right">
+<span class="font-dro-display text-dro-display text-primary tabular-nums" id="calculatedFeedVal">750.00</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant ml-1">mm/min</span>
+</div>
+</div>
+</div>
+<!-- Retracción Rápida y Compensación -->
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">RETRACCIÓN EXPEDICIÓN</label>
+<div class="flex items-center bg-surface-container-highest rounded px-space-sm py-2">
+<span class="font-code-base text-code-base text-on-surface font-bold">2.0×</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant ml-auto">1200 RPM</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">CONTROL ROSCADO</label>
+<div class="flex items-center bg-surface-container-highest rounded px-space-sm py-2">
+<span class="font-code-base text-code-base text-tertiary font-bold">G84.2 / M29</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant ml-auto">SYNC</span>
+</div>
+</div>
+</div>
+<!-- Selector de Modo de Retorno -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface uppercase">PLANO DE RETORNO CICLO</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">G98 (Plano Inicial) vs G99 (Plano R)</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container p-0.5 rounded">
+<button class="px-space-sm py-1 rounded bg-secondary text-on-secondary font-code-terminal text-code-terminal font-bold" id="btnG98" type="button">G98</button>
+<button class="px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal font-bold" id="btnG99" type="button">G99</button>
+</div>
+</div>
+</div>
+<!-- Gráfico Técnico Z-X: Sección Transversal de Corte -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-sm shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">analytics</span>
+              SECCIÓN TÉCNICA Z-X (SEGURIDAD DE FONDO)
+            </span>
+<span class="font-code-terminal text-code-terminal text-tertiary font-bold">CLEARANCE: +5.50 mm</span>
+</div>
+<!-- Diagrama SVG SVG Inline con Acotaciones Técnicas -->
+<div class="bg-surface-container-lowest rounded p-space-sm flex flex-col items-center justify-center relative overflow-hidden">
+<svg class="w-full h-44 text-on-surface" fill="none" viewbox="0 0 340 180" xmlns="http://www.w3.org/2000/svg">
+<!-- Superficie de pieza Z0 -->
+<line stroke="currentColor" stroke-dasharray="4 2" stroke-opacity="0.3" stroke-width="1.5" x1="20" x2="320" y1="40" y2="40"></line>
+<text fill="currentColor" fill-opacity="0.6" font-family="JetBrains Mono" font-size="9" x="25" y="34">Z = 0.00 (SUPERFICIE PIEZA)</text>
+<!-- Plano R (+4.0) -->
+<line stroke="#4cd7f6" stroke-dasharray="2 2" stroke-width="1" x1="20" x2="320" y1="20" y2="20"></line>
+<text fill="#4cd7f6" font-family="JetBrains Mono" font-size="9" x="25" y="15">R = +4.00 (PLANO DE APROXIMACIÓN)</text>
+<!-- Agujero Ciego Taladrado Previo (Gris Oscuro/Hachurado) -->
+<path d="M 120 40 L 120 145 L 170 165 L 220 145 L 220 40 Z" fill="#232a3a" fill-opacity="0.7" stroke="#534434" stroke-width="1.5"></path>
+<!-- Rosca Útil M8 (Zona Roscada Naranja) -->
+<rect fill="#ffc174" fill-opacity="0.15" height="75" stroke="#f59e0b" stroke-dasharray="3 3" stroke-width="1.5" width="96" x="122" y="40"></rect>
+<!-- Líneas helicoidales simuladas de filetes -->
+<line stroke="#ffc174" stroke-opacity="0.5" stroke-width="0.75" x1="122" x2="218" y1="52" y2="52"></line>
+<line stroke="#ffc174" stroke-opacity="0.5" stroke-width="0.75" x1="122" x2="218" y1="65" y2="65"></line>
+<line stroke="#ffc174" stroke-opacity="0.5" stroke-width="0.75" x1="122" x2="218" y1="78" y2="78"></line>
+<line stroke="#ffc174" stroke-opacity="0.5" stroke-width="0.75" x1="122" x2="218" y1="91" y2="91"></line>
+<line stroke="#ffc174" stroke-opacity="0.5" stroke-width="0.75" x1="122" x2="218" y1="104" y2="104"></line>
+<line stroke="#ffc174" stroke-width="1.5" x1="122" x2="218" y1="115" y2="115"></line>
+<!-- Acotación Z Roscado (-22.0) -->
+<line stroke="currentColor" stroke-opacity="0.5" x1="230" x2="245" y1="40" y2="40"></line>
+<line stroke="#f59e0b" stroke-width="1.2" x1="230" x2="245" y1="115" y2="115"></line>
+<line stroke="#f59e0b" stroke-width="1" x1="240" x2="240" y1="40" y2="115"></line>
+<polygon fill="#f59e0b" points="240,40 238,46 242,46"></polygon>
+<polygon fill="#f59e0b" points="240,115 238,109 242,109"></polygon>
+<text fill="#f59e0b" font-family="JetBrains Mono" font-size="9" font-weight="bold" x="247" y="82">Z-22.0 (ÚTIL)</text>
+<!-- Acotación Taladro Previo (-27.5) y Margen de Seguridad -->
+<line stroke="#56e5a9" stroke-width="1.2" x1="230" x2="280" y1="145" y2="145"></line>
+<line stroke="#56e5a9" stroke-width="1" x1="275" x2="275" y1="115" y2="145"></line>
+<polygon fill="#56e5a9" points="275,115 273,121 277,121"></polygon>
+<polygon fill="#56e5a9" points="275,145 273,139 277,139"></polygon>
+<text fill="#56e5a9" font-family="JetBrains Mono" font-size="9" font-weight="bold" x="282" y="133">ΔZ=5.5mm</text>
+<text fill="currentColor" fill-opacity="0.5" font-family="JetBrains Mono" font-size="8" x="282" y="143">SEGURIDAD</text>
+<!-- Diámetro Broca vs Macho -->
+<line stroke="currentColor" stroke-opacity="0.5" x1="120" x2="220" y1="172" y2="172"></line>
+<polygon fill="currentColor" points="120,172 125,170 125,174"></polygon>
+<polygon fill="currentColor" points="220,172 215,170 215,174"></polygon>
+<text fill="currentColor" font-family="JetBrains Mono" font-size="9" x="140" y="171">Ø 6.8 mm BROCA</text>
+<!-- Eje Central del Agujero -->
+<line stroke="#4cd7f6" stroke-dasharray="6 3 2 3" stroke-width="0.8" x1="170" x2="170" y1="10" y2="175"></line>
+</svg>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-code-terminal text-code-terminal pt-1">
+<span>PRE TALADRO: Ø6.80 x 27.5 mm</span>
+<span class="text-tertiary">Z_CLEARANCE OK (&gt; 4.0 mm)</span>
+</div>
+</div>
+</div>
+<!-- COLUMN 3: Live G-Code Execution & Monitor CNC (XL: col-span-4) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Live G-Code Console Terminal -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-sm shadow-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">terminal</span>
+<h2 class="font-headline-md text-headline-md text-primary uppercase">3. Fanuc G84 Sincronizado</h2>
+</div>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-secondary font-code-terminal text-code-terminal">ISO NC CODE</span>
+</div>
+<!-- Vista Previa de Bloques NC -->
+<div class="bg-surface-container-lowest rounded p-space-sm font-code-base text-code-base flex flex-col gap-1 overflow-x-auto min-h-[300px]">
+<div class="flex items-center gap-space-sm text-on-surface-variant select-none opacity-50">
+<span class="w-6 text-right tabular-nums">01</span>
+<span>(NG_MACROS v4.2 - CICLO ROSCADO RIGIDO)</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface-variant select-none opacity-50">
+<span class="w-6 text-right tabular-nums">02</span>
+<span>(HERRAMIENTA: MACHO M8X1.25 FORMA B)</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">03</span>
+<span class="text-secondary font-bold">G21 G17 G40 G80 G90</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">04</span>
+<span>T06 M06</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">05</span>
+<span>G54 G00 X<span id="gcodeX">63.301</span> Y<span id="gcodeY">40.000</span></span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">06</span>
+<span>G43 H06 Z50.000 M08</span>
+</div>
+<!-- Bloques Clave Resaltados con Fondo Tonal -->
+<div class="flex items-center gap-space-sm bg-surface-container-high px-space-xs py-1 rounded">
+<span class="w-6 text-right tabular-nums text-primary font-bold">07</span>
+<span class="text-primary font-bold">M29 S<span id="gcodeSpindle">600</span></span>
+<span class="text-on-surface-variant font-code-terminal text-code-terminal ml-auto">(RIGID SYNC)</span>
+</div>
+<div class="flex items-center gap-space-sm bg-primary/10 px-space-xs py-1 rounded">
+<span class="w-6 text-right tabular-nums text-primary font-bold">08</span>
+<span class="text-primary font-bold" id="gcodeCycleBlock">G98 G84 X63.301 Y40.000 Z-22.000 R4.000 F750.00</span>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-container-high px-space-xs py-1 rounded">
+<span class="w-6 text-right tabular-nums text-tertiary font-bold">09</span>
+<span class="text-tertiary font-bold">G80 M09</span>
+<span class="text-on-surface-variant font-code-terminal text-code-terminal ml-auto">(FIN CICLO)</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">10</span>
+<span>G00 Z50.000</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">11</span>
+<span>M05</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">12</span>
+<span>G91 G28 Z0.0</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface select-none">
+<span class="w-6 text-right tabular-nums text-on-surface-variant opacity-60">13</span>
+<span class="text-on-surface-variant">M30</span>
+</div>
+</div>
+<!-- Métricas de Tiempos y Torque Estimado -->
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="bg-surface-container-lowest p-space-sm rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">TIEMPO CICLO EST.</span>
+<span class="font-dro-display text-dro-display text-on-surface">4.18 <span class="font-code-terminal text-code-terminal text-on-surface-variant">SEG</span></span>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">TORQUE REQUERIDO</span>
+<span class="font-dro-display text-dro-display text-primary">14.2 <span class="font-code-terminal text-code-terminal text-on-surface-variant">Nm</span></span>
+</div>
+</div>
+</div>
+<!-- Telemetría de Protección y Alertas de Fondo -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col gap-space-sm shadow-md">
+<div class="flex items-center gap-space-xs text-tertiary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="font-label-caps text-label-caps uppercase">PROTOCOLOS DE SEGURIDAD ACTIVOS</span>
+</div>
+<div class="flex flex-col gap-space-xs font-body-base text-body-base text-on-surface-variant">
+<div class="flex items-center justify-between">
+<span>Sensor de Carga Spindle:</span>
+<span class="font-code-terminal text-code-terminal text-on-surface">ACTIVO (MAX 65%)</span>
+</div>
+<div class="flex items-center justify-between">
+<span>Compensación Flotante:</span>
+<span class="font-code-terminal text-code-terminal text-on-surface">DESHABILITADA (RÍGIDO)</span>
+</div>
+<div class="flex items-center justify-between">
+<span>Control de Viruta Helicoidal:</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">FORMA B / EVAC. ALTA</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Barra de Acciones Principales (Cockpit Footer Actions) -->
+<div class="sticky bottom-2 z-30 bg-surface-container-low/95 backdrop-blur-md p-space-md rounded-lg shadow-xl flex flex-wrap items-center justify-between gap-space-md">
+<!-- Acciones Secundarias de Soporte -->
+<div class="flex items-center flex-wrap gap-space-sm">
+<button class="flex items-center gap-space-xs px-space-md py-2.5 rounded bg-surface-container-highest text-on-surface hover:bg-surface-variant font-title-sm text-title-sm transition-all shadow-sm" id="btnCalculate" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary">calculate</span>
+<span>Recalcular Cinemática</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2.5 rounded bg-surface-container-highest text-on-surface hover:bg-surface-variant font-title-sm text-title-sm transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">bookmark</span>
+<span>Guardar Plantilla</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2.5 rounded bg-surface-container-highest text-on-surface hover:bg-surface-variant font-title-sm text-title-sm transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-tertiary">settings_ethernet</span>
+<span>Enviar DNC (RS232)</span>
+</button>
+</div>
+<!-- Acción Principal Primaria: Generación G-Code -->
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<button class="w-full sm:w-auto flex items-center justify-center gap-space-sm px-space-xl py-3 rounded bg-primary text-on-primary font-headline-md text-headline-md tracking-wider uppercase transition-all shadow-lg active:scale-95" id="btnGenerateGCode" type="button">
+<span class="material-symbols-outlined text-[24px]">bolt</span>
+<span>GENERAR CÓDIGO G (F5)</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function initRigidTappingCycle() {
+    const threadSelect = document.getElementById('threadSpec');
+    const inputZ = document.getElementById('inputZFin');
+    const inputR = document.getElementById('inputRPlane');
+    const inputX = document.getElementById('inputPosX');
+    const inputY = document.getElementById('inputPosY');
+    const inputS = document.getElementById('inputSpindle');
+    const btnFeedMode = document.getElementById('toggleFeedMode');
+    const btnG98 = document.getElementById('btnG98');
+    const btnG99 = document.getElementById('btnG99');
+    const btnCalc = document.getElementById('btnCalculate');
+    const btnGen = document.getElementById('btnGenerateGCode');
+
+    const pilotDrillEl = document.getElementById('pilotDrillVal');
+    const feedValEl = document.getElementById('calculatedFeedVal');
+    const gcodeX = document.getElementById('gcodeX');
+    const gcodeY = document.getElementById('gcodeY');
+    const gcodeS = document.getElementById('gcodeSpindle');
+    const gcodeCycle = document.getElementById('gcodeCycleBlock');
+
+    // Tabla de Roscas Métricas: Paso (mm) y Broca Previa (mm)
+    const threadData = {
+      M3: { pitch: 0.50, drill: 2.50 },
+      M4: { pitch: 0.70, drill: 3.30 },
+      M5: { pitch: 0.80, drill: 4.20 },
+      M6: { pitch: 1.00, drill: 5.00 },
+      M8: { pitch: 1.25, drill: 6.80 },
+      M10: { pitch: 1.50, drill: 8.50 },
+      M12: { pitch: 1.75, drill: 10.20 },
+      M16: { pitch: 2.00, drill: 14.00 }
+    };
+
+    let isG95Mode = false;
+    let returnMode = 'G98';
+
+    function recalculate() {
+      const selected = threadSelect.value;
+      const data = threadData[selected] || { pitch: 1.25, drill: 6.80 };
+      const rpm = parseFloat(inputS.value) || 600;
+      const zVal = parseFloat(inputZ.value) || -22.000;
+      const rVal = parseFloat(inputR.value) || 4.000;
+      const xVal = parseFloat(inputX.value) || 63.301;
+      const yVal = parseFloat(inputY.value) || 40.000;
+
+      // Cálculo de Avance F
+      let feedCalculated = (rpm * data.pitch).toFixed(2);
+      if (isG95Mode) {
+        feedCalculated = data.pitch.toFixed(3);
+      }
+
+      // Actualizar DOM
+      pilotDrillEl.textContent = 'Ø ' + data.drill.toFixed(2);
+      feedValEl.textContent = feedCalculated;
+      gcodeX.textContent = xVal.toFixed(3);
+      gcodeY.textContent = yVal.toFixed(3);
+      gcodeS.textContent = rpm.toString();
+
+      // Formato del bloque de roscado
+      const feedCode = isG95Mode ? `F${data.pitch.toFixed(2)}` : `F${feedCalculated}`;
+      gcodeCycle.textContent = `${returnMode} G84 X${xVal.toFixed(3)} Y${yVal.toFixed(3)} Z${zVal.toFixed(3)} R${rVal.toFixed(3)} ${feedCode}`;
+    }
+
+    // Toggle G94 / G95
+    btnFeedMode.addEventListener('click', function() {
+      isG95Mode = !isG95Mode;
+      btnFeedMode.textContent = isG95Mode ? 'G95 (mm/rev)' : 'G94 (mm/min)';
+      recalculate();
+    });
+
+    // Toggle G98 / G99
+    btnG98.addEventListener('click', function() {
+      returnMode = 'G98';
+      btnG98.className = 'px-space-sm py-1 rounded bg-secondary text-on-secondary font-code-terminal text-code-terminal font-bold';
+      btnG99.className = 'px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal font-bold';
+      recalculate();
+    });
+
+    btnG99.addEventListener('click', function() {
+      returnMode = 'G99';
+      btnG99.className = 'px-space-sm py-1 rounded bg-secondary text-on-secondary font-code-terminal text-code-terminal font-bold';
+      btnG98.className = 'px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal font-bold';
+      recalculate();
+    });
+
+    // Inputs dinámicos
+    [threadSelect, inputZ, inputR, inputX, inputY, inputS].forEach(input => {
+      input.addEventListener('input', recalculate);
+    });
+
+    btnCalc.addEventListener('click', recalculate);
+
+    // Botón de generación con micro-feedback táctil
+    btnGen.addEventListener('click', function() {
+      recalculate();
+      const originalText = btnGen.innerHTML;
+      btnGen.innerHTML = '<span class="material-symbols-outlined text-[24px] animate-spin">sync</span><span>CÓDIGO G COMPILADO</span>';
+      btnGen.classList.replace('bg-primary', 'bg-tertiary-container');
+      btnGen.classList.replace('text-on-primary', 'text-on-tertiary-container');
+
+      setTimeout(() => {
+        btnGen.innerHTML = originalText;
+        btnGen.classList.replace('bg-tertiary-container', 'bg-primary');
+        btnGen.classList.replace('text-on-tertiary-container', 'text-on-primary');
+      }, 1200);
+    });
+
+    // Tecla F5 para generar
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'F5') {
+        e.preventDefault();
+        btnGen.click();
+      }
+    });
+
+    recalculate();
+  })();
+</script></main></div></body></html>

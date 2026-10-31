@@ -119,6 +119,132 @@ const MACROS_DATA = [
     "full_content": "O1004 (PATRON CIRCULAR V5 - FLEXIBLE)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 150.0  (DIAMETRO DEL CIRCULO)\n#2 = 12     (NUMERO TOTAL DE AGUJEROS DEL PATRON)\n#3 = 10.0   (DIAMETRO DE LA BROCA)\n#4 = 2500   (RPM)\n#5 = 300.0  (AVANCE F)\n#6 = 25.0   (PROFUNDIDAD TOTAL)\n#7 = 1      (ESTRATEGIA: 0=DIRECTO, 1=PICOTEO)\n#8 = 5.0    (PASO PICOTEO)\n#9 = 5.0    (SEGURIDAD SOBRE PIEZA)\n#10 = 0.0   (CENTRO X)\n#11 = 0.0   (CENTRO Y)\n#12 = 0.0   (Z INICIAL)\n#13 = 0   (ANGULO INICIAL)\n#14 = 1.0   (AGUJERO DE INICIO)\n#15 = 12.0  (AGUJERO FINAL - EJ: 12 HACE HASTA EL ULTIMO)\n(========================================)\n\n(--- COMPROBACIONES Y AJUSTE DE RANGO ---)\nIF [#2 LT 1] GOTO 9001\nIF [#14 LT 1] GOTO 9006\n(Si el usuario pide un final mayor al total, lo limitamos al total)\nIF [#15 GT #2] THEN #15 = #2\nIF [#14 GT #15] GOTO 9007\n\n(--- CALCULOS ---)\n#104 = #12 - #6 (FONDO Z)\n#108 = #1 / 2   (RADIO PATRON)\n#109 = #12 + #9 (PLANO SEGURIDAD)\n#116 = 360 / #2 (GRADOS POR AGUJERO)\n\n(--- INICIALIZACION ---)\n#110 = #14 - 1      (INDICE ACTUAL INICIAL)\n#117 = #15          (INDICE FINAL)\n\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nS#4 M03\nM08\n\nN10 (--- BUCLE PRINCIPAL ---)\nIF [#110 GE #117] GOTO 999\n\n(CALCULO ANGULO Y POSICION)\n#111 = #13 + [#110 * #116]\n#112 = #10 + [#108 * COS[#111]]\n#113 = #11 + [#108 * SIN[#111]]\n\nG00 X#112 Y#113\nG43 H#20 Z#109\n\n(ESTRATEGIA)\nIF [#7 EQ 1] GOTO 50\n\n(DIRECTO)\nG01 Z#104 F#5\nG00 Z#109\nGOTO 100\n\nN50 (PICOTEO)\n#106 = #12\nN55\n#107 = #106 - #8\nIF [#107 LT #104] THEN #107 = #104\nG00 Z[#106 + 1.0]\nG01 Z#107 F#5\nG00 Z#109\n#106 = #107\nIF [#106 GT #104] GOTO 55\n\nN100\n#110 = #110 + 1\nGOTO 10\n\nN999\nG00 Z[#109 + 50.0]\nM09 M05\nG28 G91 Z0.\nG90\nM30\n\n(--- ALARMAS ---)\nN9001 #3000=1 (ERROR: TOTAL AGUJEROS < 1)\nN9006 #3000=6 (ERROR: AGUJERO INICIO < 1)\nN9007 #3000=7 (ERROR: AGUJERO INICIO > AGUJERO FINAL)\n"
   },
   {
+    "filename": "Define Circulo.NC",
+    "title": "O1005 (CONTORNO INTERNO MULTIPASADA - ENTRADA TANGENCIAL)",
+    "variables": [
+      {
+        "num": 1,
+        "value": 102.0,
+        "comment": "DIAMETRO FINAL A MAQUINAR",
+        "line_idx": 5,
+        "original_line": "#1 = 102.0 (DIAMETRO FINAL A MAQUINAR)"
+      },
+      {
+        "num": 2,
+        "value": 12.0,
+        "comment": "DIAMETRO DE LA HERRAMIENTA",
+        "line_idx": 6,
+        "original_line": "#2 = 12.0  (DIAMETRO DE LA HERRAMIENTA)"
+      },
+      {
+        "num": 3,
+        "value": 1.0,
+        "comment": "NUMERO DE POT/HTA EN EL MAGAZINE - EJ: T5",
+        "line_idx": 7,
+        "original_line": "#3 = 1.0   (NUMERO DE POT/HTA EN EL MAGAZINE - EJ: T5)"
+      },
+      {
+        "num": 4,
+        "value": 0.0,
+        "comment": "Z INICIAL DESDE DONDE INICIA EL CORTE",
+        "line_idx": 8,
+        "original_line": "#4 = 0.0   (Z INICIAL DESDE DONDE INICIA EL CORTE)"
+      },
+      {
+        "num": 5,
+        "value": -18.0,
+        "comment": "Z FINAL ABSOLUTO - EJ: COORDENADA NEGATIVA",
+        "line_idx": 9,
+        "original_line": "#5 = -18.0 (Z FINAL ABSOLUTO - EJ: COORDENADA NEGATIVA)"
+      },
+      {
+        "num": 6,
+        "value": 0.3,
+        "comment": "PROFUNDIDAD DE CORTE POR PASADA EN Z",
+        "line_idx": 10,
+        "original_line": "#6 = 0.3   (PROFUNDIDAD DE CORTE POR PASADA EN Z)"
+      },
+      {
+        "num": 7,
+        "value": 0.0,
+        "comment": "SOBREMATERIAL EN EL RADIO PARA ACABADO",
+        "line_idx": 11,
+        "original_line": "#7 = 0   (SOBREMATERIAL EN EL RADIO PARA ACABADO)"
+      },
+      {
+        "num": 8,
+        "value": 0.5,
+        "comment": "SOBREMATERIAL EN LA PROFUNDIDAD Z",
+        "line_idx": 12,
+        "original_line": "#8 = 0.5   (SOBREMATERIAL EN LA PROFUNDIDAD Z)"
+      },
+      {
+        "num": 9,
+        "value": 180.0,
+        "comment": "Vc - VELOCIDAD DE CORTE EN m/min",
+        "line_idx": 13,
+        "original_line": "#9 = 180.0 (Vc - VELOCIDAD DE CORTE EN m/min)"
+      },
+      {
+        "num": 10,
+        "value": 4.0,
+        "comment": "NUMERO DE FILOS O INSERTOS",
+        "line_idx": 14,
+        "original_line": "#10 = 4.0  (NUMERO DE FILOS O INSERTOS)"
+      },
+      {
+        "num": 11,
+        "value": 0.1,
+        "comment": "fz - AVANCE POR FILO EN mm/rev",
+        "line_idx": 15,
+        "original_line": "#11 = 0.1  (fz - AVANCE POR FILO EN mm/rev)"
+      },
+      {
+        "num": 12,
+        "value": 1.0,
+        "comment": "CANTIDAD DE PASADAS RADIALES",
+        "line_idx": 16,
+        "original_line": "#12 = 1  (CANTIDAD DE PASADAS RADIALES)"
+      },
+      {
+        "num": 13,
+        "value": 2.0,
+        "comment": "PROFUNDIDAD RADIAL POR CADA PASADA",
+        "line_idx": 17,
+        "original_line": "#13 = 2.0  (PROFUNDIDAD RADIAL POR CADA PASADA)"
+      },
+      {
+        "num": 14,
+        "value": 50.0,
+        "comment": "PLANO DE SEGURIDAD RETROCESO R",
+        "line_idx": 18,
+        "original_line": "#14 = 50.0 (PLANO DE SEGURIDAD RETROCESO R)"
+      },
+      {
+        "num": 15,
+        "value": 0.0,
+        "comment": "COORDENADA DEL CENTRO EN X",
+        "line_idx": 19,
+        "original_line": "#15 = 0.0  (COORDENADA DEL CENTRO EN X)"
+      },
+      {
+        "num": 16,
+        "value": 0.0,
+        "comment": "COORDENADA DEL CENTRO EN Y",
+        "line_idx": 20,
+        "original_line": "#16 = 0.0  (COORDENADA DEL CENTRO EN Y)"
+      },
+      {
+        "num": 17,
+        "value": 5.0,
+        "comment": "RADIO DE ENTRADA Y SALIDA TANGENCIAL",
+        "line_idx": 21,
+        "original_line": "#17 = 5.0  (RADIO DE ENTRADA Y SALIDA TANGENCIAL)"
+      }
+    ],
+    "full_content": "O1005 (CONTORNO INTERNO MULTIPASADA - ENTRADA TANGENCIAL)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n(========================================)\n#1 = 102.0 (DIAMETRO FINAL A MAQUINAR)\n#2 = 12.0  (DIAMETRO DE LA HERRAMIENTA)\n#3 = 1.0   (NUMERO DE POT/HTA EN EL MAGAZINE - EJ: T5)\n#4 = 0.0   (Z INICIAL DESDE DONDE INICIA EL CORTE)\n#5 = -18.0 (Z FINAL ABSOLUTO - EJ: COORDENADA NEGATIVA)\n#6 = 0.3   (PROFUNDIDAD DE CORTE POR PASADA EN Z)\n#7 = 0   (SOBREMATERIAL EN EL RADIO PARA ACABADO)\n#8 = 0.5   (SOBREMATERIAL EN LA PROFUNDIDAD Z)\n#9 = 180.0 (Vc - VELOCIDAD DE CORTE EN m/min)\n#10 = 4.0  (NUMERO DE FILOS O INSERTOS)\n#11 = 0.1  (fz - AVANCE POR FILO EN mm/rev)\n#12 = 1  (CANTIDAD DE PASADAS RADIALES)\n#13 = 2.0  (PROFUNDIDAD RADIAL POR CADA PASADA)\n#14 = 50.0 (PLANO DE SEGURIDAD RETROCESO R)\n#15 = 0.0  (COORDENADA DEL CENTRO EN X)\n#16 = 0.0  (COORDENADA DEL CENTRO EN Y)\n#17 = 5.0  (RADIO DE ENTRADA Y SALIDA TANGENCIAL)\n(========================================)\n\n(--- COMPROBACIONES DE SEGURIDAD BSICAS ---)\nIF [#2 GE #1] GOTO 9001\nIF [#4 LE #5] GOTO 9002\nIF [#12 LT 1] GOTO 9003\n\n(--- PARAMETROS DE CORTE ---)\n#100 = ROUND[[#9 * 1000] / [3.1416 * #2]] (RPM FIJAS)\n#101 = ROUND[#100 * #10 * #11] (AVANCE NOMINAL LINEAL F)\n\n(--- GEOMETRIA Y LIMITES EXACTOS ---)\n#104 = #5 + #8 (Z FINAL EFECTIVO DEJANDO SOBREMATERIAL EN EL FONDO)\n#105 = #4 (INICIALIZADOR DE PROFUNDIDAD Z ACTUAL)\n\n#107 = [#1 / 2] - #7 (RADIO FINAL EFECTIVO DE LA PARED)\n#108 = #107 - [#2 / 2] (RADIO MAXIMO DE LA TRAYECTORIA CENTRO HTA)\n\n(RADIO DE TRAYECTORIA DE LA PRIMERA PASADA)\n#109 = #108 - [[#12 - 1] * #13] \nIF [#109 LE 0] GOTO 9005 (ALARMA: NO HAY ESPACIO PARA TANTAS PASADAS RADIALES)\nIF [#17 GE #109] GOTO 9006 (ALARMA: RADIO DE ENTRADA MAYOR AL ESPACIO DISPONIBLE)\n\n(--- CAMBIO DE HERRAMIENTA Y ENCABEZADO ---)\nT#3 M06 \nG90 G54 G17 G40 G80 G49\n\n(POSICIONAMIENTO INICIAL DIRECTO AL PUNTO DE ESPERA DEL PRIMER ARCO)\n(NO VA AL CENTRO, VA AL ESPACIO VACIO CERCA DE LA PARED)\nG00 X[#15 + #109 - #17] Y[#16 - #17] \nG43 H#3 Z#14 \nS#100 M03\nM08\n\n(BAJADA SEGURA DE APROXIMACION)\nG00 Z[#4 + 1.0]\n\n(--- BUCLE PRINCIPAL DE PROFUNDIDAD EN Z ---)\nWHILE [#105 GT #104] DO 1\n    #105 = #105 - #6\n    IF [#105 GE #104] GOTO 20\n    #105 = #104 \n    N20\n\n    (BAJADA CONTROLADA EN Z EN LA POSICION DE PREPARACION DESCENTRADA)\n    G01 Z#105 F[#101 / 2]\n\n    (--- BUCLE INTERNO DE PASADAS RADIALES ---)\n    #110 = 1 (INICIALIZA EL CONTADOR DE PASADAS)\n\n    WHILE [#110 LE #12] DO 2\n        (CALCULA EL RADIO OBJETIVO DE ESTA PASADA)\n        #111 = #108 - [[#12 - #110] * #13] \n        \n        (AVANCE COMPENSADO PARA MANTENER ESPESOR DE VIRUTA CONSTANTE)\n        #112 = ROUND[#101 * [#111 * 2] / [[#111 * 2] + #2]]\n\n        (MOVIMIENTO LINEAL AL PUNTO DE INICIO DEL ARCO EN LA PASADA ACTUAL)\n        G01 X[#15 + #111 - #17] Y[#16 - #17] F#101\n        \n        (ARCO DE ENTRADA TANGENCIAL 90 GRADOS)\n        G03 X[#15 + #111] Y#16 I0. J#17 F#112\n\n        (INTERPOLACION CIRCULAR COMPLETA ANTI-HORARIA DE 360 GRADOS)\n        G03 I-[#111] J0. F#112\n\n        (ARCO DE SALIDA TANGENCIAL 90 GRADOS)\n        G03 X[#15 + #111 - #17] Y[#16 + #17] I-[#17] J0. F#112\n        \n        #110 = #110 + 1 (AUMENTA EL CONTADOR Y REPITE HASTA COMPLETARLAS TODAS)\n    END 2\n\n    (--- OPTIMIZACION: DESPEJE EN Z Y RETORNO AL INICIO DEL NIVEL ---)\n    G01 Z[#105 + 1.0] F#101 (SE LEVANTA 1MM PARA NO ARRASTRAR EL INSERTO)\n    \n    (RETORNA EN VACIO A LA POSICION INICIAL DE LA PRIMERA PASADA PARA BAJAR EL SIGUIENTE Z)\n    G00 X[#15 + #109 - #17] Y[#16 - #17] \n\nEND 1\n\n(--- FIN DE PROGRAMA ---)\nG00 Z#14\nM09\nM05\nG28 G91 Z0.\nG90\nM30\n\n(--- CODIGOS DE ALARMA ---)\nN9001 #3000=1 (ERROR: HTA MAYOR O IGUAL AL CONTORNO)\nN9002 #3000=2 (ERROR: Z INICIAL MENOR O IGUAL A Z FINAL)\nN9003 #3000=3 (ERROR: NUMERO DE PASADAS RADIALES MENOR A 1)\nN9005 #3000=5 (ERROR: ESPACIO RADIAL INSUFICIENTE PARA LAS PASADAS)\nN9006 #3000=6 (ERROR: RADIO ENTRADA MAYOR AL ESPACIO DISPONIBLE)"
+  },
+  {
     "filename": "Desbaste_Acabado macho circular central.nc",
     "title": "O1003 (MACHO CIRCULAR - DESBASTE Y ACABADO V3)",
     "variables": [
@@ -243,6 +369,139 @@ const MACROS_DATA = [
       }
     ],
     "full_content": "O1003 (MACHO CIRCULAR - DESBASTE Y ACABADO V3)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 250.0 (DIAMETRO EXTERIOR INICIAL)\n#2 = 85.0  (DIAMETRO FINAL DEL MACHO)\n#3 = 10.0  (DIAMETRO DE LA HERRAMIENTA)\n#4 = 10.0  (PROFUNDIDAD TOTAL Z FINAL - POSITIVO)\n#5 = 2.5   (PROFUNDIDAD DE CORTE POR PASADA Z)\n#6 = 6.0   (PASO RADIAL - DISTANCIA ENTRE PASADAS)\n#7 = 0.5   (SOBREMATERIAL ACABADO EN PARED)\n#8 = 0.2   (SOBREMATERIAL ACABADO EN FONDO Z)\n#9 = 50.0  (PLANO DE SEGURIDAD RETROCESO R)\n#10 = 150.0 (Vc - VELOCIDAD DE CORTE)\n#11 = 4.0   (NUMERO DE INSERTOS)\n#12 = 0.12  (fz - AVANCE POR INSERTO)\n#13 = 0.0   (CENTRO X)\n#14 = 0.0   (CENTRO Y)\n#15 = 0.0   (Z INICIAL)\n#16 = 2.0   (OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO)\n(========================================)\n\n(--- COMPROBACIONES DE SEGURIDAD ---)\nIF [#2 GE #1] GOTO 9001\nIF [#6 GE #3] GOTO 9002\nIF [#15 LE -#4] GOTO 9003\nIF [#16 LT 0] GOTO 9005\n\n(--- PARAMETROS DE CORTE ---)\n#100 = ROUND[[#10 * 1000] / [3.1416 * #3]]\n#101 = ROUND[#100 * #11 * #12] \n#102 = #3 / 2 (RADIO HTA)\n\n(--- GEOMETRIA ---)\n#104 = -[#4 - #8] (Z FINAL DESBASTE)\n#109 = -#4        (Z FINAL ACABADO)\n#108 = [#2 / 2] + #7 + #102 (RADIO TRAYECTORIA DESBASTE)\n#118 = [#2 / 2] + #102       (RADIO TRAYECTORIA ACABADO)\n#107 = [#1 / 2] - #102       (PUNTO INICIO EXTERIOR)\n#110 = ROUND[#101 * [#118 * 2] / [[#118 * 2] - #3]] (AVANCE ACABADO)\n\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nG00 X[#13 + #107] Y#14 (POSICIONAMIENTO EN RAPIDO AL PUNTO DE INICIO)\nG43 H#20 Z#9 (*** VERIFICAR CORRECTOR DE ALTURA H ***)\nS#100 M03 M08\n\n(--- SELECCION DE CICLO ---)\nIF [#16 EQ 2] GOTO 200\n\n(========================================)\n(           RUTINA DE DESBASTE           )\n(========================================)\n#105 = #15 (INICIALIZADOR Z ACTUAL)\n#106 = #15 (INICIALIZADOR Z ANTERIOR PARA RAPIDOS)\n\nWHILE [#105 GT #104] DO 1\n    #105 = #105 - #5\n    IF [#105 LT #104] THEN #105 = #104\n    \n    G00 X[#13 + #107] Y#14\n    G00 Z[#106 + 1.0] (BAJADA EN RAPIDO A 1MM DEL NIVEL MECANIZADO ANTERIOR)\n    G01 Z#105 F[#101 / 2] (BAJADA DE CORTE AL NUEVO NIVEL)\n    \n    #111 = #107\n    WHILE [#111 GT #108] DO 2\n        G01 X[#13 + #111] F#101\n        G02 I-[#111] J0. F#101\n        #111 = #111 - #6\n        IF [#111 LT #108] THEN #111 = #108\n    END 2\n    \n    G01 X[#13 + #108] F#101\n    G02 I-[#108] J0.\n    \n    #106 = #105 (ACTUALIZA Z ANTERIOR CON EL NIVEL QUE SE ACABA DE MECANIZAR)\n    G00 Z#9 (RETROCESO AL PLANO DE SEGURIDAD)\nEND 1\n\nIF [#16 EQ 1] GOTO 999\n\n(========================================)\n(            RUTINA DE ACABADO           )\n(========================================)\nN200\nG00 X[#13 + #118] Y#14\nG00 Z[#104 + 1.0] (BAJA EN RAPIDO HASTA 1MM SOBRE EL FONDO DESBASTADO)\nG01 Z#109 F[#101 / 2] (BAJADA CONTROLADA PARA EL CORTE DEL FONDO DE ACABADO)\nG02 I-[#118] J0. F#110\nG00 Z#9\n\nN999\nG00 Z#9\nM09 M05\nG28 G91 Z0.\nG90\nM30\n\n(--- ALARMAS ---)\nN9001 #3000=1 (ERROR: MACHO > BRUTO)\nN9002 #3000=2 (ERROR: PASO RADIAL > HTA)\nN9003 #3000=3 (ERROR: Z INICIAL < Z FINAL)\nN9005 #3000=5 (ERROR: OPCION 0-1-2)\n"
+  },
+  {
+    "filename": "Desbaste_Acabado_Ranura Cerrada.nc",
+    "title": "O1005 (RANURA CERRADA INCLINADA V2 - CLIMB MILLING CCW)",
+    "variables": [
+      {
+        "num": 20,
+        "value": 1.0,
+        "comment": "NUMERO DE HERRAMIENTA",
+        "line_idx": 4,
+        "original_line": "#20 = 1     (NUMERO DE HERRAMIENTA)"
+      },
+      {
+        "num": 1,
+        "value": 100.0,
+        "comment": "LONGITUD L ENTRE CENTROS DE LA RANURA",
+        "line_idx": 6,
+        "original_line": "#1 = 100.0  (LONGITUD L ENTRE CENTROS DE LA RANURA)"
+      },
+      {
+        "num": 2,
+        "value": 20.0,
+        "comment": "RADIO DE LA RANURA - ANCHO TOTAL SERA EL DOBLE",
+        "line_idx": 7,
+        "original_line": "#2 = 20.0   (RADIO DE LA RANURA - ANCHO TOTAL SERA EL DOBLE)"
+      },
+      {
+        "num": 3,
+        "value": 0.0,
+        "comment": "ANGULO DE INCLINACION EN GRADOS",
+        "line_idx": 8,
+        "original_line": "#3 = 0 (ANGULO DE INCLINACION EN GRADOS)"
+      },
+      {
+        "num": 4,
+        "value": 12.0,
+        "comment": "DIAMETRO DE LA HERRAMIENTA",
+        "line_idx": 9,
+        "original_line": "#4 = 12.0   (DIAMETRO DE LA HERRAMIENTA)"
+      },
+      {
+        "num": 5,
+        "value": 15.0,
+        "comment": "PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO",
+        "line_idx": 10,
+        "original_line": "#5 = 15.0   (PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO)"
+      },
+      {
+        "num": 6,
+        "value": 5.0,
+        "comment": "PROFUNDIDAD POR PASADA EN Z DESBASTE",
+        "line_idx": 11,
+        "original_line": "#6 = 5.0    (PROFUNDIDAD POR PASADA EN Z DESBASTE)"
+      },
+      {
+        "num": 7,
+        "value": 0.5,
+        "comment": "SOBREMATERIAL RADIAL PARA EL ACABADO",
+        "line_idx": 12,
+        "original_line": "#7 = 0.5    (SOBREMATERIAL RADIAL PARA EL ACABADO)"
+      },
+      {
+        "num": 8,
+        "value": 160.0,
+        "comment": "Vc - VELOCIDAD DE CORTE EN m/min",
+        "line_idx": 13,
+        "original_line": "#8 = 160.0  (Vc - VELOCIDAD DE CORTE EN m/min)"
+      },
+      {
+        "num": 9,
+        "value": 4.0,
+        "comment": "NUMERO DE INSERTOS O LABIOS",
+        "line_idx": 14,
+        "original_line": "#9 = 4.0    (NUMERO DE INSERTOS O LABIOS)"
+      },
+      {
+        "num": 10,
+        "value": 0.08,
+        "comment": "fz - AVANCE POR INSERTO EN mm/rev",
+        "line_idx": 15,
+        "original_line": "#10 = 0.08  (fz - AVANCE POR INSERTO EN mm/rev)"
+      },
+      {
+        "num": 11,
+        "value": 50.0,
+        "comment": "PLANO DE SEGURIDAD RETROCESO R",
+        "line_idx": 16,
+        "original_line": "#11 = 50.0  (PLANO DE SEGURIDAD RETROCESO R)"
+      },
+      {
+        "num": 12,
+        "value": 0.0,
+        "comment": "COORDENADA X DEL CENTRO DE LA RANURA",
+        "line_idx": 17,
+        "original_line": "#12 = 0.0   (COORDENADA X DEL CENTRO DE LA RANURA)"
+      },
+      {
+        "num": 13,
+        "value": 0.0,
+        "comment": "COORDENADA Y DEL CENTRO DE LA RANURA",
+        "line_idx": 18,
+        "original_line": "#13 = 0.0   (COORDENADA Y DEL CENTRO DE LA RANURA)"
+      },
+      {
+        "num": 14,
+        "value": 6.0,
+        "comment": "PASO RADIAL MAXIMO DESBASTE XY",
+        "line_idx": 19,
+        "original_line": "#14 = 6.0   (PASO RADIAL MAXIMO DESBASTE XY)"
+      },
+      {
+        "num": 15,
+        "value": -5.0,
+        "comment": "Z INICIAL DE CORTE / REINICIO",
+        "line_idx": 20,
+        "original_line": "#15 = -5.0  (Z INICIAL DE CORTE / REINICIO)"
+      },
+      {
+        "num": 16,
+        "value": 4.0,
+        "comment": "RADIO DEL ARCO ENTRADA Y SALIDA ACABADO",
+        "line_idx": 21,
+        "original_line": "#16 = 4.0   (RADIO DEL ARCO ENTRADA Y SALIDA ACABADO)"
+      },
+      {
+        "num": 17,
+        "value": 0.0,
+        "comment": "OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO",
+        "line_idx": 22,
+        "original_line": "#17 = 0.0   (OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO)"
+      }
+    ],
+    "full_content": "O1005 (RANURA CERRADA INCLINADA V2 - CLIMB MILLING CCW)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 100.0  (LONGITUD L ENTRE CENTROS DE LA RANURA)\n#2 = 20.0   (RADIO DE LA RANURA - ANCHO TOTAL SERA EL DOBLE)\n#3 = 0 (ANGULO DE INCLINACION EN GRADOS)\n#4 = 12.0   (DIAMETRO DE LA HERRAMIENTA)\n#5 = 15.0   (PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO)\n#6 = 5.0    (PROFUNDIDAD POR PASADA EN Z DESBASTE)\n#7 = 0.5    (SOBREMATERIAL RADIAL PARA EL ACABADO)\n#8 = 160.0  (Vc - VELOCIDAD DE CORTE EN m/min)\n#9 = 4.0    (NUMERO DE INSERTOS O LABIOS)\n#10 = 0.08  (fz - AVANCE POR INSERTO EN mm/rev)\n#11 = 50.0  (PLANO DE SEGURIDAD RETROCESO R)\n#12 = 0.0   (COORDENADA X DEL CENTRO DE LA RANURA)\n#13 = 0.0   (COORDENADA Y DEL CENTRO DE LA RANURA)\n#14 = 6.0   (PASO RADIAL MAXIMO DESBASTE XY)\n#15 = -5.0  (Z INICIAL DE CORTE / REINICIO)\n#16 = 4.0   (RADIO DEL ARCO ENTRADA Y SALIDA ACABADO)\n#17 = 0.0   (OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO)\n(========================================)\n\n(--- COMPROBACIONES DE SEGURIDAD BASICAS ---)\nIF [[#4 / 2] GE #2] GOTO 9001\nIF [#15 LE -#5] GOTO 9003\nIF [#17 LT 0] GOTO 9005\nIF [#17 GT 2] GOTO 9005\n\n(--- CALCULOS DE PARAMETROS DE CORTE ---)\n#100 = ROUND[[#8 * 1000] / [3.1416 * #4]] (CALCULO DE RPM)\n#101 = ROUND[#100 * #9 * #10] (AVANCE NOMINAL)\n#102 = #4 / 2 (RADIO DE LA HERRAMIENTA)\n\n(--- CALCULOS DE GEOMETRIA MAXIMA ---)\n#103 = #2 - #7 - #102 (RADIO MAXIMO DESBASTE)\nIF [#103 LT 0] THEN #103 = 0 \n#113 = #2 - #102 (RADIO MAXIMO ACABADO)\n#104 = -#5 (Z FINAL EN COORDENADA NEGATIVA)\n\n(--- TRIGONOMETRIA PRECALCULADA ---)\n#130 = COS[#3]\n#131 = SIN[#3]\n#132 = #1 / 2 (MITAD DISTANCIA ENTRE CENTROS)\n\n(--- CENTROS DE LOS ARCOS DE LA RANURA C1 Y C2 ---)\n#141 = [#132 * #130] + #12 (C1 X - DERECHA)\n#142 = [#132 * #131] + #13 (C1 Y)\n#143 = [-#132 * #130] + #12 (C2 X - IZQUIERDA)\n#144 = [-#132 * #131] + #13 (C2 Y)\n\n(--- ENCABEZADO Y POSICIONAMIENTO ---)\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nG00 X#12 Y#13 \nG43 H#20 Z#11 (*** VERIFICAR CORRECTOR H ***)\nS#100 M03\nM08\n\nG00 Z[#15 + 1.0]\n\nIF [#17 EQ 2] GOTO 200\n\n(========================================)\n(       RUTINA DE DESBASTE (N100)        )\n(========================================)\n#105 = #15\n\nN100 (--- BUCLE PROFUNDIDAD Z ---)\nIF [#105 LE #104] GOTO 190\n#105 = #105 - #6\nIF [#105 LT #104] THEN #105 = #104\n\nG00 X#12 Y#13\nG01 Z#105 F[#101 / 2]\n\n#120 = 0\n\nN110 (--- BUCLE DE EXPANSION RADIAL ---)\nIF [#120 GT 0] GOTO 115\n\n(PASO CENTRAL)\nG01 X#141 Y#142 F#101\nG01 X#143 Y#144\nG01 X#12 Y#13\nGOTO 118\n\nN115 (--- PASOS EXPANDIDOS CLIMB MILLING ---)\n#151 = -#120 * #131 (dX PERPENDICULAR)\n#152 = #120 * #130  (dY PERPENDICULAR)\n\n#106 = ROUND[#101 * #120 / [#120 + #102]] \n\n#161 = #141 + #151 (P1: SUP DER)\n#162 = #142 + #152\n#163 = #143 + #151 (P2: SUP IZQ)\n#164 = #144 + #152\n#165 = #143 - #151 (P3: INF IZQ)\n#166 = #144 - #152\n#167 = #141 - #151 (P4: INF DER)\n#168 = #142 - #152\n\n#169 = #12 + #151 (M1: MEDIO SUPERIOR)\n#170 = #13 + #152\n\n(TRAZADO ANTIHORARIO CCW)\nG01 X#169 Y#170 F#101 \nG01 X#163 Y#164 (LINEA A P2)\nG03 X#165 Y#166 I[-#151] J[-#152] F#106 (ARCO C2)\nG01 X#167 Y#168 F#101 (LINEA A P4)\nG03 X#161 Y#162 I[#151] J[#152] F#106 (ARCO C1)\nG01 X#169 Y#170 F#101 (CIERRE EN M1)\n\nN118\nIF [#120 GE #103] GOTO 119\n#120 = #120 + #14\nIF [#120 GT #103] THEN #120 = #103\nGOTO 110\n\nN119 (*** LEVANTAMIENTO DE SEGURIDAD ***)\nG00 Z#11\nG00 X#12 Y#13\nG00 Z[#105 + 1.0]\n\nGOTO 100\n\nN190 \nIF [#17 EQ 1] GOTO 999 \n\n(========================================)\n(       RUTINA DE ACABADO (N200)         )\n(========================================)\nN200\nG00 X#12 Y#13 \nG01 Z#104 F[#101 / 2] \n\n#151 = -#113 * #131 \n#152 = #113 * #130  \n#169 = #12 + #151 (M1)\n#170 = #13 + #152 \n\n#133 = #16 * #130 \n#134 = #16 * #131 \n#135 = -#16 * #131 \n#136 = #16 * #130 \n\n(ENTRADA Y SALIDA TANGENCIAL CCW)\n#171 = #169 + #133 - #135 \n#172 = #170 + #134 - #136 \n#173 = #169 - #133 - #135 \n#174 = #170 - #134 - #136 \n\n#161 = #141 + #151 (P1)\n#162 = #142 + #152 \n#163 = #143 + #151 (P2)\n#164 = #144 + #152 \n#165 = #143 - #151 (P3)\n#166 = #144 - #152 \n#167 = #141 - #151 (P4)\n#168 = #142 - #152 \n\n#116 = ROUND[#101 * #113 / [#113 + #102]] \n\nG01 X#171 Y#172 F#101 \nG03 X#169 Y#170 I[-#133] J[-#134] F#116 (ARCO ENTRADA)\nG01 X#163 Y#164 F#101\nG03 X#165 Y#166 I[-#151] J[-#152] F#116 (ARCO C2)\nG01 X#167 Y#168 F#101\nG03 X#161 Y#162 I[#151] J[#152] F#116 (ARCO C1)\nG01 X#169 Y#170 F#101\nG03 X#173 Y#174 I[-#135] J[-#136] F#116 (ARCO SALIDA)\n\n(*** LEVANTAMIENTO DE SEGURIDAD ***)\nG00 Z#11\nG00 X#12 Y#13\n\nN999 \nG00 Z#11\nM09\nM05\nG28 G91 Z0.\nG90\nM30\n\nN9001 #3000=1 (ERROR: HTA MAYOR QUE RANURA)\nN9003 #3000=3 (ERROR: Z INICIAL INFERIOR A Z FINAL)\nN9005 #3000=5 (ERROR: OPCION DE CICLO DEBE SER 0-1-2)\n"
   },
   {
     "filename": "Desbaste_Acabado_cajera_circular.nc",
@@ -495,139 +754,6 @@ const MACROS_DATA = [
       }
     ],
     "full_content": "O1004 (CAJA RECTANGULAR DESBASTE Y ACABADO V3)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 120.0  (LONGITUD X DE LA CAJA)\n#2 = 80.0   (ANCHO Y DE LA CAJA)\n#3 = 15.0   (RADIO EN LAS ESQUINAS DE LA PIEZA)\n#4 = 12.0   (DIAMETRO DE LA HERRAMIENTA)\n#5 = 20.0   (PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO)\n#6 = 5.0    (PROFUNDIDAD POR PASADA EN Z DESBASTE)\n#7 = 0.5    (SOBREMATERIAL RADIAL PARA EL ACABADO)\n#8 = 160.0  (Vc - VELOCIDAD DE CORTE EN m/min)\n#9 = 4.0    (NUMERO DE INSERTOS O LABIOS)\n#10 = 0.08  (fz - AVANCE POR INSERTO EN mm/rev)\n#11 = 50.0  (PLANO DE SEGURIDAD RETROCESO R)\n#12 = 0.0   (CENTRO DE LA CAJA EN X)\n#13 = 0.0   (CENTRO DE LA CAJA EN Y)\n#14 = 8.0   (PASO RADIAL MAXIMO DESBASTE XY)\n#15 = -5.0  (Z INICIAL DE CORTE / REINICIO)\n#16 = 5.0   (RADIO DEL ARCO ENTRADA Y SALIDA ACABADO)\n#17 = 2.0   (OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO)\n(========================================)\n\n(--- COMPROBACIONES DE SEGURIDAD BASICAS ---)\nIF [#4 GE #1] GOTO 9001\nIF [#4 GE #2] GOTO 9001\nIF [[#4 / 2] GT #3] GOTO 9002\nIF [#15 LE -#5] GOTO 9003\nIF [#17 LT 0] GOTO 9005\nIF [#17 GT 2] GOTO 9005\n\n(--- CALCULOS DE PARAMETROS DE CORTE ---)\n#100 = ROUND[[#8 * 1000] / [3.1416 * #4]] (CALCULO DE RPM)\n#101 = ROUND[#100 * #9 * #10] (AVANCE LINEAL NOMINAL F)\n#102 = #4 / 2 (RADIO DE LA HERRAMIENTA)\n\n(--- GEOMETRIA MAXIMA DE DESBASTE ---)\n#103 = [#1 / 2] - #7 - #102 (DIST. MAX X DESBASTE)\n#104 = [#2 / 2] - #7 - #102 (DIST. MAX Y DESBASTE)\n#105 = #3 - #7 - #102 (RADIO TRAYECTORIA ESQUINA DESBASTE)\nIF [#105 LT 0] THEN #105 = 0\n\n(--- GEOMETRIA MAXIMA DE ACABADO ---)\n#113 = [#1 / 2] - #102 (DIST. MAX X ACABADO)\n#114 = [#2 / 2] - #102 (DIST. MAX Y ACABADO)\n#115 = #3 - #102 (RADIO TRAYECTORIA ESQUINA ACABADO)\nIF [#115 LT 0] THEN #115 = 0\n\n(--- CALCULO PROPORCIONAL PARA DESBASTE ---)\n#106 = #103\nIF [#104 GT #103] THEN #106 = #104\nIF [#106 LE 0] THEN #106 = 0.001 \n#107 = ROUND[#101 * #105 / [#105 + #102]] (AVANCE COMPENSADO ARCOS DESBASTE)\n#108 = -#5 (Z FINAL EN COORDENADA NEGATIVA)\n\n(--- ENCABEZADO DE MAQUINA Y POSICIONAMIENTO ---)\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nG00 X#12 Y#13 \nG43 H#20 Z#11 (*** VERIFICAR CORRECTOR DE ALTURA H ***)\nS#100 M03\nM08\n\nG00 Z[#15 + 1.0]\n\nIF [#17 EQ 2] GOTO 200\n\n(========================================)\n(       RUTINA DE DESBASTE (N100)        )\n(========================================)\n#109 = #15 \n\nN100 \nIF [#109 LE #108] GOTO 190\n#109 = #109 - #6\nIF [#109 LT #108] THEN #109 = #108\n\nG00 X#12 Y#13 \nG01 Z#109 F[#101 / 2] \n\n#120 = 0 \n\nN110 (--- BUCLE RADIAL XY ---)\n#120 = #120 + #14 \n#121 = #120 / #106 \nIF [#121 LT 1.0] GOTO 115\n#121 = 1.0 \n\nN115\n#122 = #103 * #121 \n#123 = #104 * #121 \n#124 = #105 * #121 \n\n(TRAZADO DESBASTE CLIMB MILLING CCW)\nG01 X[#12] Y[#13 + #123] F#101 (CENTRO BORDE SUPERIOR)\nG01 X[#12 - #122 + #124] (HACIA ESQ. SUP-IZQ)\nIF [#124 LE 0.001] GOTO 21\nG03 X[#12 - #122] Y[#13 + #123 - #124] I0. J-[#124] F#107\nGOTO 22\nN21 G01 X[#12 - #122] Y[#13 + #123]\n\nN22 G01 Y[#13 - #123 + #124] F#101 (HACIA ESQ. INF-IZQ)\nIF [#124 LE 0.001] GOTO 23\nG03 X[#12 - #122 + #124] Y[#13 - #123] I[#124] J0. F#107\nGOTO 24\nN23 G01 X[#12 - #122] Y[#13 - #123]\n\nN24 G01 X[#12 + #122 - #124] F#101 (HACIA ESQ. INF-DER)\nIF [#124 LE 0.001] GOTO 25\nG03 X[#12 + #122] Y[#13 - #123 + #124] I0. J[#124] F#107\nGOTO 26\nN25 G01 X[#12 + #122] Y[#13 - #123]\n\nN26 G01 Y[#13 + #123 - #124] F#101 (HACIA ESQ. SUP-DER)\nIF [#124 LE 0.001] GOTO 27\nG03 X[#12 + #122 - #124] Y[#13 + #123] I-[#124] J0. F#107\nGOTO 28\nN27 G01 X[#12 + #122] Y[#13 + #123]\n\nN28 G01 X[#12] F#101 \n\nIF [#121 LT 1.0] GOTO 110 \n\n(*** LEVANTAMIENTO DE SEGURIDAD ***)\nG00 Z#11 \nG00 X#12 Y#13 \nG00 Z[#109 + 1.0] \n\nGOTO 100 \n\nN190 \nIF [#17 EQ 1] GOTO 999 \n\n(========================================)\n(       RUTINA DE ACABADO (N200)         )\n(========================================)\nN200\nG00 X#12 Y#13 \nG01 Z#108 F[#101 / 2] \n\n#116 = ROUND[#101 * #115 / [#115 + #102]] \n\n(PREPARACION Y ENTRADA TANGENCIAL)\nG01 X[#12 - #16] Y[#13 - #114 + #16] F#101\nG03 X[#12] Y[#13 - #114] I[#16] J0. F#116\n\n(RECORRIDO PERIMETRAL CCW - INICIA HACIA LA DERECHA)\nG01 X[#12 + #113 - #115] F#101 (HACIA ESQ. INF-DER)\nIF [#115 LE 0.001] GOTO 31\nG03 X[#12 + #113] Y[#13 - #114 + #115] I0. J[#115] F#116\nGOTO 32\nN31 G01 X[#12 + #113] Y[#13 - #114]\n\nN32 G01 Y[#13 + #114 - #115] F#101 (HACIA ESQ. SUP-DER)\nIF [#115 LE 0.001] GOTO 33\nG03 X[#12 + #113 - #115] Y[#13 + #114] I-[#115] J0. F#116\nGOTO 34\nN33 G01 X[#12 + #113] Y[#13 + #114]\n\nN34 G01 X[#12 - #113 + #115] F#101 (HACIA ESQ. SUP-IZQ)\nIF [#115 LE 0.001] GOTO 35\nG03 X[#12 - #113] Y[#13 + #114 - #115] I0. J-[#115] F#116\nGOTO 36\nN35 G01 X[#12 - #113] Y[#13 + #114]\n\nN36 G01 Y[#13 - #114 + #115] F#101 (HACIA ESQ. INF-IZQ)\nIF [#115 LE 0.001] GOTO 37\nG03 X[#12 - #113 + #115] Y[#13 - #114] I[#115] J0. F#116\nGOTO 38\nN37 G01 X[#12 - #113] Y[#13 - #114]\n\nN38 G01 X[#12] F#101 (RETORNO A CENTRO BORDE INFERIOR)\n\n(SALIDA TANGENCIAL)\nG03 X[#12 + #16] Y[#13 - #114 + #16] I0. J[#16]\n\n(*** LEVANTAMIENTO DE SEGURIDAD ***)\nG00 Z#11\nG00 X#12 Y#13\n\nN999 \nG00 Z#11\nM09\nM05\nG28 G91 Z0.\nG90\nM30\n\n(--- ALARMAS Y ERRORES ---)\nN9001 #3000=1 (ERROR: HTA MAYOR QUE CAJA)\nN9002 #3000=2 (ERROR: RADIO HTA MAYOR A RADIO ESQUINA)\nN9003 #3000=3 (ERROR: Z INICIAL INFERIOR A Z FINAL)\nN9005 #3000=5 (ERROR: OPCION CICLO 0-1-2)\n"
-  },
-  {
-    "filename": "Desbaste_Acabado_Ranura Cerrada.nc",
-    "title": "O1005 (RANURA CERRADA INCLINADA V2 - CLIMB MILLING CCW)",
-    "variables": [
-      {
-        "num": 20,
-        "value": 1.0,
-        "comment": "NUMERO DE HERRAMIENTA",
-        "line_idx": 4,
-        "original_line": "#20 = 1     (NUMERO DE HERRAMIENTA)"
-      },
-      {
-        "num": 1,
-        "value": 100.0,
-        "comment": "LONGITUD L ENTRE CENTROS DE LA RANURA",
-        "line_idx": 6,
-        "original_line": "#1 = 100.0  (LONGITUD L ENTRE CENTROS DE LA RANURA)"
-      },
-      {
-        "num": 2,
-        "value": 20.0,
-        "comment": "RADIO DE LA RANURA - ANCHO TOTAL SERA EL DOBLE",
-        "line_idx": 7,
-        "original_line": "#2 = 20.0   (RADIO DE LA RANURA - ANCHO TOTAL SERA EL DOBLE)"
-      },
-      {
-        "num": 3,
-        "value": 0.0,
-        "comment": "ANGULO DE INCLINACION EN GRADOS",
-        "line_idx": 8,
-        "original_line": "#3 = 0 (ANGULO DE INCLINACION EN GRADOS)"
-      },
-      {
-        "num": 4,
-        "value": 12.0,
-        "comment": "DIAMETRO DE LA HERRAMIENTA",
-        "line_idx": 9,
-        "original_line": "#4 = 12.0   (DIAMETRO DE LA HERRAMIENTA)"
-      },
-      {
-        "num": 5,
-        "value": 15.0,
-        "comment": "PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO",
-        "line_idx": 10,
-        "original_line": "#5 = 15.0   (PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO)"
-      },
-      {
-        "num": 6,
-        "value": 5.0,
-        "comment": "PROFUNDIDAD POR PASADA EN Z DESBASTE",
-        "line_idx": 11,
-        "original_line": "#6 = 5.0    (PROFUNDIDAD POR PASADA EN Z DESBASTE)"
-      },
-      {
-        "num": 7,
-        "value": 0.5,
-        "comment": "SOBREMATERIAL RADIAL PARA EL ACABADO",
-        "line_idx": 12,
-        "original_line": "#7 = 0.5    (SOBREMATERIAL RADIAL PARA EL ACABADO)"
-      },
-      {
-        "num": 8,
-        "value": 160.0,
-        "comment": "Vc - VELOCIDAD DE CORTE EN m/min",
-        "line_idx": 13,
-        "original_line": "#8 = 160.0  (Vc - VELOCIDAD DE CORTE EN m/min)"
-      },
-      {
-        "num": 9,
-        "value": 4.0,
-        "comment": "NUMERO DE INSERTOS O LABIOS",
-        "line_idx": 14,
-        "original_line": "#9 = 4.0    (NUMERO DE INSERTOS O LABIOS)"
-      },
-      {
-        "num": 10,
-        "value": 0.08,
-        "comment": "fz - AVANCE POR INSERTO EN mm/rev",
-        "line_idx": 15,
-        "original_line": "#10 = 0.08  (fz - AVANCE POR INSERTO EN mm/rev)"
-      },
-      {
-        "num": 11,
-        "value": 50.0,
-        "comment": "PLANO DE SEGURIDAD RETROCESO R",
-        "line_idx": 16,
-        "original_line": "#11 = 50.0  (PLANO DE SEGURIDAD RETROCESO R)"
-      },
-      {
-        "num": 12,
-        "value": 0.0,
-        "comment": "COORDENADA X DEL CENTRO DE LA RANURA",
-        "line_idx": 17,
-        "original_line": "#12 = 0.0   (COORDENADA X DEL CENTRO DE LA RANURA)"
-      },
-      {
-        "num": 13,
-        "value": 0.0,
-        "comment": "COORDENADA Y DEL CENTRO DE LA RANURA",
-        "line_idx": 18,
-        "original_line": "#13 = 0.0   (COORDENADA Y DEL CENTRO DE LA RANURA)"
-      },
-      {
-        "num": 14,
-        "value": 6.0,
-        "comment": "PASO RADIAL MAXIMO DESBASTE XY",
-        "line_idx": 19,
-        "original_line": "#14 = 6.0   (PASO RADIAL MAXIMO DESBASTE XY)"
-      },
-      {
-        "num": 15,
-        "value": -5.0,
-        "comment": "Z INICIAL DE CORTE / REINICIO",
-        "line_idx": 20,
-        "original_line": "#15 = -5.0  (Z INICIAL DE CORTE / REINICIO)"
-      },
-      {
-        "num": 16,
-        "value": 4.0,
-        "comment": "RADIO DEL ARCO ENTRADA Y SALIDA ACABADO",
-        "line_idx": 21,
-        "original_line": "#16 = 4.0   (RADIO DEL ARCO ENTRADA Y SALIDA ACABADO)"
-      },
-      {
-        "num": 17,
-        "value": 0.0,
-        "comment": "OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO",
-        "line_idx": 22,
-        "original_line": "#17 = 0.0   (OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO)"
-      }
-    ],
-    "full_content": "O1005 (RANURA CERRADA INCLINADA V2 - CLIMB MILLING CCW)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 100.0  (LONGITUD L ENTRE CENTROS DE LA RANURA)\n#2 = 20.0   (RADIO DE LA RANURA - ANCHO TOTAL SERA EL DOBLE)\n#3 = 0 (ANGULO DE INCLINACION EN GRADOS)\n#4 = 12.0   (DIAMETRO DE LA HERRAMIENTA)\n#5 = 15.0   (PROFUNDIDAD TOTAL Z FINAL - VALOR POSITIVO)\n#6 = 5.0    (PROFUNDIDAD POR PASADA EN Z DESBASTE)\n#7 = 0.5    (SOBREMATERIAL RADIAL PARA EL ACABADO)\n#8 = 160.0  (Vc - VELOCIDAD DE CORTE EN m/min)\n#9 = 4.0    (NUMERO DE INSERTOS O LABIOS)\n#10 = 0.08  (fz - AVANCE POR INSERTO EN mm/rev)\n#11 = 50.0  (PLANO DE SEGURIDAD RETROCESO R)\n#12 = 0.0   (COORDENADA X DEL CENTRO DE LA RANURA)\n#13 = 0.0   (COORDENADA Y DEL CENTRO DE LA RANURA)\n#14 = 6.0   (PASO RADIAL MAXIMO DESBASTE XY)\n#15 = -5.0  (Z INICIAL DE CORTE / REINICIO)\n#16 = 4.0   (RADIO DEL ARCO ENTRADA Y SALIDA ACABADO)\n#17 = 0.0   (OPCION: 0=AMBOS, 1=SOLO DESBASTE, 2=SOLO ACABADO)\n(========================================)\n\n(--- COMPROBACIONES DE SEGURIDAD BASICAS ---)\nIF [[#4 / 2] GE #2] GOTO 9001\nIF [#15 LE -#5] GOTO 9003\nIF [#17 LT 0] GOTO 9005\nIF [#17 GT 2] GOTO 9005\n\n(--- CALCULOS DE PARAMETROS DE CORTE ---)\n#100 = ROUND[[#8 * 1000] / [3.1416 * #4]] (CALCULO DE RPM)\n#101 = ROUND[#100 * #9 * #10] (AVANCE NOMINAL)\n#102 = #4 / 2 (RADIO DE LA HERRAMIENTA)\n\n(--- CALCULOS DE GEOMETRIA MAXIMA ---)\n#103 = #2 - #7 - #102 (RADIO MAXIMO DESBASTE)\nIF [#103 LT 0] THEN #103 = 0 \n#113 = #2 - #102 (RADIO MAXIMO ACABADO)\n#104 = -#5 (Z FINAL EN COORDENADA NEGATIVA)\n\n(--- TRIGONOMETRIA PRECALCULADA ---)\n#130 = COS[#3]\n#131 = SIN[#3]\n#132 = #1 / 2 (MITAD DISTANCIA ENTRE CENTROS)\n\n(--- CENTROS DE LOS ARCOS DE LA RANURA C1 Y C2 ---)\n#141 = [#132 * #130] + #12 (C1 X - DERECHA)\n#142 = [#132 * #131] + #13 (C1 Y)\n#143 = [-#132 * #130] + #12 (C2 X - IZQUIERDA)\n#144 = [-#132 * #131] + #13 (C2 Y)\n\n(--- ENCABEZADO Y POSICIONAMIENTO ---)\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nG00 X#12 Y#13 \nG43 H#20 Z#11 (*** VERIFICAR CORRECTOR H ***)\nS#100 M03\nM08\n\nG00 Z[#15 + 1.0]\n\nIF [#17 EQ 2] GOTO 200\n\n(========================================)\n(       RUTINA DE DESBASTE (N100)        )\n(========================================)\n#105 = #15\n\nN100 (--- BUCLE PROFUNDIDAD Z ---)\nIF [#105 LE #104] GOTO 190\n#105 = #105 - #6\nIF [#105 LT #104] THEN #105 = #104\n\nG00 X#12 Y#13\nG01 Z#105 F[#101 / 2]\n\n#120 = 0\n\nN110 (--- BUCLE DE EXPANSION RADIAL ---)\nIF [#120 GT 0] GOTO 115\n\n(PASO CENTRAL)\nG01 X#141 Y#142 F#101\nG01 X#143 Y#144\nG01 X#12 Y#13\nGOTO 118\n\nN115 (--- PASOS EXPANDIDOS CLIMB MILLING ---)\n#151 = -#120 * #131 (dX PERPENDICULAR)\n#152 = #120 * #130  (dY PERPENDICULAR)\n\n#106 = ROUND[#101 * #120 / [#120 + #102]] \n\n#161 = #141 + #151 (P1: SUP DER)\n#162 = #142 + #152\n#163 = #143 + #151 (P2: SUP IZQ)\n#164 = #144 + #152\n#165 = #143 - #151 (P3: INF IZQ)\n#166 = #144 - #152\n#167 = #141 - #151 (P4: INF DER)\n#168 = #142 - #152\n\n#169 = #12 + #151 (M1: MEDIO SUPERIOR)\n#170 = #13 + #152\n\n(TRAZADO ANTIHORARIO CCW)\nG01 X#169 Y#170 F#101 \nG01 X#163 Y#164 (LINEA A P2)\nG03 X#165 Y#166 I[-#151] J[-#152] F#106 (ARCO C2)\nG01 X#167 Y#168 F#101 (LINEA A P4)\nG03 X#161 Y#162 I[#151] J[#152] F#106 (ARCO C1)\nG01 X#169 Y#170 F#101 (CIERRE EN M1)\n\nN118\nIF [#120 GE #103] GOTO 119\n#120 = #120 + #14\nIF [#120 GT #103] THEN #120 = #103\nGOTO 110\n\nN119 (*** LEVANTAMIENTO DE SEGURIDAD ***)\nG00 Z#11\nG00 X#12 Y#13\nG00 Z[#105 + 1.0]\n\nGOTO 100\n\nN190 \nIF [#17 EQ 1] GOTO 999 \n\n(========================================)\n(       RUTINA DE ACABADO (N200)         )\n(========================================)\nN200\nG00 X#12 Y#13 \nG01 Z#104 F[#101 / 2] \n\n#151 = -#113 * #131 \n#152 = #113 * #130  \n#169 = #12 + #151 (M1)\n#170 = #13 + #152 \n\n#133 = #16 * #130 \n#134 = #16 * #131 \n#135 = -#16 * #131 \n#136 = #16 * #130 \n\n(ENTRADA Y SALIDA TANGENCIAL CCW)\n#171 = #169 + #133 - #135 \n#172 = #170 + #134 - #136 \n#173 = #169 - #133 - #135 \n#174 = #170 - #134 - #136 \n\n#161 = #141 + #151 (P1)\n#162 = #142 + #152 \n#163 = #143 + #151 (P2)\n#164 = #144 + #152 \n#165 = #143 - #151 (P3)\n#166 = #144 - #152 \n#167 = #141 - #151 (P4)\n#168 = #142 - #152 \n\n#116 = ROUND[#101 * #113 / [#113 + #102]] \n\nG01 X#171 Y#172 F#101 \nG03 X#169 Y#170 I[-#133] J[-#134] F#116 (ARCO ENTRADA)\nG01 X#163 Y#164 F#101\nG03 X#165 Y#166 I[-#151] J[-#152] F#116 (ARCO C2)\nG01 X#167 Y#168 F#101\nG03 X#161 Y#162 I[#151] J[#152] F#116 (ARCO C1)\nG01 X#169 Y#170 F#101\nG03 X#173 Y#174 I[-#135] J[-#136] F#116 (ARCO SALIDA)\n\n(*** LEVANTAMIENTO DE SEGURIDAD ***)\nG00 Z#11\nG00 X#12 Y#13\n\nN999 \nG00 Z#11\nM09\nM05\nG28 G91 Z0.\nG90\nM30\n\nN9001 #3000=1 (ERROR: HTA MAYOR QUE RANURA)\nN9003 #3000=3 (ERROR: Z INICIAL INFERIOR A Z FINAL)\nN9005 #3000=5 (ERROR: OPCION DE CICLO DEBE SER 0-1-2)\n"
   },
   {
     "filename": "Fresado de Roscas Helicoidal.nc",

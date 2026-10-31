@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-lowest":"#070e1d","on-background":"#dce2f7","on-primary":"#472a00","on-tertiary-container":"#004e34","on-primary-fixed":"#2a1700","surface-tint":"#ffb95f","on-secondary":"#003640","surface-container-high":"#232a3a","on-primary-container":"#613b00","on-tertiary-fixed-variant":"#005236","primary-fixed":"#ffddb8","tertiary-fixed":"#6ffbbe","secondary-fixed-dim":"#4cd7f6","on-secondary-container":"#00424e","background":"#0c1322","surface":"#0c1322","tertiary-container":"#30c88f","tertiary-fixed-dim":"#4edea3","on-primary-fixed-variant":"#653e00","on-error-container":"#ffdad6","outline-variant":"#534434","error":"#ffb4ab","surface-dim":"#0c1322","secondary":"#4cd7f6","primary-container":"#f59e0b","on-tertiary-fixed":"#002113","error-container":"#93000a","inverse-on-surface":"#293040","surface-container-low":"#141b2b","on-secondary-fixed":"#001f26","secondary-fixed":"#acedff","on-secondary-fixed-variant":"#004e5c","primary-fixed-dim":"#ffb95f","outline":"#a08e7a","inverse-surface":"#dce2f7","surface-variant":"#2e3545","secondary-container":"#03b5d3","inverse-primary":"#855300","tertiary":"#56e5a9","surface-bright":"#323949","on-surface-variant":"#d8c3ad","on-surface":"#dce2f7","on-tertiary":"#003824","on-error":"#690005","primary":"#ffc174","surface-container-highest":"#2e3545","surface-container":"#191f2f"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"space-lg":"1rem",margin:"1rem","space-xs":"0.25rem","margin-mobile":"0.75rem","gutter-mobile":"0.5rem","space-md":"0.75rem",gutter:"0.75rem","space-sm":"0.5rem","space-xl":"1.5rem"},fontFamily:{"headline-lg":["Inter"],"headline-md":["Inter"],"code-terminal":["JetBrains Mono"],"label-caps":["Inter"],"dro-display":["JetBrains Mono"],"body-base":["Inter"],"title-sm":["Inter"],"headline-lg-mobile":["Inter"],"body-bold":["Inter"],"code-base":["JetBrains Mono"]},fontSize:{"headline-lg":["24px",{lineHeight:"32px",letterSpacing:"0.02em",fontWeight:"700"}],"headline-md":["18px",{lineHeight:"26px",letterSpacing:"0.01em",fontWeight:"700"}],"code-terminal":["11px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"400"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"700"}],"dro-display":["18px",{lineHeight:"22px",letterSpacing:"0.04em",fontWeight:"700"}],"body-base":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"title-sm":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"headline-lg-mobile":["20px",{lineHeight:"28px",letterSpacing:"0.01em",fontWeight:"700"}],"body-bold":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"600"}],"code-base":["12px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"500"}]}}}}</script></head><body class="bg-background font-body-base text-body-base text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-16 w-full px-space-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><img alt="NG_MACROS Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UA_cGkfQPbZALH5Yrf73Uj7a8-8OEPBrfCnhYY1QNAHHZP-O7vcb100zh5Q4x7tJxeFRa3WAY9l0-sdYnFrrcs94GTVsOuo4qp91lsKQFAztnR1KD-wZ2oTO7y9urfgCA00u7BC5ySSU_jsqizymCIhY417sQwskc2C6QzAVTf9004aOoTKZ9tZ81nQh06Pg6GhjvqjM8IIPsfdWtUqnyUIJdc_SSLTklYiowvPok"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-wider text-primary leading-none">NG_MACROS</span><span class="font-code-terminal text-code-terminal text-on-surface-variant uppercase tracking-widest mt-1">CNC Precision Cockpit v4.2</span></div></div><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-sm py-space-xs rounded-lg"><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-primary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">CTRL:</span><span class="font-code-base text-code-base text-primary">FANUC / ISO</span></div><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-secondary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">UNIT:</span><span class="font-code-base text-code-base text-secondary">METRIC G21</span></div><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-tertiary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">STATUS:</span><span class="font-code-base text-code-base text-tertiary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>EN RETORNO G98 - REPOSO SEGURO (M05 STOP)</span></div></div><div class="hidden lg:flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-1 rounded"><div class="flex items-baseline gap-1 px-space-xs border-l border-error"><span class="font-code-terminal text-code-terminal text-error font-bold">X</span><span class="font-dro-display text-dro-display text-on-surface tabular-nums">+063.301</span></div><div class="flex items-baseline gap-1 px-space-xs border-l border-tertiary"><span class="font-code-terminal text-code-terminal text-tertiary font-bold">Y</span><span class="font-dro-display text-dro-display text-on-surface tabular-nums">+040.000</span></div><div class="flex items-baseline gap-1 px-space-xs border-l border-secondary"><span class="font-code-terminal text-code-terminal text-tertiary font-bold">Z</span><span class="font-dro-display text-dro-display text-tertiary tabular-nums">+050.000</span></div></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex flex-col text-right"><span class="font-label-caps text-label-caps text-primary">TURNO ACTIVO: A-01</span><span class="font-code-terminal text-code-terminal text-on-surface-variant">OP: M. VÁSQUEZ</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-72 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md"><div class="flex flex-col gap-space-md px-space-sm"><div class="px-space-sm py-space-xs bg-surface-container-low rounded"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase block">MODOS DE OPERACIÓN</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-body-bold rounded"><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="modulos-de-fresado" href="#"><span class="font-title-sm text-title-sm">Módulos de Fresado</span><span class="font-code-terminal text-code-terminal">CYCLE</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="libreria-de-herramientas" href="#"><span class="font-title-sm text-title-sm">Librería de Herramientas</span><span class="font-code-terminal text-code-terminal">TOOL</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="simulador-g-code" href="#"><span class="font-title-sm text-title-sm">Simulador G-Code</span><span class="font-code-terminal text-code-terminal">NC</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="ajustes-de-maquina" href="#"><span class="font-title-sm text-title-sm">Ajustes de Máquina</span><span class="font-code-terminal text-code-terminal">CFG</span></a></nav></div><div class="px-space-md flex flex-col gap-space-sm"><div class="p-space-sm bg-surface-container-low rounded"><div class="flex items-center justify-between mb-1"><span class="font-label-caps text-label-caps text-on-surface-variant">FEED OVERRIDE</span><span class="font-code-base text-code-base text-primary">100%</span></div><div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden"><div class="bg-primary h-full w-full"></div></div></div><div class="flex items-center justify-between px-space-xs"><span class="font-code-terminal text-code-terminal text-on-surface-variant">SPINDLE: S2400 M03</span><span class="font-code-terminal text-code-terminal text-tertiary">SYNC OK</span></div></div></aside><div class="pl-72"><main class="relative pt-16 min-h-screen bg-background w-full px-space-lg"><div class="flex flex-col w-full text-on-surface select-none pb-space-xl">
+<!-- CONTEXT HEADER & STREAMING TELEMETRY BAR -->
+<div class="flex flex-col gap-space-sm mb-space-md">
+<!-- Breadcrumb & Hardware Protocol Line -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs min-w-0">
+<span class="material-symbols-outlined text-primary text-[18px]">precision_manufacturing</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">MÓDULOS CNC</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">/</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">TELEMETRÍA Y CONTROL DE ESFUERZOS</span>
+<span class="font-code-terminal text-code-terminal text-primary">/</span>
+<span class="font-body-bold text-body-bold text-primary tracking-wide uppercase">DINÁMICA DE HUSILLO (SPINDLE TELEMETRY)</span>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-1.5 px-space-xs py-0.5 rounded bg-surface-container-highest">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-code-terminal text-code-terminal text-on-surface uppercase">FANUC FOCAS2 10ms STREAM</span>
+</div>
+<div class="hidden md:flex items-center gap-1.5 px-space-xs py-0.5 rounded bg-surface-container">
+<span class="font-code-terminal text-code-terminal text-secondary">CNC ACKERMAN SYNCHRO</span>
+</div>
+<div class="flex items-center gap-1.5 px-space-xs py-0.5 rounded bg-surface-container">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">BT40 DUAL-CONTACT</span>
+</div>
+</div>
+</div>
+<!-- Live Position & Machine State DRO Strip -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-space-xs bg-surface-container-lowest p-space-xs rounded-lg">
+<div class="flex flex-col bg-surface-container-low px-space-sm py-1 rounded">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-error">AXIS X</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">mm</span>
+</div>
+<span class="font-dro-display text-dro-display text-on-surface tabular-nums tracking-wider">+063.301</span>
+</div>
+<div class="flex flex-col bg-surface-container-low px-space-sm py-1 rounded">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-tertiary">AXIS Y</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">mm</span>
+</div>
+<span class="font-dro-display text-dro-display text-on-surface tabular-nums tracking-wider">+040.000</span>
+</div>
+<div class="flex flex-col bg-surface-container-low px-space-sm py-1 rounded">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-secondary">AXIS Z (CUT)</span>
+<span class="font-code-terminal text-code-terminal text-secondary">M29 SYNC</span>
+</div>
+<span class="font-dro-display text-dro-display text-secondary tabular-nums tracking-wider">-015.410</span>
+</div>
+<div class="flex flex-col bg-surface-container-low px-space-sm py-1 rounded">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-primary">SPINDLE S</span>
+<span class="font-code-terminal text-code-terminal text-primary">CW (M03)</span>
+</div>
+<span class="font-dro-display text-dro-display text-primary tabular-nums tracking-wider">0600 <span class="text-[12px] font-normal text-on-surface-variant">RPM</span></span>
+</div>
+<div class="flex flex-col bg-surface-container-low px-space-sm py-1 rounded">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">FEEDRATE F</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">100%</span>
+</div>
+<span class="font-dro-display text-dro-display text-on-surface tabular-nums tracking-wider">0750 <span class="text-[12px] font-normal text-on-surface-variant">mm/m</span></span>
+</div>
+<div class="flex flex-col bg-surface-container-low px-space-sm py-1 rounded">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">CICLO ACTIVO</span>
+<span class="font-code-terminal text-code-terminal text-primary">FANUC #100</span>
+</div>
+<span class="font-title-sm text-title-sm text-primary uppercase font-bold tracking-wider mt-0.5">G84 ROSCADO</span>
+</div>
+<div class="col-span-2 flex flex-col justify-center bg-surface-container-high px-space-md py-1 rounded">
+<div class="flex items-center justify-between mb-0.5">
+<span class="font-label-caps text-label-caps text-tertiary">ESTADO OPERACIONAL</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">SYNC LOCK: ON</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[18px]">multiline_chart</span>
+<span class="font-code-base text-code-base text-on-surface font-semibold truncate uppercase">MONITOREO ACTIVO DE ESFUERZOS // RIGID TAP M8x1.25</span>
+</div>
+</div>
+</div>
+</div>
+<!-- MAIN TELEMETRY GRID: OSCILLOSCOPE + DYNAMIC GAUGES -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md">
+<!-- LEFT 8 COLS: MULTI-CHANNEL OSCILLOSCOPE -->
+<div class="xl:col-span-8 flex flex-col bg-surface-container-low rounded-lg p-space-md">
+<!-- Oscilloscope Header: Toggles & Hardware Legend -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pb-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-lg mb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">show_chart</span>
+<span class="font-title-sm text-title-sm text-on-surface uppercase tracking-wide">OSCILOSCOPIO DINÁMICO MULTICANAL</span>
+</div>
+<span class="font-code-terminal text-code-terminal px-space-xs py-0.5 rounded bg-surface-container-high text-primary">BUFFER: 15.000 ms</span>
+</div>
+<!-- Scope Controls (Trigger & Timebase) -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center bg-surface-container-high rounded p-0.5">
+<span class="font-label-caps text-label-caps text-on-surface-variant px-1.5">T-BASE:</span>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal text-on-surface-variant hover:text-on-surface">50ms</button>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal text-on-surface-variant hover:text-on-surface">100ms</button>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal bg-primary-container text-on-primary-container font-bold">500ms</button>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal text-on-surface-variant hover:text-on-surface">1s</button>
+</div>
+<div class="flex items-center bg-surface-container-high rounded p-0.5">
+<span class="font-label-caps text-label-caps text-on-surface-variant px-1.5">TRIG:</span>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal bg-surface-bright text-primary font-bold">AUTO</button>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal text-on-surface-variant hover:text-on-surface">NORM</button>
+<button class="px-1.5 py-0.5 rounded font-code-terminal text-code-terminal text-error font-bold">&gt;18Nm</button>
+</div>
+<button class="flex items-center gap-1 bg-surface-container-highest hover:bg-surface-bright px-space-sm py-1 rounded text-on-surface transition-colors" id="freeze-toggle-btn" onclick="toggleFreeze()">
+<span class="material-symbols-outlined text-[16px] text-primary" id="freeze-icon">pause</span>
+<span class="font-label-caps text-label-caps" id="freeze-label">CONGELAR</span>
+</button>
+</div>
+</div>
+<!-- Channel Legend & Filter Switches Strip -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-xs mb-space-sm">
+<!-- CH1: Spindle Torque -->
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-lowest">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0 shadow-sm"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-caps text-label-caps text-primary truncate">CH1 TORQUE (Nm)</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">LÍM: 22.0 Nm</span>
+</div>
+</div>
+<span class="font-dro-display text-dro-display text-primary tabular-nums">12.8</span>
+</div>
+<!-- CH2: Active Power -->
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-lowest">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary flex-shrink-0 shadow-sm"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-caps text-label-caps text-secondary truncate">CH2 POTENCIA (kW)</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">MÁX: 11.0 kW</span>
+</div>
+</div>
+<span class="font-dro-display text-dro-display text-secondary tabular-nums">2.15</span>
+</div>
+<!-- CH3: Phase Current -->
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-lowest">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full bg-surface-tint flex-shrink-0 shadow-sm"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-caps text-label-caps text-on-surface-variant truncate">CH3 CORRIENTE (A)</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">NOMINAL 18.0A</span>
+</div>
+</div>
+<span class="font-dro-display text-dro-display text-on-surface tabular-nums">6.40</span>
+</div>
+<!-- CH4: Phase Lag Δθ -->
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-lowest">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary flex-shrink-0 shadow-sm"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-caps text-label-caps text-tertiary truncate">CH4 DESV. Δθ (°)</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">TOL: ±0.050°</span>
+</div>
+</div>
+<span class="font-dro-display text-dro-display text-tertiary tabular-nums">+0.018</span>
+</div>
+</div>
+<!-- High-Fidelity Industrial SVG Scope Canvas Stage -->
+<div class="relative w-full h-[380px] bg-[#070b12] rounded-lg overflow-hidden flex flex-col justify-between p-space-sm shadow-inner">
+<!-- Background Precision Millimeter Grid (Inline SVG) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="20" id="micro-grid" patternunits="userSpaceOnUse" width="20">
+<path d="M 20 0 L 0 0 0 20" fill="none" stroke="#131e33" stroke-width="0.75"></path>
+</pattern>
+<pattern height="100" id="macro-grid" patternunits="userSpaceOnUse" width="100">
+<rect fill="url(#micro-grid)" height="100" width="100"></rect>
+<path d="M 100 0 L 0 0 0 100" fill="none" stroke="#223354" stroke-dasharray="2 2" stroke-width="1.25"></path>
+</pattern>
+<lineargradient id="torque-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#f59e0b" stop-opacity="0.00"></stop>
+</lineargradient>
+<lineargradient id="power-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#4cd7f6" stop-opacity="0.25"></stop>
+<stop offset="100%" stop-color="#4cd7f6" stop-opacity="0.00"></stop>
+</lineargradient>
+</defs>
+<rect fill="url(#macro-grid)" height="100%" width="100%"></rect>
+<!-- Safety Torque Alarm Upper Threshold (Red Dashed Line @ 22.0 Nm -> y: 55) -->
+<line opacity="0.85" stroke="#ffb4ab" stroke-dasharray="6 4" stroke-width="1.5" x1="60" x2="100%" y1="55" y2="55"></line>
+<text fill="#ffb4ab" font-family="JetBrains Mono" font-size="10" font-weight="700" x="68" y="50">UMBRAL CRÍTICO DE ROTURA / ALARMA DISPARO #3000 = 22.0 Nm</text>
+<!-- Warning Baseline Threshold Line @ 18.0 Nm -> y: 95 -->
+<line opacity="0.4" stroke="#ffc174" stroke-dasharray="3 3" stroke-width="1" x1="60" x2="100%" y1="95" y2="95"></line>
+<text fill="#ffc174" font-family="JetBrains Mono" font-size="9" opacity="0.6" x="68" y="90">PRE-ALERTA SOBRECARGA 18.0 Nm</text>
+<!-- G84 Cycle Event Timestamps Markers (Vertical Crosslines) -->
+<!-- Event T0: Rapid to R-plane (x: 180) -->
+<line stroke="#534434" stroke-dasharray="4 4" stroke-width="1.2" x1="180" x2="180" y1="20" y2="340"></line>
+<text fill="#d8c3ad" font-family="JetBrains Mono" font-size="9" x="185" y="32">T0: RÁPIDO R+3.0</text>
+<!-- Event T1: Entry Material Z0 (x: 320) -->
+<line stroke="#534434" stroke-dasharray="4 4" stroke-width="1.2" x1="320" x2="320" y1="20" y2="340"></line>
+<text fill="#d8c3ad" font-family="JetBrains Mono" font-size="9" x="325" y="32">T1: CONTACTO Z0</text>
+<!-- Event T2: Entry Initial Torque Spike (x: 480) -->
+<line opacity="0.7" stroke="#ffc174" stroke-dasharray="2 2" stroke-width="1.2" x1="480" x2="480" y1="20" y2="340"></line>
+<text fill="#ffc174" font-family="JetBrains Mono" font-size="9" x="485" y="44">T2: PICO ENTRADA (14.6 Nm)</text>
+<!-- Event T3: Steady Threading Regime (x: 650) -->
+<line opacity="0.6" stroke="#56e5a9" stroke-dasharray="4 4" stroke-width="1.2" x1="650" x2="650" y1="20" y2="340"></line>
+<text fill="#56e5a9" font-family="JetBrains Mono" font-size="9" x="655" y="32">T3: ESTABLE G84</text>
+<!-- Projected CCW Reversal Plane (Future Target @ x: 860) -->
+<line opacity="0.8" stroke="#4cd7f6" stroke-dasharray="4 4" stroke-width="1.5" x1="860" x2="860" y1="20" y2="340"></line>
+<text fill="#4cd7f6" font-family="JetBrains Mono" font-size="9" x="780" y="32">OBJETIVO INVERSIÓN Z-22.0 (M29 CCW)</text>
+<!-- Oscilloscope Channel Waveforms (Vector Paths simulating 15s history) -->
+<!-- CH4: Phase Lag Delta Theta (Green - Small deviations around bottom baseline y: 310) -->
+<path d="M 60 310 Q 120 311 180 309 T 320 308 Q 380 302 440 305 T 520 307 Q 600 308 680 306 T 760 307 L 850 306" fill="none" stroke="#56e5a9" stroke-width="1.8"></path>
+<!-- CH3: Motor Phase Current (A) (Amber-tinted line around y: 240) -->
+<path d="M 60 270 Q 120 270 180 268 T 320 255 Q 400 215 480 220 T 600 232 Q 700 230 780 228 L 850 230" fill="none" opacity="0.8" stroke="#d8c3ad" stroke-width="1.8"></path>
+<!-- CH2: Active Power kW (Cyan Waveform with under-gradient) -->
+<path d="M 60 320 L 180 320 Q 250 315 320 290 Q 420 240 480 235 Q 540 242 620 248 Q 720 245 800 246 L 850 247" fill="none" stroke="#4cd7f6" stroke-width="2"></path>
+<path d="M 60 320 L 180 320 Q 250 315 320 290 Q 420 240 480 235 Q 540 242 620 248 Q 720 245 800 246 L 850 247 L 850 340 L 60 340 Z" fill="url(#power-gradient)"></path>
+<!-- CH1: Spindle Torque Nm (Primary Amber Curve - Dynamic Wave with entry peak) -->
+<!-- Profile: Idle (2.1 Nm) -> Contact -> Peak (14.6 Nm @ y:135) -> Stabilized (12.8 Nm @ y:155) -->
+<path d="M 60 315 L 180 315 Q 260 310 320 260 Q 410 180 460 135 Q 490 130 520 162 Q 580 152 640 158 Q 710 153 790 156 L 850 155" fill="none" stroke="#ffc174" stroke-width="3"></path>
+<path d="M 60 315 L 180 315 Q 260 310 320 260 Q 410 180 460 135 Q 490 130 520 162 Q 580 152 640 158 Q 710 153 790 156 L 850 155 L 850 340 L 60 340 Z" fill="url(#torque-gradient)"></path>
+<!-- Real-Time Cursor Reticle at t=0s current sample (x: 850) -->
+<line stroke="#ffc174" stroke-width="1.8" x1="850" x2="850" y1="10" y2="340"></line>
+<circle cx="850" cy="155" fill="#f59e0b" r="4.5" stroke="#070b12" stroke-width="2"></circle>
+<circle cx="850" cy="247" fill="#4cd7f6" r="3.5" stroke="#070b12" stroke-width="1.5"></circle>
+<circle cx="850" cy="306" fill="#56e5a9" r="3.5" stroke="#070b12" stroke-width="1.5"></circle>
+<!-- Current Value Annotation Flag pinned to Cursor -->
+<rect fill="#232a3a" height="24" rx="2" width="94" x="858" y="142"></rect>
+<text fill="#ffc174" font-family="JetBrains Mono" font-size="11" font-weight="700" x="864" y="158">12.80 Nm [OK]</text>
+</svg>
+<!-- Y-Axis Value Labels Overlay (Left Side) -->
+<div class="relative z-10 flex flex-col justify-between h-full pointer-events-none text-left w-14 pb-6 pt-2">
+<div class="flex flex-col">
+<span class="font-code-terminal text-code-terminal text-error font-bold">25.0 Nm</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant text-[9px]">4.5 kW</span>
+</div>
+<div class="flex flex-col">
+<span class="font-code-terminal text-code-terminal text-primary font-bold">20.0 Nm</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant text-[9px]">3.6 kW</span>
+</div>
+<div class="flex flex-col">
+<span class="font-code-terminal text-code-terminal text-primary font-bold">15.0 Nm</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant text-[9px]">2.7 kW</span>
+</div>
+<div class="flex flex-col">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant font-bold">10.0 Nm</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant text-[9px]">1.8 kW</span>
+</div>
+<div class="flex flex-col">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">00.0 Nm</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant text-[9px]">0.0 kW</span>
+</div>
+</div>
+<!-- Sliding X-Axis Time Window Labels (Last 15 Seconds: -15s to 0s) -->
+<div class="relative z-10 flex items-center justify-between w-full pl-14 pr-4 bg-surface-container-lowest/80 py-1 rounded">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">t = -15.0s</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">t = -12.0s</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">t = -9.0s</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">t = -6.0s</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">t = -3.0s</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+<span class="font-code-terminal text-code-terminal font-bold text-primary">t = 0.0s [AHORA]</span>
+</div>
+</div>
+</div>
+<!-- Cut Statistics & Block Extreme Metrics Footer -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-xs mt-space-sm pt-space-xs bg-surface-container px-space-sm py-space-sm rounded">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">TORQUE MEDIO EN CORTE</span>
+<span class="font-code-base text-code-base text-on-surface font-bold">11.90 Nm</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">VARIABILIDAD: ±4.8%</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">TORQUE PICO ENTRADA</span>
+<span class="font-code-base text-code-base text-primary font-bold">14.62 Nm</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">EN Z: -002.500 mm</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">DISIPACIÓN TÉRMICA FILO</span>
+<span class="font-code-base text-code-base text-secondary font-bold">142 W</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">Q ESTIMADO REFRIG.</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">FACTOR DE SEGURIDAD</span>
+<div class="flex items-center gap-1.5">
+<span class="font-code-base text-code-base text-tertiary font-bold">1.72x</span>
+<span class="font-code-terminal text-code-terminal px-1 rounded bg-surface-container-high text-tertiary">FILLETE SEGURO</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">LÍMITE SHEAR M8: 24Nm</span>
+</div>
+</div>
+</div>
+<!-- RIGHT 4 COLS: DYNAMIC LOAD METERS, VIBRATION FFT & ADAPTIVE TOOL WEAR -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- PANEL 1: SPINDLE LOAD METER (BAR & DIGITAL DIAL) -->
+<div class="flex flex-col bg-surface-container-low p-space-md rounded-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container-lowest px-space-sm py-1 rounded">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">speed</span>
+<span class="font-title-sm text-title-sm text-on-surface uppercase">CARGA MOTOR HUSILLO (%)</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-tertiary font-bold">ZONA SEGURA</span>
+</div>
+<div class="flex items-baseline justify-between mb-space-xs">
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg text-primary font-bold tabular-nums">39.2</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">% CARGA</span>
+</div>
+<div class="text-right">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">CAPACIDAD MOTOR:</span>
+<span class="font-code-base text-code-base text-on-surface font-semibold ml-1">11.0 kW / 38 Nm</span>
+</div>
+</div>
+<!-- Segmented Industrial Load Bar (0 - 120%) -->
+<div class="w-full bg-surface-container-lowest p-1 rounded-lg flex flex-col gap-1">
+<div class="grid grid-cols-12 gap-0.5 h-5">
+<!-- 0-70% Safe Zone (Green) - Segments 1 to 5 Active -->
+<div class="rounded-sm bg-tertiary"></div>
+<div class="rounded-sm bg-tertiary"></div>
+<div class="rounded-sm bg-tertiary"></div>
+<div class="rounded-sm bg-tertiary"></div>
+<div class="rounded-sm bg-tertiary/40"></div>
+<div class="rounded-sm bg-surface-container-highest"></div>
+<div class="rounded-sm bg-surface-container-highest"></div>
+<!-- 70-100% Caution Zone (Amber) -->
+<div class="rounded-sm bg-surface-container-highest"></div>
+<div class="rounded-sm bg-surface-container-highest"></div>
+<div class="rounded-sm bg-surface-container-highest"></div>
+<!-- >100% Overload Zone (Red) -->
+<div class="rounded-sm bg-surface-container-highest"></div>
+<div class="rounded-sm bg-surface-container-highest"></div>
+</div>
+<div class="flex justify-between px-0.5">
+<span class="font-code-terminal text-code-terminal text-tertiary">0%</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">SAFE (70%)</span>
+<span class="font-code-terminal text-code-terminal text-primary">WARN (100%)</span>
+<span class="font-code-terminal text-code-terminal text-error">120% CRIT</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-space-xs mt-space-sm pt-space-xs text-center">
+<div class="bg-surface-container p-1 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant block">PEAK REG.</span>
+<span class="font-code-base text-code-base text-primary font-bold">46.8%</span>
+</div>
+<div class="bg-surface-container p-1 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant block">RMS AVG</span>
+<span class="font-code-base text-code-base text-on-surface font-bold">38.4%</span>
+</div>
+<div class="bg-surface-container p-1 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant block">OVERLOAD T</span>
+<span class="font-code-base text-code-base text-tertiary font-bold">0.00 s</span>
+</div>
+</div>
+</div>
+<!-- PANEL 2: TRIAXIAL VIBRATION & FFT SPECTRUM -->
+<div class="flex flex-col bg-surface-container-low p-space-md rounded-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container-lowest px-space-sm py-1 rounded">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">vibration</span>
+<span class="font-title-sm text-title-sm text-on-surface uppercase">VIBRACIÓN CABEZAL &amp; FFT</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-tertiary px-1 rounded bg-surface-container-high">ISO 10816 CLASS 1</span>
+</div>
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">VELOCIDAD RMS TOTAL</span>
+<div class="flex items-baseline gap-1">
+<span class="font-dro-display text-dro-display text-tertiary font-bold tabular-nums">0.82</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">mm/s</span>
+</div>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-caps text-label-caps text-on-surface-variant">PICO DOMINANTE</span>
+<div class="flex items-baseline gap-1 justify-end">
+<span class="font-code-base text-code-base text-secondary font-bold tabular-nums">240 Hz</span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">(4x S)</span>
+</div>
+</div>
+</div>
+<!-- Mini Sparkline FFT Spectral Distribution (Inline SVG) -->
+<div class="w-full h-16 bg-surface-container-lowest rounded p-1 flex items-end">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 240 60">
+<!-- Noise floor bars -->
+<path d="M 5 58 L 15 52 L 25 55 L 35 48 L 45 54 L 55 52 L 65 56 L 75 50 L 85 54 L 95 53 L 105 56 L 115 52 L 125 55 L 135 50 L 145 56 L 155 52 L 165 54 L 175 51 L 185 55 L 195 53 L 205 56 L 215 54 L 225 57 L 235 55" fill="none" stroke="#223354" stroke-width="1.2"></path>
+<!-- Harmonic 1x (600 rpm = 10 Hz) -->
+<rect fill="#4cd7f6" height="26" opacity="0.6" rx="1" width="5" x="22" y="32"></rect>
+<!-- Harmonic 4x (4 Flutes tap entry = 40-240Hz peak) -->
+<rect fill="#4cd7f6" height="48" rx="1" width="6" x="92" y="10"></rect>
+<circle cx="95" cy="8" fill="#f59e0b" r="2.5"></circle>
+<text fill="#ffc174" font-family="JetBrains Mono" font-size="8" x="105" y="14">240 Hz</text>
+<!-- High frequency bearing mesh (no abnormal spike) -->
+<rect fill="#56e5a9" height="16" opacity="0.5" rx="1" width="4" x="180" y="42"></rect>
+</svg>
+</div>
+<div class="flex items-center justify-between mt-1 text-[10px] font-code-terminal text-on-surface-variant">
+<span>0 Hz</span>
+<span>120 Hz</span>
+<span class="text-secondary font-bold">240 Hz [PICO FLUTE]</span>
+<span>500 Hz</span>
+<span>1 kHz</span>
+</div>
+</div>
+<!-- PANEL 3: THERMAL STATUS & ADAPTIVE TOOL WEAR LEARNING -->
+<div class="flex flex-col bg-surface-container-low p-space-md rounded-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-xs mb-space-sm bg-surface-container-lowest px-space-sm py-1 rounded">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">psychology</span>
+<span class="font-title-sm text-title-sm text-on-surface uppercase">DESGASTE ADAPTATIVO &amp; TÉRMICO</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">MODELO M8x1.25</span>
+</div>
+<!-- Spindle Bearings Thermal Status -->
+<div class="flex items-center justify-between p-space-xs bg-surface-container rounded mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">device_thermostat</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface">RODAMIENTO FRONTAL</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">REFRIGERACIÓN CAMISA: ACTIVA</span>
+</div>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-dro-display text-dro-display text-on-surface tabular-nums">31.4 <span class="text-[12px] text-on-surface-variant font-normal">°C</span></span>
+<span class="font-code-terminal text-code-terminal text-tertiary">+4.2°C ΔT AMBIENTE</span>
+</div>
+</div>
+<!-- Adaptive Tool Wear Metric & Safe Status -->
+<div class="flex flex-col p-space-xs bg-surface-container rounded gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">DESVIACIÓN DE HUELLA (WEAR COEFF)</span>
+<span class="font-code-base text-code-base text-tertiary font-bold">+3.2% vs PATRÓN</span>
+</div>
+<!-- Progress bar towards wear limit (+20% threshold) -->
+<div class="w-full bg-surface-container-highest h-2 rounded overflow-hidden">
+<div class="bg-tertiary h-full rounded" style="width: 16%;"></div>
+</div>
+<div class="flex items-center justify-between pt-0.5">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-code-terminal text-code-terminal text-tertiary font-bold uppercase">ESTADO SEGURO: FILO ÓPTIMO</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">ALARMA ROTURA: 0 [DESACT]</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTTOM HARDWARE ACTION & OVERRIDE COCKPIT BAR -->
+<div class="mt-space-md flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-lg">
+<!-- Left Auxiliary Telemetry Actions -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright px-space-md py-space-sm rounded font-body-bold text-body-bold text-on-surface transition-all active:scale-98 shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">download</span>
+<span>EXPORTAR REGISTRO CSV (FOCAS2)</span>
+</button>
+<button class="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright px-space-md py-space-sm rounded font-body-bold text-body-bold text-on-surface transition-all active:scale-98 shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary">tune</span>
+<span>CONFIGURAR LÍMITES (#3000/#3001)</span>
+</button>
+<div class="hidden md:flex items-center gap-space-xs px-space-sm py-1 bg-surface-container-lowest rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant">MACRO SYNC:</span>
+<span class="font-code-terminal text-code-terminal text-primary">#110=12.80</span>
+<span class="font-code-terminal text-code-terminal text-secondary">#111=14.62</span>
+<span class="font-code-terminal text-code-terminal text-tertiary">#112=0</span>
+</div>
+</div>
+<!-- Right Primary Execution & Safety Locks -->
+<div class="flex items-center gap-space-sm w-full sm:w-auto justify-end">
+<!-- Adaptive Override Button -->
+<button class="flex items-center gap-2 bg-primary-container hover:bg-surface-tint text-on-primary-container px-space-lg py-space-sm rounded font-body-bold text-body-bold shadow-md transition-all active:scale-98">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+<span>AJUSTAR FEED OVERRIDE DINÁMICO</span>
+</button>
+<!-- Hardware E-STOP Button Emergency Metaphor -->
+<button class="flex items-center gap-1.5 bg-error-container hover:bg-error text-on-error-container hover:text-on-error px-space-md py-space-sm rounded font-headline-md text-headline-md tracking-wider font-black shadow-lg transition-all active:scale-95" title="Hardware Emergency Stop Disconnect">
+<span class="material-symbols-outlined text-[22px]">gpp_maybe</span>
+<span>E-STOP</span>
+</button>
+</div>
+</div>
+<!-- Interactive Client-side Script for Scope Freeze & Mode Toggle -->
+<script>
+    let isFrozen = false;
+    function toggleFreeze() {
+      isFrozen = !isFrozen;
+      const btn = document.getElementById('freeze-toggle-btn');
+      const label = document.getElementById('freeze-label');
+      const icon = document.getElementById('freeze-icon');
+      
+      if (isFrozen) {
+        btn.classList.remove('bg-surface-container-highest');
+        btn.classList.add('bg-primary', 'text-on-primary');
+        label.textContent = 'REANUDAR';
+        icon.textContent = 'play_arrow';
+      } else {
+        btn.classList.remove('bg-primary', 'text-on-primary');
+        btn.classList.add('bg-surface-container-highest');
+        label.textContent = 'CONGELAR';
+        icon.textContent = 'pause';
+      }
+    }
+  </script>
+</div></main></div></body></html>

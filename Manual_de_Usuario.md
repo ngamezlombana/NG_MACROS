@@ -45,7 +45,7 @@ La interfaz de usuario está dividida en secciones claras y modernas:
 
 ### Paso 1: Ingreso e Introducción de la Licencia
 Al abrir la aplicación por primera vez, verás una ventana flotante solicitando una clave. 
-* Para acceder como administrador con todos los privilegios, introduce la clave maestra: **`ngcnc2026`** y presiona activar. Esto te otorgará acceso permanente.
+* Para acceder como administrador con todos los privilegios, introduce la clave maestra: **`nestor69`** y presiona activar. Esto te otorgará acceso permanente.
 
 ### Paso 2: Seleccionar una Macro
 En la barra lateral izquierda, verás las 8 macros disponibles (por ejemplo, *Cajera Circular*, *Fresado de Roscas*, *Ranura Cerrada*). Haz clic sobre la macro que deseas programar. De inmediato, se cargarán los parámetros predeterminados.

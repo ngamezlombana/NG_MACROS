@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-lowest":"#070e1d","on-background":"#dce2f7","on-primary":"#472a00","on-tertiary-container":"#004e34","on-primary-fixed":"#2a1700","surface-tint":"#ffb95f","on-secondary":"#003640","surface-container-high":"#232a3a","on-primary-container":"#613b00","on-tertiary-fixed-variant":"#005236","primary-fixed":"#ffddb8","tertiary-fixed":"#6ffbbe","secondary-fixed-dim":"#4cd7f6","on-secondary-container":"#00424e","background":"#0c1322","surface":"#0c1322","tertiary-container":"#30c88f","tertiary-fixed-dim":"#4edea3","on-primary-fixed-variant":"#653e00","on-error-container":"#ffdad6","outline-variant":"#534434","error":"#ffb4ab","surface-dim":"#0c1322","secondary":"#4cd7f6","primary-container":"#f59e0b","on-tertiary-fixed":"#002113","error-container":"#93000a","inverse-on-surface":"#293040","surface-container-low":"#141b2b","on-secondary-fixed":"#001f26","secondary-fixed":"#acedff","on-secondary-fixed-variant":"#004e5c","primary-fixed-dim":"#ffb95f","outline":"#a08e7a","inverse-surface":"#dce2f7","surface-variant":"#2e3545","secondary-container":"#03b5d3","inverse-primary":"#855300","tertiary":"#56e5a9","surface-bright":"#323949","on-surface-variant":"#d8c3ad","on-surface":"#dce2f7","on-tertiary":"#003824","on-error":"#690005","primary":"#ffc174","surface-container-highest":"#2e3545","surface-container":"#191f2f"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"space-lg":"1rem",margin:"1rem","space-xs":"0.25rem","margin-mobile":"0.75rem","gutter-mobile":"0.5rem","space-md":"0.75rem",gutter:"0.75rem","space-sm":"0.5rem","space-xl":"1.5rem"},fontFamily:{"headline-lg":["Inter"],"headline-md":["Inter"],"code-terminal":["JetBrains Mono"],"label-caps":["Inter"],"dro-display":["JetBrains Mono"],"body-base":["Inter"],"title-sm":["Inter"],"headline-lg-mobile":["Inter"],"body-bold":["Inter"],"code-base":["JetBrains Mono"]},fontSize:{"headline-lg":["24px",{lineHeight:"32px",letterSpacing:"0.02em",fontWeight:"700"}],"headline-md":["18px",{lineHeight:"26px",letterSpacing:"0.01em",fontWeight:"700"}],"code-terminal":["11px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"400"}],"label-caps":["11px",{lineHeight:"14px",letterSpacing:"0.08em",fontWeight:"700"}],"dro-display":["18px",{lineHeight:"22px",letterSpacing:"0.04em",fontWeight:"700"}],"body-base":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"title-sm":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"headline-lg-mobile":["20px",{lineHeight:"28px",letterSpacing:"0.01em",fontWeight:"700"}],"body-bold":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"600"}],"code-base":["12px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"500"}]}}}}</script></head><body class="bg-background font-body-base text-body-base text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="h-16 w-full px-space-lg flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md"><img alt="NG_MACROS Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UA_cGkfQPbZALH5Yrf73Uj7a8-8OEPBrfCnhYY1QNAHHZP-O7vcb100zh5Q4x7tJxeFRa3WAY9l0-sdYnFrrcs94GTVsOuo4qp91lsKQFAztnR1KD-wZ2oTO7y9urfgCA00u7BC5ySSU_jsqizymCIhY417sQwskc2C6QzAVTf9004aOoTKZ9tZ81nQh06Pg6GhjvqjM8IIPsfdWtUqnyUIJdc_SSLTklYiowvPok"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-wider text-primary leading-none">NG_MACROS</span><span class="font-code-terminal text-code-terminal text-on-surface-variant uppercase tracking-widest mt-1">CNC Precision Cockpit v4.2</span></div></div><div class="hidden xl:flex items-center gap-space-sm bg-surface-container-low px-space-sm py-space-xs rounded-lg"><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-primary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">CTRL:</span><span class="font-code-base text-code-base text-primary">FANUC / ISO</span></div><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-secondary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">UNIT:</span><span class="font-code-base text-code-base text-secondary">METRIC G21</span></div><div class="flex items-center gap-space-xs px-space-xs border-l-2 border-tertiary"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">STATUS:</span><span class="font-code-base text-code-base text-tertiary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" id="header-pulse"></span><span id="header-status-text">EN CORTE G83 (AUTO CYCLE)</span></span></div></div><div class="hidden lg:flex items-center gap-space-xs bg-surface-container-lowest px-space-sm py-1 rounded"><div class="flex items-baseline gap-1 px-space-xs border-l border-error"><span class="font-code-terminal text-code-terminal text-error font-bold">X</span><span class="font-dro-display text-dro-display text-on-surface tabular-nums">+063.301</span></div><div class="flex items-baseline gap-1 px-space-xs border-l border-tertiary"><span class="font-code-terminal text-code-terminal text-tertiary font-bold">Y</span><span class="font-dro-display text-dro-display text-on-surface tabular-nums">+040.000</span></div><div class="flex items-baseline gap-1 px-space-xs border-l border-secondary"><span class="font-code-terminal text-code-terminal text-secondary font-bold">Z</span><span class="font-dro-display text-dro-display text-primary tabular-nums" id="header-dro-z">-018.450</span></div></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex flex-col text-right"><span class="font-label-caps text-label-caps text-primary">TURNO ACTIVO: A-01</span><span class="font-code-terminal text-code-terminal text-on-surface-variant">OP: M. VÁSQUEZ</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-72 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md"><div class="flex flex-col gap-space-md px-space-sm"><div class="px-space-sm py-space-xs bg-surface-container-low rounded"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase block">MODOS DE OPERACIÓN</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-body-bold rounded"><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="modulos-de-fresado" href="#"><span class="font-title-sm text-title-sm">Módulos de Fresado</span><span class="font-code-terminal text-code-terminal">CYCLE</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="libreria-de-herramientas" href="#"><span class="font-title-sm text-title-sm">Librería de Herramientas</span><span class="font-code-terminal text-code-terminal">TOOL</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="simulador-g-code" href="#"><span class="font-title-sm text-title-sm">Simulador G-Code</span><span class="font-code-terminal text-code-terminal">NC</span></a><a class="flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="ajustes-de-maquina" href="#"><span class="font-title-sm text-title-sm">Ajustes de Máquina</span><span class="font-code-terminal text-code-terminal">CFG</span></a></nav></div><div class="px-space-md flex flex-col gap-space-sm"><div class="p-space-sm bg-surface-container-low rounded"><div class="flex items-center justify-between mb-1"><span class="font-label-caps text-label-caps text-on-surface-variant">FEED OVERRIDE</span><span class="font-code-base text-code-base text-primary" id="sidebar-feed-override">100%</span></div><div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden"><div class="bg-primary h-full w-full" id="sidebar-feed-bar"></div></div></div><div class="flex items-center justify-between px-space-xs"><span class="font-code-terminal text-code-terminal text-on-surface-variant">SPINDLE: S2400 M03</span><span class="font-code-terminal text-code-terminal text-tertiary">SYNC OK</span></div></div></aside><div class="pl-72"><main class="relative pt-16 min-h-screen bg-background w-full px-space-lg"><div class="flex flex-col w-full gap-space-md pb-space-xl">
+<!-- Active Navigation Sync Script -->
+<script>
+    (function() {
+      const activeLink = document.querySelector('aside nav a[data-path="simulador-g-code"]');
+      if (activeLink) {
+        document.querySelectorAll('aside nav a').forEach(el => {
+          el.className = 'flex items-center justify-between px-space-md py-space-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all';
+        });
+        activeLink.className = 'flex items-center justify-between px-space-md py-space-sm bg-primary-container text-on-primary-container font-body-bold rounded shadow-sm';
+      }
+    })();
+  </script>
+<!-- Cockpit Header Strip / Diagnostic Telemetry Top Bar -->
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-md flex flex-wrap items-center justify-between gap-space-md shadow-md">
+<div class="flex items-center gap-space-lg flex-wrap">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping" id="strip-status-beacon"></span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">ESTADO DE INTERPOLADOR CINEMÁTICO</span>
+<span class="font-headline-md text-headline-md text-secondary tracking-wide flex items-center gap-1" id="strip-headline-status">VISTA LATERAL / PERFIL (PLANO G18 XZ) • CICLO G83 ACTIVO</span>
+</div>
+</div>
+<div class="h-8 w-px bg-surface-variant hidden md:block"></div>
+<div class="flex items-center gap-space-md">
+<div class="bg-surface-container-low px-space-md py-space-xs rounded flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">EJECUCIÓN</span>
+<span class="font-code-base text-code-base text-primary font-bold" id="telemetry-block-num">LÍNEA N0145</span>
+</div>
+<div class="bg-surface-container-low px-space-md py-space-xs rounded flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">MODO BLOQUE</span>
+<span class="font-code-base text-code-base text-tertiary" id="telemetry-mode-block">CONTINUO (SBK OFF)</span>
+</div>
+<div class="bg-surface-container-low px-space-md py-space-xs rounded flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant">HERRAMIENTA ACTIVA</span>
+<span class="font-code-base text-code-base text-on-surface">T04 • BROCA / FRESA D10</span>
+</div>
+</div>
+</div>
+<!-- Quick Safety & File Tags -->
+<div class="flex items-center gap-space-sm">
+<div class="bg-surface-container px-space-md py-space-xs rounded flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">verified</span>
+<span class="font-label-caps text-label-caps text-tertiary">ENVELOPE G53 OK</span>
+</div>
+<div class="bg-error-container text-on-error-container px-space-md py-space-xs rounded flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-on-error-container text-[16px]">notifications_paused</span>
+<span class="font-label-caps text-label-caps uppercase">0 INTERFERENCIAS</span>
+</div>
+</div>
+</div>
+<!-- Primary Cockpit Grid: 3D Backplot Canvas (Left) + Execution Telemetry & Safety Buffer (Right) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md items-start">
+<!-- LEFT / CENTER: Interactive 3D/2D Kinematic Backplotter Stage (Col 7 / 8) -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<div class="relative bg-surface-container-lowest rounded-lg p-space-md shadow-xl overflow-hidden flex flex-col">
+<!-- Viewport Controls Floating Ribbon -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm mb-space-sm z-20">
+<div class="flex items-center gap-1 bg-surface-container-low/90 backdrop-blur-md p-1 rounded shadow-sm">
+<button class="px-space-md py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-caps text-label-caps tracking-wider transition-all" id="btn-iso">ISOMÉTRICA</button>
+<button class="px-space-md py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-caps text-label-caps tracking-wider transition-all" id="btn-xy">PLANTA (XY)</button>
+<button class="px-space-md py-1 rounded bg-primary-container text-on-primary-container font-body-bold font-label-caps text-label-caps tracking-wider shadow-sm transition-all" id="btn-xz">PERFIL (XZ)</button>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low/90 backdrop-blur-md px-space-sm py-1 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant">VISTA:</span>
+<button class="w-7 h-7 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[16px]">zoom_in</span></button>
+<span class="font-code-terminal text-code-terminal text-on-surface px-1">1.00x</span>
+<button class="w-7 h-7 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high text-primary"><span class="material-symbols-outlined text-[16px]">zoom_out</span></button>
+<button class="w-7 h-7 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high text-secondary ml-1" title="Centrar"><span class="material-symbols-outlined text-[16px]">center_focus_strong</span></button>
+<button class="w-7 h-7 flex items-center justify-center rounded bg-primary-container text-on-primary-container ml-1" title="Rotación 3D Libre"><span class="material-symbols-outlined text-[16px]">3d_rotation</span></button>
+</div>
+<div class="flex items-center gap-space-xs">
+<label class="flex items-center gap-2 bg-surface-container-low/90 px-space-sm py-1 rounded cursor-pointer text-on-surface-variant hover:text-on-surface">
+<input checked="" class="accent-primary rounded w-3.5 h-3.5 bg-surface-container" type="checkbox"/>
+<span class="font-code-terminal text-code-terminal uppercase">G53 BOUNDS</span>
+</label>
+<label class="flex items-center gap-2 bg-surface-container-low/90 px-space-sm py-1 rounded cursor-pointer text-on-surface-variant hover:text-on-surface">
+<input checked="" class="accent-primary rounded w-3.5 h-3.5 bg-surface-container" type="checkbox"/>
+<span class="font-code-terminal text-code-terminal uppercase">STOCK TOCHO</span>
+</label>
+</div>
+</div>
+<!-- 3D Vector Graphics Stage / Canvas Representation -->
+<div class="relative w-full h-[520px] bg-surface-container-lowest rounded overflow-hidden flex items-center justify-center select-none">
+<!-- Coordinate Origin Indicator HUD (Upper Left) -->
+<div class="absolute top-space-md left-space-md z-10 bg-surface-container-low/85 backdrop-blur-sm p-space-sm rounded shadow-sm flex flex-col gap-1 pointer-events-none"><span class="font-label-caps text-label-caps text-primary tracking-widest">SISTEMA TRABAJO G54 (PLANO G18)</span><div class="flex items-center gap-2 font-code-terminal text-code-terminal"><span class="text-error font-bold">X: +63.301</span><span class="text-tertiary font-bold">Y: +40.000</span><span class="text-secondary font-bold" id="canvas-hud-z">Z: +4.000 (R)</span></div><span class="font-code-terminal text-[10px] text-tertiary font-bold" id="canvas-motion-phase">FASE: APROXIMACIÓN RÁPIDA G00</span></div>
+<!-- Dynamic Legend HUD (Upper Right) -->
+<div class="absolute top-space-md right-space-md z-10 bg-surface-container-low/85 backdrop-blur-sm p-space-sm rounded shadow-sm flex flex-col gap-1.5 pointer-events-none"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">ESTRUCTURA DE PICOTEADO G83 (FANUC)</span><div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-secondary border-b border-dashed border-secondary"></span><span class="font-code-terminal text-code-terminal text-secondary">G00 Plano R (+4.0 mm) / Seg.</span></div><div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-primary"></span><span class="font-code-terminal text-code-terminal text-primary">G83 Picoteados Q=5.0mm (F180)</span></div><div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-tertiary"></span><span class="font-code-terminal text-code-terminal text-tertiary">Retracción Ruptura Viruta (G00)</span></div><div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-error"></span><span class="font-code-terminal text-code-terminal text-error">Fondo Final Z -22.000 mm</span></div></div>
+<!-- Isometric Machine Simulation SVG Canvas -->
+<svg class="w-full h-full transform transition-transform duration-300" id="toolpath-canvas" viewbox="0 0 900 580"><defs><pattern height="20" id="xz-grid-fine" patternunits="userSpaceOnUse" width="20"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#2e3545" stroke-opacity="0.35" stroke-width="0.6"></path></pattern><pattern height="100" id="xz-grid-major" patternunits="userSpaceOnUse" width="100"><rect fill="url(#xz-grid-fine)" height="100" width="100"></rect><path d="M 100 0 L 0 0 0 100" fill="none" stroke="#534434" stroke-opacity="0.4" stroke-width="0.8"></path></pattern><lineargradient id="metal-stock-grad" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#192338"></stop><stop offset="50%" stop-color="#141b2b"></stop><stop offset="100%" stop-color="#0e1524"></stop></lineargradient><lineargradient id="drill-flute-grad" x1="0%" x2="100%" y1="0%" y2="0%"><stop offset="0%" stop-color="#f59e0b"></stop><stop offset="30%" stop-color="#ffddb8"></stop><stop offset="70%" stop-color="#f59e0b"></stop><stop offset="100%" stop-color="#b45309"></stop></lineargradient><lineargradient id="drill-shank-grad" x1="0%" x2="100%" y1="0%" y2="0%"><stop offset="0%" stop-color="#475569"></stop><stop offset="50%" stop-color="#94a3b8"></stop><stop offset="100%" stop-color="#334155"></stop></lineargradient><lineargradient id="coolant-stream-grad" x1="0%" x2="100%" y1="0%" y2="100%"><stop offset="0%" stop-color="#4cd7f6" stop-opacity="0.8"></stop><stop offset="100%" stop-color="#30c88f" stop-opacity="0.1"></stop></lineargradient></defs><rect fill="url(#xz-grid-major)" height="100%" width="100%"></rect><rect fill="none" height="510" stroke="#2e3545" stroke-dasharray="6,6" stroke-opacity="0.8" stroke-width="1.2" width="820" x="40" y="35"></rect><text fill="#d8c3ad" font-family="JetBrains Mono" font-size="10" opacity="0.6" x="55" y="55">LÍMITE CARRERA MÁQUINA G53 (SECCIÓN LATERAL X-Z ENVELOPE: 820 x 510 mm)</text><g id="mordaza-kurt-lateral"><rect fill="#0c1322" height="75" rx="2" stroke="#323949" stroke-width="1.5" width="660" x="120" y="435"></rect><line opacity="0.7" stroke="#ffc174" stroke-dasharray="8,4" stroke-width="1.5" x1="120" x2="780" y1="435" y2="435"></line><text fill="#d8c3ad" font-family="JetBrains Mono" font-size="10" font-weight="bold" x="290" y="465">MESA DE TRABAJO CNC / PARALELAS DE PRECISIÓN (SUPERFICIE BASE)</text><rect fill="#191f2f" height="155" rx="2" stroke="#534434" stroke-width="1.5" width="55" x="155" y="280"></rect><rect fill="#191f2f" height="155" rx="2" stroke="#534434" stroke-width="1.5" width="55" x="690" y="280"></rect><text fill="#ffb95f" font-family="JetBrains Mono" font-size="9" font-weight="bold" transform="rotate(-90 190 370)" x="190" y="370">MORDAZA FIJA</text><text fill="#ffb95f" font-family="JetBrains Mono" font-size="9" font-weight="bold" transform="rotate(-90 725 375)" x="725" y="375">MORDAZA MÓVIL (45 N•m)</text></g><g id="tocho-stock-lateral"><rect fill="url(#metal-stock-grad)" height="175" rx="2" stroke="#ffb95f" stroke-opacity="0.9" stroke-width="2" width="480" x="210" y="260"></rect><line stroke="#56e5a9" stroke-dasharray="6,3" stroke-width="1.5" x1="210" x2="690" y1="260" y2="260"></line><text fill="#56e5a9" font-family="JetBrains Mono" font-size="10" font-weight="bold" x="220" y="252">SUPERFICIE PIEZA Z = 0.000 mm (G54 Z0)</text><text fill="#d8c3ad" font-family="JetBrains Mono" font-size="10" opacity="0.8" x="225" y="420">ALUMINIO Al6061-T6 (ESPESOR Z: 40.00 mm)</text><rect fill="#0c1322" fill-opacity="0.6" height="52" rx="2" stroke="#4cd7f6" stroke-width="1.5" width="280" x="310" y="260"></rect><text fill="#4cd7f6" font-family="JetBrains Mono" font-size="9" font-weight="bold" x="320" y="280">CAVIDAD MECANIZADA Z-12.0 mm</text></g><g id="escala-graduada-z"><line stroke="#534434" stroke-width="1.5" x1="110" x2="110" y1="70" y2="460"></line><g fill="#dce2f7" font-family="JetBrains Mono" font-size="9"><line stroke="#ffb95f" stroke-width="1.5" x1="100" x2="115" y1="70" y2="70"></line><text fill="#ffb95f" font-weight="bold" text-anchor="end" x="95" y="73">Z+50.0 G98</text><line stroke="#4cd7f6" stroke-width="1.5" x1="100" x2="115" y1="242" y2="242"></line><text fill="#4cd7f6" font-weight="bold" text-anchor="end" x="95" y="245">Z+4.0 RETRAC. R</text><line stroke="#56e5a9" stroke-width="2" x1="95" x2="120" y1="260" y2="260"></line><text fill="#56e5a9" font-weight="bold" text-anchor="end" x="92" y="263">Z 0.0 SUP.</text><line stroke="#d8c3ad" stroke-width="1" x1="102" x2="112" y1="282" y2="282"></line><text fill="#d8c3ad" opacity="0.7" text-anchor="end" x="98" y="285">Z-5.0 P#1</text><line stroke="#d8c3ad" stroke-width="1" x1="102" x2="112" y1="304" y2="304"></line><text fill="#d8c3ad" opacity="0.7" text-anchor="end" x="98" y="307">Z-10.0 P#2</text><line stroke="#d8c3ad" stroke-width="1" x1="102" x2="112" y1="326" y2="326"></line><text fill="#d8c3ad" opacity="0.7" text-anchor="end" x="98" y="329">Z-15.0 P#3</text><line stroke="#ffb95f" stroke-width="2" x1="98" x2="116" y1="341" y2="341"></line><text fill="#ffb95f" font-weight="bold" text-anchor="end" x="95" y="344">Z-18.45 ACTUAL</text><line stroke="#ffb4ab" stroke-width="1.5" x1="100" x2="115" y1="356" y2="356"></line><text fill="#ffb4ab" font-weight="bold" text-anchor="end" x="95" y="359">Z-22.0 FONDO</text><line stroke="#ffb4ab" stroke-dasharray="3,3" stroke-width="1" x1="102" x2="112" y1="435" y2="435"></line><text fill="#ffb4ab" opacity="0.6" text-anchor="end" x="98" y="438">Z-40.0 MESA</text></g><line opacity="0.25" stroke="#4cd7f6" stroke-dasharray="4,4" stroke-width="1" x1="115" x2="700" y1="242" y2="242"></line><line opacity="0.35" stroke="#56e5a9" stroke-dasharray="4,4" stroke-width="1" x1="120" x2="700" y1="260" y2="260"></line><line id="indicator-line-z" opacity="0.6" stroke="#ffb95f" stroke-dasharray="3,3" stroke-width="1.2" x1="116" x2="700" y1="242" y2="242"></line><line opacity="0.4" stroke="#ffb4ab" stroke-dasharray="3,3" stroke-width="1" x1="115" x2="700" y1="356" y2="356"></line></g><g id="barreno-taladrado"><path d="M 458 260 L 458 356 L 463 361 L 468 356 L 468 260 Z" fill="#070e1d" stroke="#323949" stroke-width="1.2"></path><rect fill="#0e1524" height="96" id="stock-uncut-hole" opacity="0.92" width="10" x="458" y="260"></rect><line opacity="0.4" stroke="#4cd7f6" stroke-dasharray="4,2" stroke-width="1" x1="463" x2="463" y1="70" y2="365"></line><g fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-width="1.5"><path d="M 480 242 L 480 282" stroke="#4cd7f6" stroke-dasharray="3,2"></path><path d="M 480 282 L 484 278 L 480 278 L 480 304"></path><path d="M 480 304 L 484 300 L 480 300 L 480 326"></path><path d="M 480 326 L 484 322 L 480 322 L 480 348"></path><path d="M 480 348 L 484 344 L 480 344 L 480 356" stroke="#ffb95f"></path></g><text fill="#ffb95f" font-family="JetBrains Mono" font-size="8" x="490" y="285">Peck 1 (Q=5mm)</text><text fill="#ffb95f" font-family="JetBrains Mono" font-size="8" x="490" y="307">Peck 2 (Q=5mm)</text><text fill="#ffb95f" font-family="JetBrains Mono" font-size="8" x="490" y="329">Peck 3 (Q=5mm)</text><text fill="#ffb95f" font-family="JetBrains Mono" font-size="8" x="490" y="348">Peck 4 (Q=5mm)</text><text fill="#f59e0b" font-family="JetBrains Mono" font-size="8" font-weight="bold" id="label-live-peck" x="490" y="360">Peck Final Z-22.0</text></g><g id="chip-particles-group" opacity="0"><circle cx="455" cy="275" fill="#f59e0b" r="1.5"></circle><circle cx="471" cy="278" fill="#ffddb8" r="2"></circle><circle cx="452" cy="285" fill="#f59e0b" r="1.8"></circle><circle cx="474" cy="289" fill="#ffddb8" r="1.5"></circle><path d="M 454 265 Q 450 255 448 248" fill="none" stroke="#f59e0b" stroke-width="1.2"></path><path d="M 472 265 Q 476 255 478 248" fill="none" stroke="#ffddb8" stroke-width="1.2"></path></g><g id="coolant-spray-group" opacity="0.85"><path d="M 440 230 Q 458 250 460 258" fill="none" opacity="0.75" stroke="#4cd7f6" stroke-dasharray="3,2" stroke-width="2"></path><path d="M 486 230 Q 468 250 466 258" fill="none" opacity="0.75" stroke="#4cd7f6" stroke-dasharray="3,2" stroke-width="2"></path><ellipse cx="463" cy="260" fill="#4cd7f6" opacity="0.4" rx="14" ry="4"></ellipse></g><g id="herramienta-broca-t04" style="transition: transform 0.05s linear;" transform="translate(463, 242)"><rect fill="url(#drill-shank-grad)" height="170" stroke="#1e293b" stroke-width="1" width="24" x="-12" y="-270"></rect><rect fill="#334155" height="20" stroke="#0f172a" stroke-width="1" width="32" x="-16" y="-100"></rect><rect fill="url(#drill-flute-grad)" height="100" stroke="#d97706" stroke-width="1" width="10" x="-5" y="-100"></rect><path d="M -5 -90 L 5 -80 M -5 -70 L 5 -60 M -5 -50 L 5 -40 M -5 -30 L 5 -20 M -5 -10 L 5 0" stroke="#78350f" stroke-width="1.5"></path><polygon fill="url(#drill-flute-grad)" points="-5,0 5,0 0,5" stroke="#d97706" stroke-width="1"></polygon><circle class="animate-ping" cx="0" cy="5" fill="#f59e0b" id="drill-spark-beacon" opacity="0" r="6"></circle><circle cx="0" cy="5" fill="#ffc174" r="2.5"></circle><g transform="translate(18, -40)"><rect fill="#191f2f" fill-opacity="0.9" height="36" rx="2" stroke="#ffb95f" stroke-width="1" width="140" x="0" y="0"></rect><text fill="#dce2f7" font-family="JetBrains Mono" font-size="9" font-weight="bold" x="8" y="14">T04 Broca/Fresa D10</text><text fill="#56e5a9" font-family="JetBrains Mono" font-size="9" font-weight="bold" id="drill-badge-z-text" x="8" y="28">Z = +04.000 mm (R)</text></g></g><g fill="#ffc174" font-family="JetBrains Mono" font-size="10" id="cotas-profundidad-lateral"><line stroke="#ffc174" stroke-width="1.2" x1="670" x2="670" y1="260" y2="356"></line><line stroke="#ffc174" stroke-width="1.2" x1="662" x2="678" y1="260" y2="260"></line><line stroke="#ffc174" stroke-width="1.2" x1="662" x2="678" y1="356" y2="356"></line><polygon fill="#ffc174" points="670,260 667,268 673,268"></polygon><polygon fill="#ffc174" points="670,356 667,348 673,348"></polygon><text font-weight="bold" x="684" y="312">PROF. FINAL Z: -22.00 mm</text><line stroke="#4cd7f6" stroke-width="1" x1="645" x2="645" y1="242" y2="260"></line><polygon fill="#4cd7f6" points="645,242 642,248 648,248"></polygon><polygon fill="#4cd7f6" points="645,260 642,254 648,254"></polygon><text fill="#4cd7f6" font-size="9" font-weight="bold" text-anchor="end" x="638" y="254">R: +4.0 mm</text><line stroke="#ffc174" stroke-width="1.2" x1="210" x2="690" y1="200" y2="200"></line><line stroke="#ffc174" stroke-width="1.2" x1="210" x2="210" y1="193" y2="207"></line><line stroke="#ffc174" stroke-width="1.2" x1="690" x2="690" y1="193" y2="207"></line><polygon fill="#ffc174" points="210,200 218,197 218,203"></polygon><polygon fill="#ffc174" points="690,200 682,197 682,203"></polygon><text font-weight="bold" text-anchor="middle" x="450" y="194">LONGITUD EN X: 120.00 mm (X POS: +63.301 mm)</text></g><g id="wcs-g54-origin-xz" transform="translate(210, 260)"><circle cx="0" cy="0" fill="none" r="8" stroke="#ffb4ab" stroke-width="2"></circle><path d="M 0 -8 A 8 8 0 0 1 8 0 L 0 0 Z" fill="#ffb4ab"></path><path d="M 0 8 A 8 8 0 0 1 -8 0 L 0 0 Z" fill="#ffb4ab"></path><text fill="#ffb4ab" font-family="JetBrains Mono" font-size="10" font-weight="bold" x="-55" y="-12">G54 (X0, Z0)</text></g><g id="xz-cartesian-compass" transform="translate(780, 200)"><line stroke="#ffb4ab" stroke-linecap="round" stroke-width="2.5" x1="0" x2="45" y1="0" y2="0"></line><polygon fill="#ffb4ab" points="50,0 42,-4 42,4"></polygon><text fill="#ffb4ab" font-family="JetBrains Mono" font-size="12" font-weight="bold" x="54" y="4">+X</text><line stroke="#4cd7f6" stroke-linecap="round" stroke-width="2.5" x1="0" x2="0" y1="0" y2="-45"></line><polygon fill="#4cd7f6" points="0,-50 -4,-42 4,-42"></polygon><text fill="#4cd7f6" font-family="JetBrains Mono" font-size="12" font-weight="bold" x="-7" y="-54">+Z</text><circle cx="0" cy="0" fill="#ffc174" r="3.5"></circle><text fill="#d8c3ad" font-family="JetBrains Mono" font-size="9" x="-38" y="18">PLANO G18 XZ</text></g></svg>
+<!-- Floating Kinematics Realtime Overlay Badge (Lower Right) -->
+<div class="absolute bottom-space-md right-space-md bg-surface-container-lowest/90 backdrop-blur-md p-space-sm rounded shadow-lg flex items-center gap-space-md">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary" id="feed-live-dot"></span>
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">VEL. AVANCE:</span>
+<span class="font-code-base text-code-base text-tertiary font-bold tabular-nums" id="live-feed-rate">F180 mm/min</span>
+</div>
+<div class="h-4 w-px bg-surface-variant"></div>
+<div class="flex items-center gap-2">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">RPM:</span>
+<span class="font-code-base text-code-base text-primary font-bold tabular-nums">S4800 (CW)</span>
+</div>
+<div class="h-4 w-px bg-surface-variant"></div>
+<div class="flex items-center gap-2">
+<span class="font-code-terminal text-code-terminal text-on-surface-variant">PROF. Z:</span>
+<span class="font-code-base text-code-base text-secondary font-bold tabular-nums" id="overlay-live-z">+04.000 mm</span>
+</div>
+</div>
+</div>
+<!-- Integrated Realtime Photo Monitor / Hardware Preview Anchor -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mt-space-md pt-space-sm">
+<div class="bg-surface-container-low p-space-sm rounded flex items-center gap-space-md">
+<img class="w-16 h-16 rounded object-cover" data-alt="High precision CNC milling spindle machining an aerospace grade aluminum billet with coolant mist inside industrial dark enclosure with razor sharp contrast and LED spotlighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLgs2OeVYG_ESxWbox4YxqIo2wyre187jbFpuJa6jDiHJTkFF5LATyrGJpQ-5vkY8ZfBqgA0_Qm-RpKio8f8lfm42A6RED4a3c99tvHrkRfhmuxXvitJMx8Wp0F2cohrERXzcs6JMFzUpr_SZQZgG9JjjWpbQ_jGXUglyt_r8Gw2TMay99zO2ufJ0A8Cx8r2hyB2CIhC7H1Pxb6WEO_rq1ydb5ymfoyAJbeKmdyXk"/>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">CAM ENCLOSURE</span>
+<span class="font-title-sm text-title-sm text-on-surface">Cámara de Fresado 1</span>
+<span class="font-code-terminal text-code-terminal text-tertiary mt-1" id="cam-coolant-status">FLUJO REFRIG: ACTIVO M08</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded flex items-center gap-space-md">
+<img class="w-16 h-16 rounded object-cover" data-alt="Close up photograph of a solid carbide 4-flute end mill tool securely held in a polished BT40 tool holder cone illuminated with amber industrial workshop lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUDKnrsuCxRUG8ChvEh1yTkPYS5FvuLWUSWVZfE7_zMCYqYI1glDOEeGIhB1iBWIrJDh_GJ-hXym3H8J2jFWl_Z-ExiNTHO0UmT2oNYP6N-BruLspN846O1Icb5XlKCR-jduCsEPjmSDklMIvGWS9p8pAKoYJmTd7M8hBsIyfKaezz4HHOwH8yLh5qFDDrsK_wc8TwOBtn30Yy--JQjOgUJKJUv6eeT3YrCAtgVMU"/>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">HERRAMIENTA MONTADA</span>
+<span class="font-title-sm text-title-sm text-on-surface">Broca T04 D10 AlTiN</span>
+<span class="font-code-terminal text-code-terminal text-primary mt-1">DESGASTE: 0.012 mm (OK)</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded flex items-center gap-space-md">
+<img class="w-16 h-16 rounded object-cover" data-alt="Steel precision Kurt vice securely gripping a rectangular aluminum block fixture on an industrial CNC machine bed with sharp specular reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMN5z2NcztEUyy8ObiPHZnE5Rokw7C7xj4SjpLUe-cVa6UROuB1CiKIhOIlV_fHA1-GZY-lCG1X8-0JFajGEQMF9ciCThZPQGzuXALLb36-R9uLBCIaXG0lfWZXZG8dtukbyPQKYHy3KRNxK_AsPm0H5XqP6X-4rVG8Rdbg1JMSj1fwuhOabIwdjAhnFJrXuxniz47EIcIY0xJpXsRTb-Do_NHvuKszwj-oY_l6Ic"/>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">FIJACIÓN MECÁNICA</span>
+<span class="font-title-sm text-title-sm text-on-surface">Mordaza Kurt D688</span>
+<span class="font-code-terminal text-code-terminal text-secondary mt-1">PAR APRIETE: 45 N•m</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Execution Playback Controller Strip (Shop-Floor Optimized Bottom Ribbon) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-xl flex flex-wrap items-center justify-between gap-space-md">
+<!-- Primary Transport Action Keys -->
+<div class="flex items-center gap-space-xs">
+<!-- Reset / Stop Button -->
+<button class="px-space-md py-2.5 rounded bg-surface-container hover:bg-surface-container-high text-error font-body-bold text-body-bold flex items-center gap-1 transition-all" id="ctrl-stop" title="Stop &amp; M30 Rewind">
+<span class="material-symbols-outlined text-[18px]">stop</span>
+<span>STOP / REWIND</span>
+</button>
+<!-- Pause / Dwell G04 Button -->
+<button class="px-space-md py-2.5 rounded bg-surface-container hover:bg-surface-container-high text-primary font-body-bold text-body-bold flex items-center gap-1 transition-all" id="ctrl-pause" title="Feed Hold Pause G04">
+<span class="material-symbols-outlined text-[18px]">pause</span>
+<span>PAUSA G04</span>
+</button>
+<!-- Play / Cycle Start Button -->
+<button class="px-space-lg py-2.5 rounded bg-primary-container hover:brightness-110 text-on-primary-container font-headline-md text-title-sm flex items-center gap-2 shadow-md transition-transform active:scale-95" id="ctrl-play" title="Cycle Start Simulation">
+<span class="material-symbols-outlined text-[20px]" id="ctrl-play-icon" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span id="ctrl-play-text">CYCLE START</span>
+</button>
+<!-- Single Block Toggle -->
+<button class="ml-space-sm px-space-md py-2.5 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-caps text-label-caps tracking-wider flex items-center gap-1.5 transition-all" id="ctrl-sbk" title="Ejecutar picotazo individual paso a paso">
+<span class="material-symbols-outlined text-secondary text-[16px]">step_into</span>
+<span id="ctrl-sbk-text">SINGLE BLOCK (SBK)</span>
+</button>
+</div>
+<!-- Simulation Speed Multiplier Selector -->
+<div class="flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">VELOCIDAD:</span>
+<div class="flex items-center gap-1" id="speed-selector-group">
+<button class="speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal transition-all" data-speed="0.5">0.5x</button>
+<button class="speed-btn px-2 py-0.5 rounded bg-primary text-on-primary font-code-terminal text-code-terminal font-bold transition-all" data-speed="1.0">1x</button>
+<button class="speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal transition-all" data-speed="2.0">2x</button>
+<button class="speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal transition-all" data-speed="5.0">5x</button>
+</div>
+</div>
+<!-- Direct DNC Transfer to Industrial Machine Controller (F5 Action) -->
+<div>
+<button class="px-space-lg py-2.5 rounded bg-surface-container-high hover:bg-surface-bright text-secondary font-headline-md text-title-sm flex items-center gap-2 shadow-md transition-all active:scale-95">
+<span class="material-symbols-outlined text-secondary text-[18px]">upload_file</span>
+<span>TRANSFERIR DNC A MÁQUINA (F5)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT: Machining Telemetry, Collision Audit & Code Buffer (Col 5 / 4) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Time & Progress Chronometer Card -->
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-lg flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[16px]">timer</span>
+            CRONOMETRÍA ESTIMADA DE CORTE
+          </span>
+<span class="font-code-terminal text-code-terminal text-tertiary" id="chrono-percent-tag">41% COMPLETADO</span>
+</div>
+<!-- Big Stopwatch Counter -->
+<div class="flex items-baseline justify-between py-1">
+<div class="flex flex-col">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase">TRANSCURRIDO</span>
+<span class="font-dro-display text-[26px] leading-tight text-primary tabular-nums" id="chrono-elapsed">03:12.4</span>
+</div>
+<div class="h-8 w-px bg-surface-variant"></div>
+<div class="flex flex-col text-right">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase">TOTAL CICLO</span>
+<span class="font-dro-display text-[26px] leading-tight text-on-surface tabular-nums">07:48.0</span>
+</div>
+</div>
+<!-- Chronometer Progress Gauge -->
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-300" id="chrono-progress-bar" style="width: 41%;"></div>
+</div>
+<div class="flex items-center justify-between font-code-terminal text-[10px] text-on-surface-variant">
+<span>INICIO: 10:14:02</span>
+<span id="chrono-remaining-time">TIEMPO RESTANTE: -04:35.6</span>
+</div>
+</div>
+<!-- Live Physics, Cutting Forces & MRR Telemetry Bento -->
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[16px]">precision_manufacturing</span>
+            TELEMETRÍA DINÁMICA DE ARRANQUE
+          </span>
+<span class="font-code-terminal text-code-terminal text-primary">FANUC KINEMATICS</span>
+</div>
+<!-- 3 Telemetry Metrics Grid -->
+<div class="grid grid-cols-3 gap-space-xs">
+<!-- Force Fc -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase">FUERZA CORTE</span>
+<span class="font-dro-display text-dro-display text-on-surface tabular-nums mt-1"><span id="telemetry-force">428</span> <span class="text-xs font-normal text-on-surface-variant">N</span></span>
+<div class="w-full bg-surface-container h-1 rounded-full mt-2 overflow-hidden">
+<div class="bg-tertiary h-full transition-all duration-150" id="bar-force" style="width: 45%;"></div>
+</div>
+</div>
+<!-- MRR Chip Volume -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase">DESALOJO MRR</span>
+<span class="font-dro-display text-dro-display text-primary tabular-nums mt-1"><span id="telemetry-mrr">68.4</span> <span class="text-[10px] font-normal text-on-surface-variant">cm³/m</span></span>
+<div class="w-full bg-surface-container h-1 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full transition-all duration-150" id="bar-mrr" style="width: 62%;"></div>
+</div>
+</div>
+<!-- Spindle Power kW -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase">CARGA MOTOR</span>
+<span class="font-dro-display text-dro-display text-secondary tabular-nums mt-1"><span id="telemetry-load">38%</span> <span class="text-[10px] font-normal text-on-surface-variant">11kW</span></span>
+<div class="w-full bg-surface-container h-1 rounded-full mt-2 overflow-hidden">
+<div class="bg-secondary h-full transition-all duration-150" id="bar-load" style="width: 38%;"></div>
+</div>
+</div>
+</div>
+<!-- Power vs Time SVG Sparkline Chart -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-1">
+<div class="flex items-center justify-between text-[11px] font-code-terminal text-on-surface-variant">
+<span>PERFIL DE CARGA HUSILLO (ÚLTIMOS 60s)</span>
+<span class="text-secondary font-bold" id="sparkline-max-p">P_ACTUAL: 4.2 kW</span>
+</div>
+<svg class="w-full h-12" viewbox="0 0 320 48">
+<!-- Sparkline background reference grid -->
+<line class="text-surface-variant/40" stroke="currentColor" stroke-dasharray="2,2" x1="0" x2="320" y1="24" y2="24"></line>
+<!-- Sparkline fill area -->
+<polygon class="text-secondary/10" fill="currentColor" id="sparkline-poly" points="0,48 0,38 30,36 60,40 90,20 120,22 150,14 180,18 210,12 240,28 270,16 300,19 320,20 320,48"></polygon>
+<!-- Sparkline trend polyline -->
+<polyline class="text-secondary" fill="none" id="sparkline-line" points="0,38 30,36 60,40 90,20 120,22 150,14 180,18 210,12 240,28 270,16 300,19 320,20" stroke="currentColor" stroke-linecap="round" stroke-width="2"></polyline>
+<circle class="text-secondary animate-ping" cx="320" cy="20" fill="currentColor" id="sparkline-ping" r="3"></circle>
+<circle class="text-secondary" cx="320" cy="20" fill="currentColor" id="sparkline-dot" r="2"></circle>
+</svg>
+</div>
+</div>
+<!-- Collision Checker & Audit Clearance Checklist -->
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-lg flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-tertiary text-[16px]">shield_with_heart</span>
+            AUDITORÍA DE COLISIONES &amp; SEGURIDAD
+          </span>
+<span class="bg-tertiary-container text-on-tertiary-container font-label-caps text-[10px] px-2 py-0.5 rounded">0 CONFLICTOS</span>
+</div>
+<div class="flex flex-col gap-1.5 mt-1">
+<!-- Check 1: Vise/Clamp Collision -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+<span class="font-body-base text-body-base text-on-surface">Colisión con mordazas/mordazas blandas</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-tertiary font-bold">HOLGURA &gt;18.2mm</span>
+</div>
+<!-- Check 2: G00 rapid into uncut stock -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+<span class="font-body-base text-body-base text-on-surface">Entrada de avance rápido G00 en material</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-tertiary font-bold">NO DETECTADO</span>
+</div>
+<!-- Check 3: Safety clearance Z min -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+<span class="font-body-base text-body-base text-on-surface">Profundidad Z Mínima vs Mesa de Trabajo</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-secondary font-bold">Z_MIN: -22.500 mm</span>
+</div>
+<!-- Check 4: Spindle RPM Overheating warning -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-2 rounded">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+<span class="font-body-base text-body-base text-on-surface">Límite de carrera de ejes (Travel Limits)</span>
+</div>
+<span class="font-code-terminal text-code-terminal text-tertiary font-bold">DENTRO DE RANGO</span>
+</div>
+</div>
+</div>
+<!-- Execution Lookahead Code Buffer Console (FANUC / ISO NC Stack) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[16px]">terminal</span>
+            BUFFER DE BLOQUES LOOK-AHEAD
+          </span>
+<span class="font-code-terminal text-[10px] text-on-surface-variant">FIFO MEM: 1024 BYTES</span>
+</div>
+<!-- Terminal Execution Lines -->
+<div class="flex flex-col font-code-terminal text-code-terminal bg-surface-container-low rounded overflow-hidden">
+<!-- Previous Line (N144) -->
+<div class="flex items-center px-space-md py-1.5 opacity-40 hover:opacity-75 transition-opacity">
+<span class="w-12 text-on-surface-variant select-none">N0144</span>
+<span class="text-on-surface">G01 X58.200 Y38.150 F850</span>
+</div>
+<!-- ACTIVE CURRENT RUNNING LINE (N145) Amber Highlight Anchor -->
+<div class="flex items-center px-space-md py-2 bg-primary-container/20 border-l-4 border-primary text-on-surface shadow-inner">
+<span class="w-12 text-primary font-bold select-none">N0145</span>
+<div class="flex items-center gap-1.5 flex-1 flex-wrap">
+<span class="text-primary font-bold">G83</span>
+<span class="text-error font-bold">X63.301</span>
+<span class="text-tertiary font-bold">Y40.000</span>
+<span class="text-secondary font-bold" id="code-buffer-z-display">Z-22.000</span>
+<span class="text-surface-tint">R4.000</span>
+<span class="text-primary font-bold">Q5.000</span>
+<span class="text-on-surface font-bold" id="code-buffer-f-display">F180</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-primary animate-ping ml-2" id="code-buffer-beacon"></span>
+</div>
+<!-- Lookahead 1 (N146) -->
+<div class="flex items-center px-space-md py-1.5 bg-surface-container/40 hover:bg-surface-container transition-colors">
+<span class="w-12 text-on-surface-variant select-none">N0146</span>
+<span class="text-on-surface">G00 Z15.000 M09</span>
+<span class="ml-auto text-[10px] text-on-surface-variant uppercase">LOOKAHEAD +1</span>
+</div>
+<!-- Lookahead 2 (N147) -->
+<div class="flex items-center px-space-md py-1.5 hover:bg-surface-container transition-colors">
+<span class="w-12 text-on-surface-variant select-none">N0147</span>
+<span class="text-on-surface">G91 G28 Z0.0 M05</span>
+<span class="ml-auto text-[10px] text-on-surface-variant uppercase">LOOKAHEAD +2</span>
+</div>
+<!-- Lookahead 3 (N148) -->
+<div class="flex items-center px-space-md py-1.5 hover:bg-surface-container transition-colors">
+<span class="w-12 text-on-surface-variant select-none">N0148</span>
+<span class="text-on-surface">M01 (PARADA OPCIONAL OPERADOR)</span>
+<span class="ml-auto text-[10px] text-on-surface-variant uppercase">LOOKAHEAD +3</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Realistic Kinematic Simulation Engine for Fanuc Deep-Hole Peck Drilling (G83) -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const toolAssembly = document.getElementById('herramienta-broca-t04');
+      const uncutHole = document.getElementById('stock-uncut-hole');
+      const chipGroup = document.getElementById('chip-particles-group');
+      const coolantSpray = document.getElementById('coolant-spray-group');
+      const drillSparkBeacon = document.getElementById('drill-spark-beacon');
+      const indicatorLineZ = document.getElementById('indicator-line-z');
+      const drillBadgeZText = document.getElementById('drill-badge-z-text');
+      const headerDroZ = document.getElementById('header-dro-z');
+      const overlayLiveZ = document.getElementById('overlay-live-z');
+      const canvasHudZ = document.getElementById('canvas-hud-z');
+      const canvasMotionPhase = document.getElementById('canvas-motion-phase');
+      const liveFeedRate = document.getElementById('live-feed-rate');
+      const headerStatusText = document.getElementById('header-status-text');
+      const stripHeadlineStatus = document.getElementById('strip-headline-status');
+      const telemetryForce = document.getElementById('telemetry-force');
+      const barForce = document.getElementById('bar-force');
+      const telemetryMrr = document.getElementById('telemetry-mrr');
+      const barMrr = document.getElementById('bar-mrr');
+      const telemetryLoad = document.getElementById('telemetry-load');
+      const barLoad = document.getElementById('bar-load');
+      const sparklineLine = document.getElementById('sparkline-line');
+      const sparklinePoly = document.getElementById('sparkline-poly');
+      const sparklineDot = document.getElementById('sparkline-dot');
+      const sparklinePing = document.getElementById('sparkline-ping');
+      const sparklineMaxP = document.getElementById('sparkline-max-p');
+      const chronoElapsed = document.getElementById('chrono-elapsed');
+      const chronoProgressBar = document.getElementById('chrono-progress-bar');
+      const chronoPercentTag = document.getElementById('chrono-percent-tag');
+      const chronoRemaining = document.getElementById('chrono-remaining-time');
+      const telemetryModeBlock = document.getElementById('telemetry-mode-block');
+
+      // Controls
+      const ctrlPlay = document.getElementById('ctrl-play');
+      const ctrlPlayIcon = document.getElementById('ctrl-play-icon');
+      const ctrlPlayText = document.getElementById('ctrl-play-text');
+      const ctrlPause = document.getElementById('ctrl-pause');
+      const ctrlStop = document.getElementById('ctrl-stop');
+      const ctrlSbk = document.getElementById('ctrl-sbk');
+      const speedBtns = document.querySelectorAll('.speed-btn');
+
+      // SVG Projection Mapping Constants
+      // Z = 0.000 mm corresponds to Y = 260px (top stock surface)
+      // Z = +4.000 mm corresponds to Y = 242px (Retract plane R)
+      // Z = -22.000 mm corresponds to Y = 356px (Hole bottom)
+      // Pixel scale: 4.3636 px per mm
+      const Y_Z0 = 260;
+      const PX_PER_MM = 4.3636;
+      const R_PLANE_Z = 4.0;
+      const FINAL_Z = -22.0;
+
+      function zToY(zVal) {
+        return Y_Z0 - (zVal * PX_PER_MM);
+      }
+
+      // Fanuc G83 Peck Sequences definition
+      // Q = 5.0 mm per peck, Total depth = 22mm
+      // Peck 1: Cut to -5.0mm -> Retract to R (+4.0mm)
+      // Peck 2: Rapid to -4.0mm (1mm safety) -> Cut to -10.0mm -> Retract to R (+4.0mm)
+      // Peck 3: Rapid to -9.0mm -> Cut to -15.0mm -> Retract to R (+4.0mm)
+      // Peck 4: Rapid to -14.0mm -> Cut to -20.0mm -> Retract to R (+4.0mm)
+      // Peck 5: Rapid to -19.0mm -> Cut to -22.0mm (Bottom dwell) -> Retract to R (+4.0mm)
+      const pecks = [
+        { peckNum: 1, prevDepth: 0.0, targetDepth: -5.0 },
+        { peckNum: 2, prevDepth: -5.0, targetDepth: -10.0 },
+        { peckNum: 3, prevDepth: -10.0, targetDepth: -15.0 },
+        { peckNum: 4, prevDepth: -15.0, targetDepth: -20.0 },
+        { peckNum: 5, prevDepth: -20.0, targetDepth: -22.0 }
+      ];
+
+      // Build keyframe phases
+      // Each peck has:
+      // A: RAPID_IN (G00) from R to (prevDepth + 1.0)
+      // B: CUT (G01) from (prevDepth + 1.0) to targetDepth
+      // C: DWELL_OR_CHIP_BREAK (brief 0.05s)
+      // D: RETRACT (G00) from targetDepth back to R (+4.0)
+      // E: CHIP_CLEAR_PAUSE (brief 0.1s at R)
+      let kinematicSteps = [];
+      pecks.forEach(p => {
+        const rapidStart = R_PLANE_Z;
+        const rapidEnd = p.prevDepth === 0.0 ? 0.0 : p.prevDepth + 1.0;
+        
+        // Step 1: Rapid In
+        kinematicSteps.push({
+          type: 'G00_IN',
+          peck: p.peckNum,
+          fromZ: rapidStart,
+          toZ: rapidEnd,
+          duration: 0.35, // seconds base
+          feedText: 'G00 RAPID (12 m/min)',
+          phaseName: `APROXIMACIÓN RÁPIDA G00 • PECK #${p.peckNum}`,
+          isCutting: false
+        });
+
+        // Step 2: In-Feed Cut
+        const cutDist = Math.abs(rapidEnd - p.targetDepth);
+        const cutTime = Math.max(0.6, cutDist * 0.22);
+        kinematicSteps.push({
+          type: 'G01_CUT',
+          peck: p.peckNum,
+          fromZ: rapidEnd,
+          toZ: p.targetDepth,
+          duration: cutTime,
+          feedText: 'F180 mm/min (G01)',
+          phaseName: `CORTE ACTIVO G01 Q=5mm • PROF: ${p.targetDepth.toFixed(1)}mm`,
+          isCutting: true
+        });
+
+        // Step 3: Retract out to R
+        kinematicSteps.push({
+          type: 'G00_OUT',
+          peck: p.peckNum,
+          fromZ: p.targetDepth,
+          toZ: R_PLANE_Z,
+          duration: 0.4,
+          feedText: 'G00 RETRACT (12 m/min)',
+          phaseName: `RETROCESO RÁPIDO G00 (DESAHOGO VIRUTA A R+4)`,
+          isCutting: false
+        });
+      });
+
+      // Simulation State
+      let isPlaying = true;
+      let isSingleBlock = false;
+      let singleBlockPending = false;
+      let speedMultiplier = 1.0;
+      let currentStepIdx = 0;
+      let stepProgress = 0.0; // 0.0 to 1.0
+      let lastTimestamp = performance.now();
+      let maxHoleDrilledZ = 0.0;
+      let totalElapsedSimSeconds = 192.4; // 03:12.4
+      let historyPowerPoints = [38, 36, 40, 20, 22, 14, 18, 12, 28, 16, 19, 20];
+      let sparklineTimer = 0;
+
+      function updateUI(zVal, currentStep, interpAlpha) {
+        const yPx = zToY(zVal);
+        
+        // Update SVG tool position
+        if (toolAssembly) {
+          toolAssembly.setAttribute('transform', `translate(463, ${yPx.toFixed(2)})`);
+        }
+
+        // Indicator guide line
+        if (indicatorLineZ) {
+          indicatorLineZ.setAttribute('y1', yPx.toFixed(2));
+          indicatorLineZ.setAttribute('y2', yPx.toFixed(2));
+        }
+
+        // Update uncut hole mask in SVG stock
+        if (zVal < maxHoleDrilledZ) {
+          maxHoleDrilledZ = zVal;
+        }
+        if (uncutHole) {
+          const cutDepth = Math.max(0, -maxHoleDrilledZ);
+          const cutHeightPx = Math.min(96, cutDepth * PX_PER_MM);
+          uncutHole.setAttribute('y', (260 + cutHeightPx).toFixed(2));
+          uncutHole.setAttribute('height', Math.max(0, 96 - cutHeightPx).toFixed(2));
+        }
+
+        // Format Z
+        const sign = zVal >= 0 ? '+' : '-';
+        const absZ = Math.abs(zVal).toFixed(3);
+        const zPadded = absZ.padStart(6, '0');
+        const formattedZ = `${sign}${zPadded}`;
+
+        // Update numeric displays
+        if (drillBadgeZText) {
+          drillBadgeZText.textContent = `Z = ${formattedZ} mm (${currentStep.isCutting ? 'G01' : 'G00'})`;
+        }
+        if (headerDroZ) {
+          headerDroZ.textContent = formattedZ;
+        }
+        if (overlayLiveZ) {
+          overlayLiveZ.textContent = `${formattedZ} mm`;
+        }
+        if (canvasHudZ) {
+          canvasHudZ.textContent = `Z: ${formattedZ} mm`;
+        }
+
+        // Motion phase label
+        if (canvasMotionPhase) {
+          canvasMotionPhase.textContent = `FASE: ${currentStep.phaseName}`;
+          if (currentStep.isCutting) {
+            canvasMotionPhase.className = 'font-code-terminal text-[10px] text-primary font-bold';
+          } else {
+            canvasMotionPhase.className = 'font-code-terminal text-[10px] text-tertiary font-bold';
+          }
+        }
+
+        // Header and Strip text
+        if (headerStatusText) {
+          headerStatusText.textContent = currentStep.isCutting 
+            ? `EN CORTE G83 (PECK #${currentStep.peck} F180)`
+            : (currentStep.type === 'G00_OUT' ? 'DESAHOGO DE VIRUTA (G00 RETRACT)' : 'APROXIMACIÓN RÁPIDA G00');
+        }
+        if (stripHeadlineStatus) {
+          stripHeadlineStatus.textContent = currentStep.isCutting
+            ? `VISTA LATERAL / PERFIL (XZ) • PENETRACIÓN G01 Q=5.0mm (Z ${formattedZ})`
+            : `VISTA LATERAL / PERFIL (XZ) • RETROCESO Y ENFRIAMIENTO A PLANO R`;
+        }
+
+        // Feed Rate Display
+        if (liveFeedRate) {
+          liveFeedRate.textContent = currentStep.isCutting ? 'F180 mm/min' : 'G00 RAPID (12m/min)';
+          liveFeedRate.className = currentStep.isCutting 
+            ? 'font-code-base text-code-base text-primary font-bold tabular-nums'
+            : 'font-code-base text-code-base text-secondary font-bold tabular-nums';
+        }
+
+        // Chip and Coolant particles
+        if (chipGroup) {
+          if (currentStep.isCutting) {
+            chipGroup.setAttribute('opacity', (0.7 + 0.3 * Math.sin(Date.now() / 80)).toFixed(2));
+            chipGroup.setAttribute('transform', `translate(0, ${(yPx - 260) * 0.4})`);
+          } else {
+            chipGroup.setAttribute('opacity', '0');
+          }
+        }
+
+        if (drillSparkBeacon) {
+          drillSparkBeacon.setAttribute('opacity', currentStep.isCutting ? '0.85' : '0');
+        }
+
+        if (coolantSpray) {
+          const pulse = 0.7 + 0.3 * Math.cos(Date.now() / 150);
+          coolantSpray.setAttribute('opacity', pulse.toFixed(2));
+        }
+
+        // Realtime Cutting Force, MRR and Power metrics
+        if (currentStep.isCutting) {
+          const baseForce = 410 + Math.sin(Date.now() / 120) * 28 + (Math.abs(zVal) * 3);
+          const baseMrr = 65 + Math.sin(Date.now() / 150) * 5;
+          const baseLoad = 36 + Math.floor(Math.abs(zVal) * 0.4);
+          
+          if (telemetryForce) telemetryForce.textContent = Math.round(baseForce);
+          if (barForce) barForce.style.width = `${Math.min(95, Math.round(baseForce / 6))}%`;
+          if (telemetryMrr) telemetryMrr.textContent = baseMrr.toFixed(1);
+          if (barMrr) barMrr.style.width = `${Math.min(95, Math.round(baseMrr))}%`;
+          if (telemetryLoad) telemetryLoad.textContent = `${baseLoad}%`;
+          if (barLoad) barLoad.style.width = `${baseLoad}%`;
+          if (sparklineMaxP) sparklineMaxP.textContent = `P_ACTUAL: ${(baseLoad * 0.11).toFixed(1)} kW`;
+        } else {
+          // Rapid movement has 0 cutting load
+          if (telemetryForce) telemetryForce.textContent = '12';
+          if (barForce) barForce.style.width = '3%';
+          if (telemetryMrr) telemetryMrr.textContent = '0.0';
+          if (barMrr) barMrr.style.width = '0%';
+          if (telemetryLoad) telemetryLoad.textContent = '7%';
+          if (barLoad) barLoad.style.width = '7%';
+          if (sparklineMaxP) sparklineMaxP.textContent = `P_ACTUAL: 0.8 kW (IDLE)`;
+        }
+
+        // Lookahead buffer active line feedback
+        const codeBufferZ = document.getElementById('code-buffer-z-display');
+        if (codeBufferZ) {
+          codeBufferZ.textContent = currentStep.isCutting ? `Z${formattedZ}` : `Z-22.000`;
+        }
+      }
+
+      // Sparkline dynamic stream
+      function pushSparklineData(val) {
+        historyPowerPoints.shift();
+        historyPowerPoints.push(val);
+        const pts = [];
+        const stepX = 320 / (historyPowerPoints.length - 1);
+        for (let i = 0; i < historyPowerPoints.length; i++) {
+          const px = Math.round(i * stepX);
+          // clamp y in svg (0-48, where 48 is lowest power, 8 is highest)
+          const py = Math.round(44 - (historyPowerPoints[i] / 50) * 36);
+          pts.push(`${px},${py}`);
+        }
+        const ptsStr = pts.join(' ');
+        if (sparklineLine) sparklineLine.setAttribute('points', ptsStr);
+        if (sparklinePoly) sparklinePoly.setAttribute('points', `0,48 ${ptsStr} 320,48`);
+        const lastPt = pts[pts.length - 1].split(',');
+        if (sparklineDot) {
+          sparklineDot.setAttribute('cx', lastPt[0]);
+          sparklineDot.setAttribute('cy', lastPt[1]);
+        }
+        if (sparklinePing) {
+          sparklinePing.setAttribute('cx', lastPt[0]);
+          sparklinePing.setAttribute('cy', lastPt[1]);
+        }
+      }
+
+      // Animation Loop
+      function animateLoop(now) {
+        const deltaSeconds = (now - lastTimestamp) / 1000;
+        lastTimestamp = now;
+
+        if (isPlaying && kinematicSteps.length > 0) {
+          const activeStep = kinematicSteps[currentStepIdx];
+          const effectiveDuration = activeStep.duration / speedMultiplier;
+          
+          stepProgress += deltaSeconds / effectiveDuration;
+
+          if (stepProgress >= 1.0) {
+            stepProgress = 1.0;
+            // Check Single Block (SBK)
+            if (isSingleBlock) {
+              isPlaying = false;
+              updatePlayButtonUI();
+            }
+
+            // advance step
+            currentStepIdx = (currentStepIdx + 1) % kinematicSteps.length;
+            stepProgress = 0.0;
+
+            // Reset drilled hole depth if loop restarts
+            if (currentStepIdx === 0) {
+              maxHoleDrilledZ = 0.0;
+            }
+          }
+
+          const currentStep = kinematicSteps[currentStepIdx];
+          // smooth interpolation
+          const zPos = currentStep.fromZ + (currentStep.toZ - currentStep.fromZ) * stepProgress;
+          updateUI(zPos, currentStep, stepProgress);
+
+          // Update chronometer
+          totalElapsedSimSeconds += deltaSeconds * speedMultiplier;
+          const mins = Math.floor(totalElapsedSimSeconds / 60);
+          const secs = (totalElapsedSimSeconds % 60).toFixed(1);
+          if (chronoElapsed) chronoElapsed.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(4, '0')}`;
+
+          // Sparkline periodic sample
+          sparklineTimer += deltaSeconds;
+          if (sparklineTimer > 0.4) {
+            sparklineTimer = 0;
+            const currentP = currentStep.isCutting ? (28 + Math.random() * 15) : (5 + Math.random() * 4);
+            pushSparklineData(currentP);
+          }
+        }
+
+        requestAnimationFrame(animateLoop);
+      }
+
+      // UI Helpers
+      function updatePlayButtonUI() {
+        if (isPlaying) {
+          if (ctrlPlayIcon) ctrlPlayIcon.textContent = 'pause';
+          if (ctrlPlayText) ctrlPlayText.textContent = 'FEED HOLD';
+          ctrlPlay.className = 'px-space-lg py-2.5 rounded bg-primary text-on-primary font-headline-md text-title-sm flex items-center gap-2 shadow-md transition-transform active:scale-95';
+        } else {
+          if (ctrlPlayIcon) ctrlPlayIcon.textContent = 'play_arrow';
+          if (ctrlPlayText) ctrlPlayText.textContent = 'CYCLE START';
+          ctrlPlay.className = 'px-space-lg py-2.5 rounded bg-primary-container hover:brightness-110 text-on-primary-container font-headline-md text-title-sm flex items-center gap-2 shadow-md transition-transform active:scale-95';
+        }
+      }
+
+      // Play / Cycle Start click
+      if (ctrlPlay) {
+        ctrlPlay.addEventListener('click', () => {
+          isPlaying = !isPlaying;
+          updatePlayButtonUI();
+        });
+      }
+
+      // Pause (Feed Hold)
+      if (ctrlPause) {
+        ctrlPause.addEventListener('click', () => {
+          isPlaying = false;
+          updatePlayButtonUI();
+        });
+      }
+
+      // Stop & Rewind (M30)
+      if (ctrlStop) {
+        ctrlStop.addEventListener('click', () => {
+          isPlaying = false;
+          currentStepIdx = 0;
+          stepProgress = 0.0;
+          maxHoleDrilledZ = 0.0;
+          updatePlayButtonUI();
+          updateUI(R_PLANE_Z, kinematicSteps[0], 0);
+          if (uncutHole) {
+            uncutHole.setAttribute('y', '260');
+            uncutHole.setAttribute('height', '96');
+          }
+        });
+      }
+
+      // Single Block (SBK) toggle & step
+      if (ctrlSbk) {
+        ctrlSbk.addEventListener('click', () => {
+          isSingleBlock = !isSingleBlock;
+          if (isSingleBlock) {
+            ctrlSbk.className = 'ml-space-sm px-space-md py-2.5 rounded bg-secondary text-on-secondary font-label-caps text-label-caps tracking-wider flex items-center gap-1.5 transition-all shadow-md';
+            if (telemetryModeBlock) telemetryModeBlock.textContent = 'SINGLE BLOCK (SBK ON)';
+            // Step forward one motion if stopped
+            isPlaying = true;
+            updatePlayButtonUI();
+          } else {
+            ctrlSbk.className = 'ml-space-sm px-space-md py-2.5 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-caps text-label-caps tracking-wider flex items-center gap-1.5 transition-all';
+            if (telemetryModeBlock) telemetryModeBlock.textContent = 'CONTINUO (SBK OFF)';
+            isPlaying = true;
+            updatePlayButtonUI();
+          }
+        });
+      }
+
+      // Speed selectors
+      speedBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          speedBtns.forEach(b => {
+            b.className = 'speed-btn px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-code-terminal text-code-terminal transition-all';
+          });
+          btn.className = 'speed-btn px-2 py-0.5 rounded bg-primary text-on-primary font-code-terminal text-code-terminal font-bold transition-all';
+          speedMultiplier = parseFloat(btn.getAttribute('data-speed')) || 1.0;
+          const feedBar = document.getElementById('sidebar-feed-bar');
+          const feedTxt = document.getElementById('sidebar-feed-override');
+          if (feedTxt) feedTxt.textContent = `${Math.round(speedMultiplier * 100)}%`;
+          if (feedBar) feedBar.style.width = `${Math.min(100, speedMultiplier * 50)}%`;
+        });
+      });
+
+      // View Buttons
+      const btnIso = document.getElementById('btn-iso');
+      const btnXy = document.getElementById('btn-xy');
+      const btnXz = document.getElementById('btn-xz');
+      const canvas = document.getElementById('toolpath-canvas');
+
+      function clearViewButtons() {
+        [btnIso, btnXy, btnXz].forEach(btn => {
+          if (btn) btn.className = 'px-space-md py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-caps text-label-caps tracking-wider transition-all';
+        });
+      }
+
+      if (btnIso) {
+        btnIso.addEventListener('click', () => {
+          clearViewButtons();
+          btnIso.className = 'px-space-md py-1 rounded bg-primary text-on-primary font-label-caps text-label-caps tracking-wider transition-all';
+          if (canvas) canvas.style.transform = 'scale(1) rotate(0deg)';
+        });
+      }
+
+      if (btnXy) {
+        btnXy.addEventListener('click', () => {
+          clearViewButtons();
+          btnXy.className = 'px-space-md py-1 rounded bg-secondary text-on-secondary font-label-caps text-label-caps tracking-wider transition-all';
+          if (canvas) canvas.style.transform = 'scale(1.08) perspective(600px) rotateX(18deg)';
+        });
+      }
+
+      if (btnXz) {
+        btnXz.addEventListener('click', () => {
+          clearViewButtons();
+          btnXz.className = 'px-space-md py-1 rounded bg-tertiary text-on-tertiary font-label-caps text-label-caps tracking-wider transition-all';
+          if (canvas) canvas.style.transform = 'scale(1) rotate(0deg)';
+        });
+      }
+
+      // Initialize
+      updatePlayButtonUI();
+      requestAnimationFrame(animateLoop);
+    });
+  </script>
+</div></main></div></body></html>

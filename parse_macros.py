@@ -2,8 +2,8 @@ import os
 import re
 import json
 
-workspace_dir = "d:/Antigravity/Aplicacion macros"
-nc_files = [f for f in os.listdir(workspace_dir) if f.endswith(".nc")]
+workspace_dir = os.path.dirname(os.path.abspath(__file__))
+nc_files = [f for f in sorted(os.listdir(workspace_dir)) if f.lower().endswith(".nc")]
 
 macros = []
 
