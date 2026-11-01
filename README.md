@@ -23,6 +23,7 @@ requiere una licencia válida; sin ella la app funciona en modo demo.
 - **Hoja de taller** imprimible con herramienta, husillo, avance y tiempo estimado.
 - **Funciona sin conexión** mediante service worker y assets locales.
 - **Licencias firmadas por días** con enlace compartible (`?lic=...`), sin backend ni telemetría.
+- **Acceso permanente del propietario** con contraseña, además de las licencias por días.
 - **Modo demo** sin licencia: la interfaz, el CAD y la simulación siguen disponibles, pero la
   exportación de G-code queda bloqueada.
 
@@ -150,6 +151,7 @@ Las pruebas comprueban:
 - Salida de los modos `G65` y macro expandida.
 - Firma, vencimiento y rechazo de licencias manipuladas, vencidas o de otra app.
 - Flujo completo del CLI de licencias (`keygen`, `issue`, `verify`).
+- Acceso de propietario con PBKDF2 y ausencia de contraseñas en claro en el HTML.
 
 El flujo de CI está en `.github/workflows/ci.yml`.
 
@@ -200,6 +202,26 @@ También puedes usar el generador visual: abre `generador-licencias.html` por HT
 `generador-licencias.html` no se enlaza desde la app y **no debe publicarse junto con la clave
 privada**. Si publicas el generador, cualquiera que obtenga la clave privada podrá emitir
 licencias.
+
+### Acceso del propietario
+
+Además de las licencias por días, el propietario puede entrar con una **contraseña permanente**
+desde el mismo diálogo de licencia. La contraseña no se guarda en claro: se compara contra un
+hash `PBKDF2-SHA256` con salt. Al acertar, el navegador guarda la marca `ng_owner_unlock_v1` y
+la app queda desbloqueada sin fecha de vencimiento en ese equipo.
+
+Para cambiar la contraseña:
+
+```bash
+node tools/owner-password.mjs "una-contraseña-larga-y-única"
+```
+
+Copia `OWNER_PASSWORD_SALT`, `OWNER_PASSWORD_HASH` y `OWNER_PASSWORD_ITERATIONS` en `index.html`.
+El botón **Salir de propietario** elimina la marca del navegador; si había una licencia guardada,
+se conserva.
+
+> En una app estática el hash es público y puede atacarse por fuerza bruta. Usa una contraseña
+> larga y única, no reutilices la de otros servicios y no la publiques.
 
 ### Renovar y caducar
 

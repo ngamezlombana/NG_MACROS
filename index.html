@@ -694,6 +694,18 @@
                 </button>
             </div>
 
+            <div id="ownerAccessForm" class="flex flex-col gap-2 border-t border-outline-variant/20 pt-3">
+                <label for="ownerPasswordInput" class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Contraseña de propietario</label>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input id="ownerPasswordInput" type="password" autocomplete="current-password" spellcheck="false" class="flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-3 text-sm text-on-surface focus:outline-none focus:border-primary" placeholder="Acceso permanente del propietario" />
+                    <button onclick="activateOwnerAccess()" class="px-5 py-2.5 bg-secondary hover:bg-secondary/80 text-on-secondary font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                        Entrar
+                    </button>
+                </div>
+                <p class="text-[10px] text-on-surface-variant">Solo para el propietario. El acceso queda activado en este navegador.</p>
+            </div>
+
             <div class="flex flex-wrap justify-end gap-2 pt-2 border-t border-outline-variant/20">
                 <button id="licenseCopyLinkBtn" onclick="copyLicenseLink()" class="hidden px-4 py-2 bg-surface-container-lowest hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider">Copiar enlace</button>
                 <button id="licenseClearBtn" onclick="clearStoredLicense()" class="hidden px-4 py-2 bg-surface-container-lowest hover:bg-error-container/30 text-on-surface-variant border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider">Quitar licencia</button>
@@ -736,9 +748,18 @@
     const LICENSE_STORAGE_KEY = 'ng_license_token_v1';
     const LICENSE_LAST_SEEN_KEY = 'ng_license_last_seen_v1';
 
+    // Acceso permanente del propietario. La contraseña no se guarda en claro:
+    // se compara contra un hash PBKDF2-SHA256. Al ser una app estática, esto
+    // es una comodidad de acceso, no una barrera criptográfica fuerte.
+    const OWNER_PASSWORD_SALT = 'lScsJyD_Bb15O6X7KKSqGw';
+    const OWNER_PASSWORD_HASH = 'BqKWDLcQYtOHljDC1y5Y4Q7PCHVPqY0pt-kepZhQgRk';
+    const OWNER_PASSWORD_ITERATIONS = 210000;
+    const OWNER_UNLOCK_KEY = 'ng_owner_unlock_v1';
+
     const licenseState = {
         checked: false,
         valid: false,
+        owner: false,
         token: '',
         payload: null,
         daysLeft: 0,
@@ -751,6 +772,56 @@
         const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
         const binary = atob(padded);
         return Uint8Array.from(binary, ch => ch.charCodeAt(0));
+    }
+
+    function licenseB64UrlEncode(bytes) {
+        let binary = '';
+        for (const byte of bytes) binary += String.fromCharCode(byte);
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function licenseBytesEqual(a, b) {
+        const left = licenseB64UrlToBytes(a);
+        const right = licenseB64UrlToBytes(b);
+        if (left.length !== right.length) return false;
+        let diff = 0;
+        for (let i = 0; i < left.length; i++) diff |= left[i] ^ right[i];
+        return diff === 0;
+    }
+
+    function isOwnerUnlocked() {
+        try { return localStorage.getItem(OWNER_UNLOCK_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    async function verifyOwnerPassword(password) {
+        if (!window.crypto || !window.crypto.subtle) return false;
+        if (typeof password !== 'string' || password === '') return false;
+        try {
+            const material = await crypto.subtle.importKey(
+                'raw',
+                new TextEncoder().encode(password),
+                'PBKDF2',
+                false,
+                ['deriveBits']
+            );
+            const bits = await crypto.subtle.deriveBits(
+                {
+                    name: 'PBKDF2',
+                    salt: licenseB64UrlToBytes(OWNER_PASSWORD_SALT),
+                    iterations: OWNER_PASSWORD_ITERATIONS,
+                    hash: 'SHA-256'
+                },
+                material,
+                256
+            );
+            return licenseBytesEqual(licenseB64UrlEncode(new Uint8Array(bits)), OWNER_PASSWORD_HASH);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function ownerLicenseResult() {
+        return { valid: true, owner: true, error: '', payload: null, daysLeft: 0 };
     }
 
     function licenseFormatDate(unixSeconds) {
@@ -867,6 +938,7 @@
     function setLicenseState(result, token = '') {
         licenseState.checked = true;
         licenseState.valid = !!result.valid;
+        licenseState.owner = !!result.owner;
         licenseState.token = token || '';
         licenseState.payload = result.payload || null;
         licenseState.daysLeft = result.daysLeft || 0;
@@ -875,6 +947,14 @@
     }
 
     async function checkLicensing() {
+        // El propietario tiene acceso permanente en este navegador.
+        if (isOwnerUnlocked()) {
+            setLicenseState(ownerLicenseResult());
+            removeLicenseTokenFromUrl();
+            applyLicenseUI();
+            return licenseState;
+        }
+
         const urlToken = getLicenseTokenFromUrl();
         const storedToken = getStoredLicenseToken();
         let token = urlToken || storedToken;
@@ -922,6 +1002,7 @@
     }
 
     function licenseDisplayText() {
+        if (licenseState.owner) return 'Propietario';
         if (licenseState.valid) {
             return `${licenseState.daysLeft} ${licenseState.daysLeft === 1 ? 'día' : 'días'}`;
         }
@@ -934,12 +1015,29 @@
         const subtitle = document.getElementById('licenseModalSubtitle');
         const body = document.getElementById('licenseModalBody');
         const form = document.getElementById('licenseActivationForm');
+        const ownerForm = document.getElementById('ownerAccessForm');
         const copyBtn = document.getElementById('licenseCopyLinkBtn');
         const clearBtn = document.getElementById('licenseClearBtn');
         const closeBtn = document.getElementById('licenseCloseBtn');
         if (!title || !body) return;
 
-        if (licenseState.valid && licenseState.payload) {
+        if (licenseState.owner) {
+            title.textContent = 'Acceso de propietario';
+            if (subtitle) subtitle.textContent = 'NG_MACROS CNC Studio v4.4';
+            body.innerHTML = `
+                <p>Este equipo tiene el <strong class="text-on-surface">acceso permanente del propietario</strong> activado.</p>
+                <p>Puedes generar, copiar y descargar código G sin fecha de vencimiento. El acceso se guarda únicamente en este navegador.</p>
+                <p class="text-[11px] text-on-surface-variant">Si borras los datos del navegador o usas otro equipo, vuelve a introducir la contraseña de propietario.</p>
+            `;
+            if (form) form.classList.add('hidden');
+            if (ownerForm) ownerForm.classList.add('hidden');
+            if (copyBtn) copyBtn.classList.add('hidden');
+            if (clearBtn) {
+                clearBtn.classList.remove('hidden');
+                clearBtn.textContent = 'Salir de propietario';
+            }
+            if (closeBtn) closeBtn.textContent = 'Entendido';
+        } else if (licenseState.valid && licenseState.payload) {
             const p = licenseState.payload;
             title.textContent = 'Licencia activa';
             if (subtitle) subtitle.textContent = 'NG_MACROS CNC Studio v4.4';
@@ -966,8 +1064,12 @@
                 <p class="text-[11px] text-on-surface-variant">Puedes copiar el enlace con esta licencia para abrir la app en otro equipo. El enlace caduca en la fecha indicada.</p>
             `;
             if (form) form.classList.add('hidden');
+            if (ownerForm) ownerForm.classList.add('hidden');
             if (copyBtn) copyBtn.classList.remove('hidden');
-            if (clearBtn) clearBtn.classList.remove('hidden');
+            if (clearBtn) {
+                clearBtn.classList.remove('hidden');
+                clearBtn.textContent = 'Quitar licencia';
+            }
             if (closeBtn) closeBtn.textContent = 'Entendido';
         } else {
             title.textContent = licenseState.expired ? 'Licencia vencida' : 'Licencia requerida';
@@ -975,9 +1077,10 @@
             body.innerHTML = `
                 <p class="text-error font-semibold">${escapeHtml(licenseState.error || 'Activa una licencia para continuar.')}</p>
                 <p>Puedes explorar la interfaz y la simulación en modo demo, pero necesitas una licencia válida para generar, copiar o descargar código G.</p>
-                <p class="text-[11px] text-on-surface-variant">Abre el enlace que recibiste o pega aquí el token de licencia.</p>
+                <p class="text-[11px] text-on-surface-variant">Abre el enlace que recibiste o pega aquí el token de licencia. Si eres el propietario, usa la contraseña de acceso permanente.</p>
             `;
             if (form) form.classList.remove('hidden');
+            if (ownerForm) ownerForm.classList.remove('hidden');
             if (copyBtn) copyBtn.classList.add('hidden');
             if (clearBtn) clearBtn.classList.add('hidden');
             if (closeBtn) closeBtn.textContent = 'Cerrar';
@@ -985,9 +1088,13 @@
 
         const statusVal = document.getElementById('licenseStatusValue');
         if (statusVal) {
-            statusVal.textContent = licenseState.valid
-                ? `Licencia activa hasta ${licenseFormatDate(licenseState.payload.exp)}`
-                : (licenseState.error || 'Sin licencia');
+            if (licenseState.owner) {
+                statusVal.textContent = 'Acceso de propietario';
+            } else if (licenseState.valid && licenseState.payload) {
+                statusVal.textContent = `Licencia activa hasta ${licenseFormatDate(licenseState.payload.exp)}`;
+            } else {
+                statusVal.textContent = licenseState.error || 'Sin licencia';
+            }
         }
     }
 
@@ -1064,13 +1171,55 @@
         applyLicenseUI();
     }
 
-    function clearStoredLicense() {
+    async function activateOwnerAccess() {
+        const input = document.getElementById('ownerPasswordInput');
+        const password = input ? input.value : '';
+        if (!password) {
+            setLicenseMessage('Escribe la contraseña de propietario.', true);
+            return;
+        }
+
+        const valid = await verifyOwnerPassword(password);
+        if (!valid) {
+            await new Promise(resolve => setTimeout(resolve, 600));
+            setLicenseMessage('Contraseña de propietario incorrecta.', true);
+            return;
+        }
+
+        try { localStorage.setItem(OWNER_UNLOCK_KEY, '1'); } catch (e) {}
+        setLicenseState(ownerLicenseResult());
+        if (input) input.value = '';
+        setLicenseMessage('Acceso de propietario activado en este equipo.', false);
+        applyLicenseUI();
+    }
+
+    async function clearStoredLicense() {
+        const wasOwner = licenseState.owner;
         try {
-            localStorage.removeItem(LICENSE_STORAGE_KEY);
-            localStorage.removeItem(LICENSE_LAST_SEEN_KEY);
+            localStorage.removeItem(OWNER_UNLOCK_KEY);
+            if (!wasOwner) {
+                localStorage.removeItem(LICENSE_STORAGE_KEY);
+                localStorage.removeItem(LICENSE_LAST_SEEN_KEY);
+            }
         } catch (e) {}
-        setLicenseState({ valid: false, error: 'No hay una licencia activa en este equipo.', daysLeft: 0 }, '');
-        setLicenseMessage('Licencia eliminada de este equipo.', false);
+
+        if (wasOwner) {
+            // Al salir de propietario se conserva una licencia guardada, si existe.
+            const storedToken = getStoredLicenseToken();
+            const result = storedToken
+                ? await verifyLicenseToken(storedToken)
+                : { valid: false, error: 'No hay una licencia activa en este equipo.', daysLeft: 0 };
+            setLicenseState(result, storedToken);
+            setLicenseMessage(
+                result.valid
+                    ? 'Acceso de propietario desactivado. Se mantiene la licencia guardada.'
+                    : 'Acceso de propietario desactivado en este equipo.',
+                false
+            );
+        } else {
+            setLicenseState({ valid: false, error: 'No hay una licencia activa en este equipo.', daysLeft: 0 }, '');
+            setLicenseMessage('Licencia eliminada de este equipo.', false);
+        }
         applyLicenseUI();
     }
 

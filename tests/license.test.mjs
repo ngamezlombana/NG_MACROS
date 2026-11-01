@@ -106,6 +106,36 @@ test('el generador HTML contiene firma y verificación', () => {
   assert.ok(html.includes('license-private-key.json'), 'No se documenta la clave privada');
 });
 
+test('el acceso de propietario usa PBKDF2 y no guarda la contraseña en claro', () => {
+  const html = read('index.html');
+  const saltMatch = html.match(/const OWNER_PASSWORD_SALT = '([^']+)';/);
+  const hashMatch = html.match(/const OWNER_PASSWORD_HASH = '([^']+)';/);
+  assert.ok(saltMatch, 'Falta OWNER_PASSWORD_SALT');
+  assert.ok(hashMatch, 'Falta OWNER_PASSWORD_HASH');
+  assert.match(saltMatch[1], /^[A-Za-z0-9_-]+$/);
+  assert.match(hashMatch[1], /^[A-Za-z0-9_-]{43}$/);
+  assert.ok(html.includes('PBKDF2'), 'La contraseña de propietario no usa PBKDF2');
+  assert.ok(html.includes('activateOwnerAccess'), 'Falta la función de acceso del propietario');
+  assert.ok(html.includes('ownerAccessForm'), 'Falta el formulario de contraseña de propietario');
+  assert.ok(html.includes('ng_owner_unlock_v1'), 'Falta la marca de acceso de propietario');
+
+  // La contraseña en claro nunca debe viajar en el HTML publicado.
+  assert.ok(!/nestor69/i.test(html), 'index.html contiene la contraseña de propietario en claro');
+});
+
+test('el generador de hash de propietario produce constantes válidas', () => {
+  const result = spawnSync(process.execPath, [
+    'tools/owner-password.mjs',
+    'clave-de-prueba-larga',
+    '--salt', 'AAAAAAAAAAAAAAAAAAAAAA'
+  ], { cwd: ROOT, encoding: 'utf8' });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /OWNER_PASSWORD_SALT = 'AAAAAAAAAAAAAAAAAAAAAA'/);
+  assert.match(result.stdout, /OWNER_PASSWORD_HASH = '[A-Za-z0-9_-]{43}'/);
+  assert.match(result.stdout, /OWNER_PASSWORD_ITERATIONS = 210000/);
+});
+
 test('CLI: keygen, issue y verify funcionan con archivos temporales', () => {
   const dir = mkdtempSync(join(tmpdir(), 'ng-license-'));
   const privateKey = join(dir, 'private.json');

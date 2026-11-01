@@ -659,7 +659,21 @@ Si prefieres pegar el token manualmente, abre **Licencia** y pega el token en el
 **Token de licencia**. También puedes usar **Copiar enlace** para trasladar la licencia a otro
 equipo y **Quitar licencia** para borrarla de este navegador.
 
-### 12.2 Generar licencias
+### 12.2 Acceso permanente del propietario
+
+El propietario puede desbloquear la app con una **contraseña permanente**, sin fecha de
+vencimiento, desde el mismo diálogo de licencia. La contraseña se guarda como hash
+`PBKDF2-SHA256` con salt; no se almacena en claro. Al acertar, el navegador guarda
+`ng_owner_unlock_v1` y la app queda desbloqueada en ese equipo.
+
+- **Salir de propietario** borra esa marca. Si había una licencia guardada, se conserva.
+- Si borras los datos del navegador o cambias de equipo, vuelve a introducir la contraseña.
+- Para cambiar la contraseña, ejecuta `node tools/owner-password.mjs "nueva-contraseña"` y
+  copia las constantes `OWNER_PASSWORD_*` en `index.html`.
+- Usa una contraseña larga y única. En una app estática el hash es público y puede atacarse
+  por fuerza bruta.
+
+### 12.3 Generar licencias
 
 La clave privada es un secreto: vive en `tools/license-private-key.json`, está excluida de Git
 y **nunca debe publicarse**. Guarda una copia de seguridad.
@@ -681,7 +695,7 @@ También existe `generador-licencias.html`: ábrelo por HTTP, carga la clave pri
 token y el enlace desde el navegador. No se enlaza desde la app y no debe publicarse junto con
 la clave privada.
 
-### 12.3 Vencimiento y renovación
+### 12.4 Vencimiento y renovación
 
 - La licencia caduca automáticamente en la fecha indicada; la app vuelve al modo demo.
 - Para renovar, emite un token nuevo y comparte un enlace nuevo.
@@ -702,6 +716,7 @@ la clave privada.
 | `ng_gcode_g54` | Inclusión de `G54` |
 | `ng_license_token_v1` | Token de licencia activo |
 | `ng_license_last_seen_v1` | Última marca de tiempo para detectar cambios de reloj |
+| `ng_owner_unlock_v1` | Marca de acceso permanente del propietario |
 
 Los datos son locales al navegador y al perfil. No se envían a ningún servidor. Para
 borrarlos, usa la configuración del navegador o el botón **Restablecer** de cada macro.
@@ -733,6 +748,7 @@ python3 -m http.server 8080      # servidor local
 npm run license:keygen           # crear par de claves (solo la primera vez)
 npm run license:issue -- --days 30 --sub "Cliente"
 npm run license:verify -- --token "eyJ..."
+node tools/owner-password.mjs "nueva-contraseña"   # cambiar acceso del propietario
 ```
 
 ### 14.2 Añadir o modificar una macro
