@@ -1048,6 +1048,129 @@ var MACROS_DATA = [
       }
     ],
     "full_content": "%\nO8109 (RANURA CIRCULAR CON PROFUNDIDAD MULTIPLE)\n(PETER SMID - FANUC CNC CUSTOM MACROS - CAPITULO 20)\n(LLAMADA G65: G65 P8109 X.. Y.. W.. D.. C.. F..)\n\n(VARIABLES DE ENTRADA DEL OPERARIO)\n(1. DIMENSIONES GEOMETRICAS)\n#24 = 0.0    (X: COORDENADA X DEL CENTRO DE LA RANURA)\n#25 = 0.0    (Y: COORDENADA Y DEL CENTRO DE LA RANURA)\n#23 = 90.0   (W: DIAMETRO DE PASO CENTRAL DE LA RANURA)\n\n(2. CONDICIONES DE CORTE Y HERRAMIENTA)\n#20 = 10.0   (T: DIAMETRO DE LA FRESA DE CORTE)\n#9  = 350.0  (F: VELOCIDAD DE AVANCE DE CORTE EN MM/MIN)\n#19 = 1500.0 (S: VELOCIDAD DEL HUSILLO EN RPM)\n\n(3. ESTRATEGIA DE MECANIZADO Y SEGURIDAD)\n#7  = 10.0   (D: PROFUNDIDAD TOTAL DE LA RANURA)\n#3  = 2.0    (C: PROFUNDIDAD MAXIMA POR PASADA EN Z)\n#18 = 2.0    (R: PLANO DE SEGURIDAD EN Z)\n\n(CONTROL DE ERRORES Y SEGURIDAD)\nIF [#23 LE 0] GOTO9101\nIF [#7 LE 0]  GOTO9102\nIF [#3 LE 0]  GOTO9103\nIF [#9 LE 0]  GOTO9104\n\n#11 = #4001\n#13 = #4003\n\n#14 = #23 / 2.0 (RADIO DE LA TRAYECTORIA CIRCULAR)\n\n(ARRANQUE DE HUSILLO Y POSICIONAMIENTO)\nG90 G00 S#19 M03\nG00 X[#24 + #14] Y#25\nG00 Z#18\n\n(CALCULO DE CANTIDAD DE PASADAS ENTERAS)\n#100 = #7 / #3\n#101 = FIX[#100]\n\n(BUCLE DE PASADAS DE PROFUNDIDAD EN Z)\n#33 = 1\nWHILE [#33 LE #101] DO1\n  G91 G01 Z-[#3] F#9\n  G03 I-[#14]\n  #33 = #33 + 1\nEND1\n\n(PASADA FINAL DE LIMPIEZA SI QUEDA REMANENTE DE PROFUNDIDAD)\nIF [#100 EQ #101] GOTO900\n#102 = #7 - [#101 * #3]\nG91 G01 Z-[#102] F#9\nG03 I-[#14]\n\nN900 (RETIRADA RAPIDA A PLANO DE SEGURIDAD)\nG90 G00 Z25.0\nG#11 G#13\nGOTO9999\n\n(MENSAJES DE ALARMA DE SEGURIDAD #3000)\nN9101 #3000 = 101 (DIAMETRO DE RANURA W DEBE SER MAYOR A CERO)\nN9102 #3000 = 102 (PROFUNDIDAD TOTAL D DEBE SER MAYOR A CERO)\nN9103 #3000 = 103 (PASO EN Z C DEBE SER MAYOR A CERO)\nN9104 #3000 = 104 (AVANCE F DEBE SER MAYOR A CERO)\n\nN9999 M99\n%\\n"
+  },
+  {
+    "id": "O8112",
+    "filename": "O8112_Cajera_Rectangular_Desbaste.nc",
+    "title": "O8112 - Desbaste de Cajera Rectangular",
+    "subtitle": "Vaciado conc\u00e9ntrico rectangular con radios de esquina R, pasadas en Z y paso lateral",
+    "category": "cajeras",
+    "category_title": "Cajeras (Pockets)",
+    "sub_category": "rectangulares",
+    "icon": "crop_free",
+    "book_chapter": "Cap\u00edtulo 20 - Peter Smid",
+    "g65_template": "G65 P8112 X[#24] Y[#25] W[#23] H[#11] R[#18] T[#20] F[#9] S[#19] Z[#26] K[#6] E[#8] B[#2]",
+    "variables": [
+      {
+        "num": 24,
+        "letter": "X",
+        "value": 0.0,
+        "comment": "COORDENADA X DEL CENTRO DE LA CAJERA",
+        "full_comment": "X: COORDENADA X DEL CENTRO DE LA CAJERA",
+        "line_idx": 7,
+        "original_line": "#24 = 0.0    (X: COORDENADA X DEL CENTRO DE LA CAJERA)"
+      },
+      {
+        "num": 25,
+        "letter": "Y",
+        "value": 0.0,
+        "comment": "COORDENADA Y DEL CENTRO DE LA CAJERA",
+        "full_comment": "Y: COORDENADA Y DEL CENTRO DE LA CAJERA",
+        "line_idx": 8,
+        "original_line": "#25 = 0.0    (Y: COORDENADA Y DEL CENTRO DE LA CAJERA)"
+      },
+      {
+        "num": 23,
+        "letter": "W",
+        "value": 100.0,
+        "comment": "LONGITUD TOTAL DE LA CAJERA EN EJE X",
+        "full_comment": "W: LONGITUD TOTAL DE LA CAJERA EN EJE X",
+        "line_idx": 9,
+        "original_line": "#23 = 100.0  (W: LONGITUD TOTAL DE LA CAJERA EN EJE X)"
+      },
+      {
+        "num": 11,
+        "letter": "H",
+        "value": 60.0,
+        "comment": "ANCHURA TOTAL DE LA CAJERA EN EJE Y",
+        "full_comment": "H: ANCHURA TOTAL DE LA CAJERA EN EJE Y",
+        "line_idx": 10,
+        "original_line": "#11 = 60.0   (H: ANCHURA TOTAL DE LA CAJERA EN EJE Y)"
+      },
+      {
+        "num": 18,
+        "letter": "R",
+        "value": 10.0,
+        "comment": "RADIO DE LAS ESQUINAS INTERIORES",
+        "full_comment": "R: RADIO DE LAS ESQUINAS INTERIORES",
+        "line_idx": 11,
+        "original_line": "#18 = 10.0   (R: RADIO DE LAS ESQUINAS INTERIORES)"
+      },
+      {
+        "num": 20,
+        "letter": "T",
+        "value": 10.0,
+        "comment": "DIAMETRO DE LA FRESA O CORTADOR",
+        "full_comment": "T: DIAMETRO DE LA FRESA O CORTADOR",
+        "line_idx": 14,
+        "original_line": "#20 = 10.0   (T: DIAMETRO DE LA FRESA O CORTADOR)"
+      },
+      {
+        "num": 9,
+        "letter": "F",
+        "value": 350.0,
+        "comment": "VELOCIDAD DE AVANCE DE CORTE EN MM/MIN",
+        "full_comment": "F: VELOCIDAD DE AVANCE DE CORTE EN MM/MIN",
+        "line_idx": 15,
+        "original_line": "#9  = 350.0  (F: VELOCIDAD DE AVANCE DE CORTE EN MM/MIN)"
+      },
+      {
+        "num": 19,
+        "letter": "S",
+        "value": 1800.0,
+        "comment": "VELOCIDAD DEL HUSILLO EN RPM",
+        "full_comment": "S: VELOCIDAD DEL HUSILLO EN RPM",
+        "line_idx": 16,
+        "original_line": "#19 = 1800.0 (S: VELOCIDAD DEL HUSILLO EN RPM)"
+      },
+      {
+        "num": 26,
+        "letter": "Z",
+        "value": 15.0,
+        "comment": "PROFUNDIDAD TOTAL DE LA CAJERA",
+        "full_comment": "Z: PROFUNDIDAD TOTAL DE LA CAJERA",
+        "line_idx": 19,
+        "original_line": "#26 = 15.0   (Z: PROFUNDIDAD TOTAL DE LA CAJERA)"
+      },
+      {
+        "num": 6,
+        "letter": "K",
+        "value": 3.0,
+        "comment": "PASO DE PROFUNDIDAD EN Z POR PASADA",
+        "full_comment": "K: PASO DE PROFUNDIDAD EN Z POR PASADA",
+        "line_idx": 20,
+        "original_line": "#6  = 3.0    (K: PASO DE PROFUNDIDAD EN Z POR PASADA)"
+      },
+      {
+        "num": 8,
+        "letter": "E",
+        "value": 6.0,
+        "comment": "PASO LATERAL RADIAL ENTRE CONTORNOS",
+        "full_comment": "E: PASO LATERAL RADIAL ENTRE CONTORNOS",
+        "line_idx": 21,
+        "original_line": "#8  = 6.0    (E: PASO LATERAL RADIAL ENTRE CONTORNOS)"
+      },
+      {
+        "num": 2,
+        "letter": "B",
+        "value": 2.0,
+        "comment": "PLANO DE RETROCESO Y SEGURIDAD EN Z",
+        "full_comment": "B: PLANO DE RETROCESO Y SEGURIDAD EN Z",
+        "line_idx": 22,
+        "original_line": "#2  = 2.0    (B: PLANO DE RETROCESO Y SEGURIDAD EN Z)"
+      }
+    ],
+    "full_content": "%\nO8112 (DESBASTE DE CAJERA RECTANGULAR)\n(PETER SMID - FANUC CNC CUSTOM MACROS - CAPITULO 20)\n(LLAMADA G65: G65 P8112 X.. Y.. W.. H.. R.. Z.. K.. E.. T.. F.. S.. B..)\n\n(VARIABLES DE ENTRADA DEL OPERARIO)\n(1. DIMENSIONES GEOMETRICAS DE LA PIEZA)\n#24 = 0.0    (X: COORDENADA X DEL CENTRO DE LA CAJERA)\n#25 = 0.0    (Y: COORDENADA Y DEL CENTRO DE LA CAJERA)\n#23 = 100.0  (W: LONGITUD TOTAL DE LA CAJERA EN EJE X)\n#11 = 60.0   (H: ANCHURA TOTAL DE LA CAJERA EN EJE Y)\n#18 = 10.0   (R: RADIO DE LAS ESQUINAS INTERIORES)\n\n(2. CONDICIONES DE CORTE Y HERRAMIENTA)\n#20 = 10.0   (T: DIAMETRO DE LA FRESA O CORTADOR)\n#9  = 350.0  (F: VELOCIDAD DE AVANCE DE CORTE EN MM/MIN)\n#19 = 1800.0 (S: VELOCIDAD DEL HUSILLO EN RPM)\n\n(3. ESTRATEGIA DE MECANIZADO Y SEGURIDAD)\n#26 = 15.0   (Z: PROFUNDIDAD TOTAL DE LA CAJERA)\n#6  = 3.0    (K: PASO DE PROFUNDIDAD EN Z POR PASADA)\n#8  = 6.0    (E: PASO LATERAL RADIAL ENTRE CONTORNOS)\n#2  = 2.0    (B: PLANO DE RETROCESO Y SEGURIDAD EN Z)\n\n(CONTROL DE ERRORES Y SEGURIDAD)\nIF [#23 LE 0] #3000 = 101 (LONGITUD W INVALIDA)\nIF [#11 LE 0] #3000 = 102 (ANCHURA H INVALIDA)\nIF [#26 LE 0] #3000 = 103 (PROFUNDIDAD Z INVALIDA)\nIF [#20 LE 0] #3000 = 104 (DIAMETRO DE HERRAMIENTA INVALIDO)\nIF [#6 LE 0]  #3000 = 105 (PASO EN Z K INVALIDO)\n#15 = #20 / 2.0\nIF [#15 GT #18] #3000 = 106 (RADIO FRESA MAYOR QUE RADIO ESQUINA)\n\n#26 = -ABS[#26]\n#27 = ABS[#6]\n#28 = ABS[#8]\nIF [#28 EQ 0] #28 = #20 * 0.65\nIF [#2 EQ 0]  #2 = 2.0\n\n#10 = #20 / 2.0\n#12 = [#23 / 2.0] - #10\n#13 = [#11 / 2.0] - #10\n#14 = #18 - #10\nIF [#14 LT 0] #14 = 0\n\n#15 = #12\nIF [#13 GT #15] #15 = #13\n#16 = FIUP[#15 / #28]\nIF [#16 LT 1] #16 = 1\n\n(ARRANQUE DE HUSILLO Y POSICIONAMIENTO EN CENTRO)\nG90 G00 S#19 M03\nG00 X#24 Y#25\nG00 Z#2\n\n#30 = 0\nWHILE [#30 GT #26] DO 1\n    #30 = #30 - #27\n    IF [#30 LT #26] #30 = #26\n\n    (INMERSION EN Z EN EL CENTRO)\n    G00 X#24 Y#25\n    G01 Z#30 F[#9 * 0.5]\n\n    (DESBASTE CONCENTRICO DE ADENTRO HACIA AFUERA)\n    #31 = 1\n    WHILE [#31 LE #16] DO 2\n        #32 = [#12 * #31] / #16\n        #33 = [#13 * #31] / #16\n        #34 = [#14 * #31] / #16\n\n        G01 X[#24 + #32 - #34] Y[#25 - #33] F#9\n        G03 X[#24 + #32] Y[#25 - #33 + #34] R#34\n        G01 Y[#25 + #33 - #34]\n        G03 X[#24 + #32 - #34] Y[#25 + #33] R#34\n        G01 X[#24 - #32 + #34]\n        G03 X[#24 - #32] Y[#25 + #33 - #34] R#34\n        G01 Y[#25 - #33 + #34]\n        G03 X[#24 - #32 + #34] Y[#25 - #33] R#34\n        G01 X[#24 + #32 - #34]\n\n        #31 = #31 + 1\n    END 2\n\n    (RETORNO AL PLANO SEGURO)\n    G00 Z#2\nEND 1\n\nG00 Z[#2 + 25.0]\nM99\n%\n"
   }
 ];
 if (typeof window !== 'undefined') { window.MACROS_DATA = MACROS_DATA; }

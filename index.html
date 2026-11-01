@@ -194,12 +194,12 @@
                             <span class="material-symbols-outlined text-3xl">layers</span>
                         </div>
                         <div>
-                            <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-secondary/20 text-secondary border border-secondary/30 uppercase tracking-wider">4 MACROS // CIRCULARES Y RECT.</span>
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-secondary/20 text-secondary border border-secondary/30 uppercase tracking-wider">5 MACROS // CIRCULARES Y RECT.</span>
                             <h2 class="text-xl font-black text-on-surface tracking-wide uppercase mt-2 group-hover:text-secondary transition-colors">
                                 CAJERAS (POCKETS)
                             </h2>
                             <p class="text-on-surface-variant text-xs mt-2 leading-relaxed">
-                                Vaciado y acabado: Desbaste circular concéntrico (O8106), Acabado tangencial (O8107), Ciclo G13 climb (O8111) y Cajera rectangular con radios R (O8110).
+                                Vaciado y acabado: Desbaste circular concéntrico (O8106), Acabado tangencial (O8107), Ciclo G13 climb (O8111), Desbaste rectangular concéntrico (O8112) y Acabado rectangular (O8110).
                             </p>
                         </div>
                     </div>
@@ -258,9 +258,9 @@
             <!-- Contenedor de sub-filtros para Cajeras (Circulares vs Rectangulares) -->
             <div id="cajerasSubFilterBar" class="hidden flex items-center gap-2 pb-2">
                 <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mr-2">Filtrar por:</span>
-                <button id="btnFilterAll" onclick="filterCajerasSubCategory('todas')" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-secondary/20 text-secondary border border-secondary/40">Todas (4)</button>
+                <button id="btnFilterAll" onclick="filterCajerasSubCategory('todas')" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-secondary/20 text-secondary border border-secondary/40">Todas (5)</button>
                 <button id="btnFilterCirc" onclick="filterCajerasSubCategory('circulares')" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-surface-container hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/30">Circulares (3: O8106, O8107, O8111)</button>
-                <button id="btnFilterRect" onclick="filterCajerasSubCategory('rectangulares')" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-surface-container hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/30">Rectangulares (1: O8110)</button>
+                <button id="btnFilterRect" onclick="filterCajerasSubCategory('rectangulares')" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-surface-container hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/30">Rectangulares (2: O8112, O8110)</button>
             </div>
 
             <!-- Grid de Tarjetas de Ciclos -->
@@ -936,6 +936,7 @@
                 { id: 'O8106', sub: 'circulares', name: 'O8106 - Desbaste de Cajera Circular', desc: 'Vaciado concéntrico con control de pasadas en Z y paso lateral radial W.', book: 'Capítulo 20' },
                 { id: 'O8107', sub: 'circulares', name: 'O8107 - Acabado de Cajera Circular', desc: 'Perfilado perimetral con entrada tangencial suave, círculo 360° y salida en arco.', book: 'Capítulo 20' },
                 { id: 'O8111', sub: 'circulares', name: 'O8111 - Ciclo de Corte Circular G13', desc: 'Emulación directa Fanuc G13 / O9013 en fresado ascendente (climb milling).', book: 'Capítulo 21' },
+                { id: 'O8112', sub: 'rectangulares', name: 'O8112 - Desbaste de Cajera Rectangular', desc: 'Vaciado concéntrico rectangular con pasadas en Z, paso lateral radial y radios R.', book: 'Capítulo 20' },
                 { id: 'O8110', sub: 'rectangulares', name: 'O8110 - Acabado de Cajera Rectangular', desc: 'Perfilado rectangular con radios de esquina R y entrada/salida tangencial.', book: 'Capítulo 20' }
             ]
         },
@@ -1144,7 +1145,7 @@
         }
 
         // 4. Plano de Retroceso y Seguridad en Z -> Grupo 3
-        if (comm.includes('PLANO') || comm.includes('RETROCESO') || comm.includes('SEGURIDAD') || (letter === 'B' && (mid === 'O8110' || mid === 'O8108')) || (letter === 'R' && mid !== 'O8110' && mid !== 'O8108')) {
+        if (comm.includes('PLANO') || comm.includes('RETROCESO') || comm.includes('SEGURIDAD') || (letter === 'B' && (mid === 'O8110' || mid === 'O8108' || mid === 'O8112')) || (letter === 'R' && mid !== 'O8110' && mid !== 'O8108' && mid !== 'O8112')) {
             return { group: 3, unit: 'mm', color: 'tertiary' };
         }
 
@@ -1159,7 +1160,7 @@
         }
 
         // 7. Cantidades y Conteo de Agujeros -> Grupo 1
-        if ((comm.includes('CANTIDAD') || comm.includes('TOTAL DE AGUJEROS') || comm.includes('NUMERO') || comm.includes('AGUJERO INICIAL') || letter === 'H' || letter === 'U' || letter === 'V' || (letter === 'S' && mid === 'O8104')) && mid !== 'O8110') {
+        if ((comm.includes('CANTIDAD') || comm.includes('TOTAL DE AGUJEROS') || comm.includes('NUMERO') || comm.includes('AGUJERO INICIAL') || letter === 'H' || letter === 'U' || letter === 'V' || (letter === 'S' && mid === 'O8104')) && mid !== 'O8110' && mid !== 'O8112') {
             return { group: 1, unit: 'U', color: 'primary' };
         }
 
@@ -1461,6 +1462,7 @@
             case 'O8107': drawCadO8107(ctx, w, h, cx, cy); break;
             case 'O8111': drawCadO8111(ctx, w, h, cx, cy); break;
             case 'O8110': drawCadO8110(ctx, w, h, cx, cy); break;
+            case 'O8112': drawCadO8112(ctx, w, h, cx, cy); break;
             case 'O8108': drawCadO8108(ctx, w, h, cx, cy); break;
             case 'O8109': drawCadO8109(ctx, w, h, cx, cy); break;
             default: drawCadO8101(ctx, w, h, cx, cy); break;
@@ -2021,6 +2023,87 @@
         ctx.fillText(`Profundidad Z: -${depth}mm  |  Corrector D: R${toolRad}mm`, 12, 34);
     }
 
+    /* 8B. CAD O8112: DESBASTE DE CAJERA RECTANGULAR */
+    function drawCadO8112(ctx, w, h, cx, cy) {
+        const cx0 = getMacroVar(24, 0);
+        const cy0 = getMacroVar(25, 0);
+        const lenX = Math.max(10, getMacroVar(23, 100));
+        const lenY = Math.max(10, getMacroVar(11, 60));
+        const depth = Math.abs(getMacroVar(26, 15));
+        const cornerR = Math.max(0, getMacroVar(18, 10));
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
+        const stepZ = Math.abs(getMacroVar(6, 3));
+        const stepE = Math.abs(getMacroVar(8, 6));
+        const toolRad = toolDiam / 2;
+
+        const scale = Math.min((w - 140) / (lenX + 30), (h - 140) / (lenY + 30));
+        const rw = lenX * scale;
+        const rh = lenY * scale;
+        const cr = Math.min(rw / 2, rh / 2, cornerR * scale);
+
+        // Placa base
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.fillRect(cx - rw / 2 - 20, cy - rh / 2 - 20, rw + 40, rh + 40);
+        ctx.strokeStyle = "rgba(220, 226, 247, 0.25)";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx - rw / 2 - 20, cy - rh / 2 - 20, rw + 40, rh + 40);
+
+        // Pasadas concéntricas de desbaste (líneas discontinuas ámbar)
+        const maxOffset = Math.max(lenX / 2 - toolRad, lenY / 2 - toolRad);
+        const numPasses = Math.max(1, Math.ceil(maxOffset / (stepE || 6)));
+
+        ctx.strokeStyle = "rgba(245, 158, 11, 0.55)";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 3]);
+
+        for (let p = 1; p <= numPasses; p++) {
+            const frac = p / numPasses;
+            const curW = ((lenX / 2 - toolRad) * frac) * 2 * scale;
+            const curH = ((lenY / 2 - toolRad) * frac) * 2 * scale;
+            const curR = Math.max(0, (cornerR - toolRad) * frac * scale);
+            if (curW > 2 && curH > 2) {
+                ctx.beginPath();
+                ctx.roundRect(cx - curW / 2, cy - curH / 2, curW, curH, curR);
+                ctx.stroke();
+            }
+        }
+        ctx.setLineDash([]);
+
+        // Contorno exterior final de la cajera (Cyan sólido)
+        ctx.strokeStyle = "#4cd7f6";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.roundRect(cx - rw / 2, cy - rh / 2, rw, rh, cr);
+        ctx.stroke();
+
+        // Diámetro y centro de la herramienta en el punto de penetración
+        const trScaled = toolRad * scale;
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - trScaled - 6, cy); ctx.lineTo(cx + trScaled + 6, cy);
+        ctx.moveTo(cx, cy - trScaled - 6); ctx.lineTo(cx, cy + trScaled + 6);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(245, 158, 11, 0.25)";
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, trScaled, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Textos de especificación técnica
+        ctx.fillStyle = "#4cd7f6";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(`W: ${lenX}mm  x  H: ${lenY}mm  |  Radios R: ${cornerR}mm  |  Centro: (${cx0}, ${cy0})`, 12, 20);
+        ctx.fillStyle = "#f59e0b";
+        ctx.fillText(`Desbaste: ${numPasses} pasadas concéntricas  |  Paso E: ${stepE}mm  |  Paso Z: ${stepZ}mm`, 12, 34);
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText(`Profundidad Z: -${depth}mm  |  Fresa ⌀T: ${toolDiam}mm`, 12, 48);
+    }
+
     /* 9. CAD O8108: RANURA RECTA ANGULAR */
     function drawCadO8108(ctx, w, h, cx, cy) {
         const startX = getMacroVar(24, 30);
@@ -2158,9 +2241,9 @@
             depth = Math.abs(getMacroVar(26, 12));
             stepZ = depth;
             safeZ = Math.abs(getMacroVar(18, 2.0));
-        } else if (type === 'O8110') {
-            depth = Math.abs(getMacroVar(26, 12));
-            stepZ = depth;
+        } else if (type === 'O8110' || type === 'O8112') {
+            depth = Math.abs(getMacroVar(26, type === 'O8112' ? 15 : 12));
+            stepZ = (type === 'O8112') ? Math.abs(getMacroVar(6, 3)) : depth;
             safeZ = Math.abs(getMacroVar(2, 2.0)); // B
         } else if (type === 'O8108') {
             depth = Math.abs(getMacroVar(26, 6));
@@ -2513,6 +2596,7 @@
             case 'O8107': buildSimO8107(); break;
             case 'O8111': buildSimO8111(); break;
             case 'O8110': buildSimO8110(); break;
+            case 'O8112': buildSimO8112(); break;
             case 'O8108': buildSimO8108(); break;
             case 'O8109': buildSimO8109(); break;
             default: buildSimO8101(); break;
@@ -2770,6 +2854,114 @@
         simPoints.push({ x: 0, y: -halfY, z: -depth, type: 'G1' });
         simPoints.push({ x: 0, y: 0, z: -depth, type: 'G1' });
         simPoints.push({ x: 0, y: 0, z: 25.0, type: 'G0' });
+    }
+
+    function buildSimO8112() {
+        const cx = getMacroVar(24, 0.0);
+        const cy = getMacroVar(25, 0.0);
+        const lenX = Math.max(10, getMacroVar(23, 100.0));
+        const lenY = Math.max(10, getMacroVar(11, 60.0));
+        const cornerR = Math.max(0, getMacroVar(18, 10.0));
+        const toolDiam = Math.max(1, getMacroVar(20, 10.0));
+        const toolRad = toolDiam / 2.0;
+        const depth = Math.abs(getMacroVar(26, 15.0));
+        const stepZ = Math.max(0.5, Math.abs(getMacroVar(6, 3.0)));
+        const stepE = Math.max(0.5, Math.abs(getMacroVar(8, 6.0)));
+        const safeB = getMacroVar(2, 2.0);
+
+        const maxHalfX = Math.max(0.5, lenX / 2.0 - toolRad);
+        const maxHalfY = Math.max(0.5, lenY / 2.0 - toolRad);
+        const maxCornerR = Math.max(0, cornerR - toolRad);
+        const maxSpan = Math.max(maxHalfX, maxHalfY);
+        const numRadialPasses = Math.max(1, Math.ceil(maxSpan / stepE));
+
+        // Inicio en plano de aproximación superior
+        simPoints.push({ x: cx, y: cy, z: safeB + 25.0, type: 'G0' });
+
+        let currentZ = 0;
+        while (currentZ < depth) {
+            currentZ = Math.min(depth, currentZ + stepZ);
+
+            // Posicionamiento en el centro y descenso en Z
+            simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
+            simPoints.push({ x: cx, y: cy, z: -currentZ, type: 'G1' });
+
+            // Bucles concéntricos de desbaste desde el centro hacia afuera
+            for (let p = 1; p <= numRadialPasses; p++) {
+                const frac = p / numRadialPasses;
+                const curHalfX = maxHalfX * frac;
+                const curHalfY = maxHalfY * frac;
+                const curR = maxCornerR * frac;
+
+                if (curR > 0.2) {
+                    simPoints.push({ x: cx + curHalfX - curR, y: cy - curHalfY, z: -currentZ, type: 'G1' });
+
+                    // Esquina inferior derecha: arco de -PI/2 a 0
+                    for (let a = -Math.PI / 2; a <= 0; a += 0.25) {
+                        simPoints.push({
+                            x: cx + curHalfX - curR + curR * Math.cos(a),
+                            y: cy - curHalfY + curR + curR * Math.sin(a),
+                            z: -currentZ,
+                            type: 'G1'
+                        });
+                    }
+
+                    // Lado derecho
+                    simPoints.push({ x: cx + curHalfX, y: cy + curHalfY - curR, z: -currentZ, type: 'G1' });
+
+                    // Esquina superior derecha: arco de 0 a PI/2
+                    for (let a = 0; a <= Math.PI / 2; a += 0.25) {
+                        simPoints.push({
+                            x: cx + curHalfX - curR + curR * Math.cos(a),
+                            y: cy + curHalfY - curR + curR * Math.sin(a),
+                            z: -currentZ,
+                            type: 'G1'
+                        });
+                    }
+
+                    // Lado superior
+                    simPoints.push({ x: cx - curHalfX + curR, y: cy + curHalfY, z: -currentZ, type: 'G1' });
+
+                    // Esquina superior izquierda: arco de PI/2 a PI
+                    for (let a = Math.PI / 2; a <= Math.PI; a += 0.25) {
+                        simPoints.push({
+                            x: cx - curHalfX + curR + curR * Math.cos(a),
+                            y: cy + curHalfY - curR + curR * Math.sin(a),
+                            z: -currentZ,
+                            type: 'G1'
+                        });
+                    }
+
+                    // Lado izquierdo
+                    simPoints.push({ x: cx - curHalfX, y: cy - curHalfY + curR, z: -currentZ, type: 'G1' });
+
+                    // Esquina inferior izquierda: arco de PI a 3*PI/2
+                    for (let a = Math.PI; a <= Math.PI * 1.5; a += 0.25) {
+                        simPoints.push({
+                            x: cx - curHalfX + curR + curR * Math.cos(a),
+                            y: cy - curHalfY + curR + curR * Math.sin(a),
+                            z: -currentZ,
+                            type: 'G1'
+                        });
+                    }
+
+                    // Cerrar en lado inferior
+                    simPoints.push({ x: cx + curHalfX - curR, y: cy - curHalfY, z: -currentZ, type: 'G1' });
+                } else {
+                    simPoints.push({ x: cx + curHalfX, y: cy - curHalfY, z: -currentZ, type: 'G1' });
+                    simPoints.push({ x: cx + curHalfX, y: cy + curHalfY, z: -currentZ, type: 'G1' });
+                    simPoints.push({ x: cx - curHalfX, y: cy + curHalfY, z: -currentZ, type: 'G1' });
+                    simPoints.push({ x: cx - curHalfX, y: cy - curHalfY, z: -currentZ, type: 'G1' });
+                    simPoints.push({ x: cx + curHalfX, y: cy - curHalfY, z: -currentZ, type: 'G1' });
+                }
+            }
+
+            // Retorno al plano de seguridad
+            simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
+        }
+
+        // Salida final superior
+        simPoints.push({ x: cx, y: cy, z: safeB + 25.0, type: 'G0' });
     }
 
     function buildSimO8108() {
@@ -3039,11 +3231,13 @@
             floorRimMesh.position.set(cx, -pDepth + 0.1, -cy);
             threePathGroup.add(floorRimMesh);
         }
-        // 3. CAJERA RECTANGULAR CON ESQUINAS REDONDEADAS (O8110)
-        else if (type === 'O8110') {
+        // 3. CAJERA RECTANGULAR CON ESQUINAS REDONDEADAS (O8110 y O8112)
+        else if (type === 'O8110' || type === 'O8112') {
+            const cx = (type === 'O8112') ? getMacroVar(24, 0) : 0;
+            const cy = (type === 'O8112') ? getMacroVar(25, 0) : 0;
             const lx = Math.max(10, getMacroVar(23, 100));
             const ly = Math.max(10, getMacroVar(11, 60));
-            const depth = Math.abs(getMacroVar(26, 12));
+            const depth = Math.abs(getMacroVar(26, type === 'O8112' ? 15 : 12));
             const cornerR = Math.min(lx / 2, ly / 2, Math.max(1, getMacroVar(18, 10)));
 
             const hx = lx / 2;
@@ -3064,14 +3258,14 @@
             const pMat = new THREE.MeshStandardMaterial({ color: 0x091424, metalness: 0.6, roughness: 0.35 });
             const pMesh = new THREE.Mesh(pGeom, pMat);
             pMesh.rotation.x = Math.PI / 2;
-            pMesh.position.set(0, 0.05, 0);
+            pMesh.position.set(cx, 0.05, -cy);
             threePathGroup.add(pMesh);
 
             const edgeGeom = new THREE.EdgesGeometry(pGeom);
             const edgeMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2 });
             const edgeLines = new THREE.LineSegments(edgeGeom, edgeMat);
             edgeLines.rotation.x = Math.PI / 2;
-            edgeLines.position.set(0, 0.1, 0);
+            edgeLines.position.set(cx, 0.1, -cy);
             threePathGroup.add(edgeLines);
         }
         // 4. RANURA RECTA ANGULAR (O8108)

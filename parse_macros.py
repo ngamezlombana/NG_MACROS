@@ -95,6 +95,17 @@ METADATA = {
         "book_chapter": "Capítulo 20 - Peter Smid",
         "g65_template": "G65 P8110 W[#23] H[#11] R[#18] D[#7] F[#9] S[#19] Z[#26] B[#2]"
     },
+    "O8112": {
+        "id": "O8112",
+        "category": "cajeras",
+        "category_title": "Cajeras (Pockets)",
+        "sub_category": "rectangulares",
+        "title": "O8112 - Desbaste de Cajera Rectangular",
+        "subtitle": "Vaciado concéntrico rectangular con radios de esquina R, pasadas en Z y paso lateral",
+        "icon": "crop_free",
+        "book_chapter": "Capítulo 20 - Peter Smid",
+        "g65_template": "G65 P8112 X[#24] Y[#25] W[#23] H[#11] R[#18] T[#20] F[#9] S[#19] Z[#26] K[#6] E[#8] B[#2]"
+    },
     "O8108": {
         "id": "O8108",
         "category": "ranuras",
