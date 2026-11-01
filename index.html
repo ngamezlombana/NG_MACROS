@@ -1076,9 +1076,11 @@
 
     function selectMacroById(id) {
         const data = getMacros();
+        if (!Array.isArray(data)) return;
         const idx = data.findIndex(m => m.id === id);
         if (idx !== -1) {
-            selectMacroAndEdit(idx);
+            selectMacro(idx);
+            switchView('ciclo');
         }
     }
 
@@ -2655,14 +2657,14 @@
             let r = stepW;
             while (r < maxR) {
                 simPoints.push({ x: cx + r, y: cy, z: -curZ, type: 'G1' });
-                for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.25) {
+                for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.08) {
                     simPoints.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), z: -curZ, type: 'G1' });
                 }
                 r += stepW;
             }
 
             simPoints.push({ x: cx + maxR, y: cy, z: -curZ, type: 'G1' });
-            for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.25) {
+            for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.08) {
                 simPoints.push({ x: cx + maxR * Math.cos(a), y: cy + maxR * Math.sin(a), z: -curZ, type: 'G1' });
             }
 
@@ -2686,15 +2688,15 @@
         simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
         simPoints.push({ x: cx, y: cy, z: -totalDepth, type: 'G1' });
 
-        for (let a = -Math.PI; a <= 0; a += 0.2) {
+        for (let a = -Math.PI; a <= 0; a += 0.08) {
             simPoints.push({ x: cx + leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -totalDepth, type: 'G1' });
         }
 
-        for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.15) {
+        for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.08) {
             simPoints.push({ x: cx + cutRad * Math.cos(a), y: cy + cutRad * Math.sin(a), z: -totalDepth, type: 'G1' });
         }
 
-        for (let a = 0; a <= Math.PI; a += 0.2) {
+        for (let a = 0; a <= Math.PI; a += 0.08) {
             simPoints.push({ x: cx + cutRad - leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -totalDepth, type: 'G1' });
         }
 
@@ -2716,15 +2718,15 @@
         simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
         simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
 
-        for (let a = -Math.PI; a <= 0; a += 0.2) {
+        for (let a = -Math.PI; a <= 0; a += 0.08) {
             simPoints.push({ x: cx + leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
-        for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.15) {
+        for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.08) {
             simPoints.push({ x: cx + cutRad * Math.cos(a), y: cy + cutRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
-        for (let a = 0; a <= Math.PI; a += 0.2) {
+        for (let a = 0; a <= Math.PI; a += 0.08) {
             simPoints.push({ x: cx + cutRad - leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
@@ -2823,7 +2825,7 @@
             curZ = Math.min(totalDepth, curZ + stepZ);
             simPoints.push({ x: cx + rad, y: cy, z: -curZ, type: 'G1' });
 
-            for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.2) {
+            for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.08) {
                 simPoints.push({ x: cx + rad * Math.cos(a), y: cy + rad * Math.sin(a), z: -curZ, type: 'G1' });
             }
         }
@@ -2921,31 +2923,62 @@
             }
         }
 
-        // Marcadores cilíndricos y anillos brillantes para todos los taladros
-        const drilledHoles = [];
-        const seenHoles = new Set();
-        if (simPoints) {
-            simPoints.forEach(p => {
-                if (p.z < 0 && p.type === 'G1') {
-                    const key = `${p.x.toFixed(2)},${p.y.toFixed(2)}`;
-                    if (!seenHoles.has(key)) {
-                        seenHoles.add(key);
-                        drilledHoles.push({ x: p.x, y: p.y, depth: Math.abs(p.z) });
-                    }
+        // RENDERIZADO DE GEOMETRÍAS MECANIZADAS 3D SEGÚN EL TIPO DE CICLO
+        // 1. TALADRADO (Patrones de Agujeros: O8101, O8103, O8104, O8105)
+        if (type === 'O8101' || type === 'O8103' || type === 'O8104' || type === 'O8105') {
+            const holeCoords = [];
+            if (type === 'O8101') {
+                const x0 = getMacroVar(24, 50);
+                const y0 = getMacroVar(25, 30);
+                const ang = getMacroVar(1, 30) * Math.PI / 180;
+                const stepQ = Math.max(1, getMacroVar(17, 25));
+                const numH = Math.max(1, Math.round(getMacroVar(11, 5)));
+                for (let i = 0; i < numH; i++) {
+                    holeCoords.push({ x: x0 + i * stepQ * Math.cos(ang), y: y0 + i * stepQ * Math.sin(ang) });
                 }
-            });
-        }
+            } else if (type === 'O8103') {
+                const x0 = getMacroVar(24, 20);
+                const y0 = getMacroVar(25, 20);
+                const numU = Math.max(2, Math.round(getMacroVar(21, 6)));
+                const numV = Math.max(2, Math.round(getMacroVar(22, 4)));
+                const stepI = Math.max(1, getMacroVar(4, 25));
+                const stepJ = Math.max(1, getMacroVar(5, 20));
+                for (let i = 0; i < numU; i++) holeCoords.push({ x: x0 + i * stepI, y: y0 });
+                for (let j = 1; j < numV; j++) holeCoords.push({ x: x0 + (numU - 1) * stepI, y: y0 + j * stepJ });
+                for (let i = numU - 2; i >= 0; i--) holeCoords.push({ x: x0 + i * stepI, y: y0 + (numV - 1) * stepJ });
+                for (let j = numV - 2; j >= 1; j--) holeCoords.push({ x: x0, y: y0 + j * stepJ });
+            } else if (type === 'O8104') {
+                const cx = getMacroVar(24, 0);
+                const cy = getMacroVar(25, 0);
+                const rad = getMacroVar(23, 120) / 2;
+                const numH = Math.max(1, Math.round(getMacroVar(11, 8)));
+                const startA = getMacroVar(1, 0) * Math.PI / 180;
+                const startH = Math.max(1, Math.round(getMacroVar(19, 1)));
+                for (let k = startH; k <= numH; k++) {
+                    const a = startA + ((k - 1) * 2 * Math.PI) / numH;
+                    holeCoords.push({ x: cx + rad * Math.cos(a), y: cy + rad * Math.sin(a) });
+                }
+            } else if (type === 'O8105') {
+                const cx = getMacroVar(24, 0);
+                const cy = getMacroVar(25, 0);
+                const rad = getMacroVar(23, 100) / 2;
+                const numH = Math.max(1, Math.round(getMacroVar(11, 6)));
+                const startA = getMacroVar(1, 15) * Math.PI / 180;
+                const stepA = getMacroVar(4, 30) * Math.PI / 180;
+                for (let k = 1; k <= numH; k++) {
+                    const a = startA + (k - 1) * stepA;
+                    holeCoords.push({ x: cx + rad * Math.cos(a), y: cy + rad * Math.sin(a) });
+                }
+            }
 
-        if (drilledHoles.length > 0) {
-            const holeToolDiam = Math.max(3, getMacroVar(20, 10));
-            const holeR = holeToolDiam / 2;
-            const holeGeom = new THREE.CylinderGeometry(holeR, holeR, 2, 24);
-            const holeMat = new THREE.MeshBasicMaterial({ color: 0x09121f });
-
-            const ringGeom = new THREE.RingGeometry(holeR * 0.95, holeR * 1.35, 24);
+            const drillDiam = Math.max(2, getMacroVar(20, 10));
+            const holeR = drillDiam / 2;
+            const holeGeom = new THREE.CylinderGeometry(holeR, holeR, 2.5, 32);
+            const holeMat = new THREE.MeshBasicMaterial({ color: 0x091424 });
+            const ringGeom = new THREE.RingGeometry(holeR * 0.95, holeR * 1.35, 32);
             const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
 
-            drilledHoles.forEach(h => {
+            holeCoords.forEach(h => {
                 const holeMesh = new THREE.Mesh(holeGeom, holeMat);
                 holeMesh.position.set(h.x, 0.05, -h.y);
                 threePathGroup.add(holeMesh);
@@ -2955,6 +2988,127 @@
                 ringMesh.position.set(h.x, 0.1, -h.y);
                 threePathGroup.add(ringMesh);
             });
+        }
+        // 2. CAJERAS CIRCULARES (O8106, O8107, O8109, O8111) -> CÍRCULO PERFECTO
+        else if (type === 'O8106' || type === 'O8107' || type === 'O8109' || type === 'O8111') {
+            const cx = getMacroVar(24, 0);
+            const cy = getMacroVar(25, 0);
+            let pDiam = 80;
+            let pDepth = 15;
+
+            if (type === 'O8106') {
+                pDiam = getMacroVar(7, 80);
+                pDepth = Math.abs(getMacroVar(26, 15));
+            } else if (type === 'O8107') {
+                pDiam = getMacroVar(23, 80);
+                pDepth = Math.abs(getMacroVar(26, 15));
+            } else if (type === 'O8109') {
+                pDiam = getMacroVar(23, 90);
+                pDepth = Math.abs(getMacroVar(7, 10));
+            } else if (type === 'O8111') {
+                pDiam = getMacroVar(7, 60);
+                pDepth = Math.abs(getMacroVar(26, 12));
+            }
+
+            const pRad = pDiam / 2;
+
+            // Cavidad circular de la cajera: Cilindro limpio y perfecto (sin pétalos ni efecto flor)
+            const pocketGeom = new THREE.CylinderGeometry(pRad, pRad, pDepth, 64);
+            const pocketMat = new THREE.MeshStandardMaterial({
+                color: 0x091424,
+                metalness: 0.6,
+                roughness: 0.35
+            });
+            const pocketMesh = new THREE.Mesh(pocketGeom, pocketMat);
+            pocketMesh.position.set(cx, -pDepth / 2 + 0.05, -cy);
+            threePathGroup.add(pocketMesh);
+
+            // Anillo brillante perimetral en la superficie (Diámetro final exacto en cian)
+            const rimGeom = new THREE.RingGeometry(pRad * 0.985, pRad * 1.015, 64);
+            const rimMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
+            const rimMesh = new THREE.Mesh(rimGeom, rimMat);
+            rimMesh.rotation.x = -Math.PI / 2;
+            rimMesh.position.set(cx, 0.1, -cy);
+            threePathGroup.add(rimMesh);
+
+            // Anillo brillante en el fondo de la cajera mecanizada
+            const floorRimGeom = new THREE.RingGeometry(pRad * 0.98, pRad * 1.01, 64);
+            const floorRimMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, side: THREE.DoubleSide });
+            const floorRimMesh = new THREE.Mesh(floorRimGeom, floorRimMat);
+            floorRimMesh.rotation.x = -Math.PI / 2;
+            floorRimMesh.position.set(cx, -pDepth + 0.1, -cy);
+            threePathGroup.add(floorRimMesh);
+        }
+        // 3. CAJERA RECTANGULAR CON ESQUINAS REDONDEADAS (O8110)
+        else if (type === 'O8110') {
+            const lx = Math.max(10, getMacroVar(23, 100));
+            const ly = Math.max(10, getMacroVar(11, 60));
+            const depth = Math.abs(getMacroVar(26, 12));
+            const cornerR = Math.min(lx / 2, ly / 2, Math.max(1, getMacroVar(18, 10)));
+
+            const hx = lx / 2;
+            const hy = ly / 2;
+            const shape = new THREE.Shape();
+            shape.moveTo(-hx + cornerR, -hy);
+            shape.lineTo(hx - cornerR, -hy);
+            shape.absarc(hx - cornerR, -hy + cornerR, cornerR, -Math.PI / 2, 0, false);
+            shape.lineTo(hx, hy - cornerR);
+            shape.absarc(hx - cornerR, hy - cornerR, cornerR, 0, Math.PI / 2, false);
+            shape.lineTo(-hx + cornerR, hy);
+            shape.absarc(-hx + cornerR, hy - cornerR, cornerR, Math.PI / 2, Math.PI, false);
+            shape.lineTo(-hx, -hy + cornerR);
+            shape.absarc(-hx + cornerR, -hy + cornerR, cornerR, Math.PI, Math.PI * 1.5, false);
+
+            const extrudeSettings = { depth: depth, bevelEnabled: false };
+            const pGeom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const pMat = new THREE.MeshStandardMaterial({ color: 0x091424, metalness: 0.6, roughness: 0.35 });
+            const pMesh = new THREE.Mesh(pGeom, pMat);
+            pMesh.rotation.x = Math.PI / 2;
+            pMesh.position.set(0, 0.05, 0);
+            threePathGroup.add(pMesh);
+
+            const edgeGeom = new THREE.EdgesGeometry(pGeom);
+            const edgeMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2 });
+            const edgeLines = new THREE.LineSegments(edgeGeom, edgeMat);
+            edgeLines.rotation.x = Math.PI / 2;
+            edgeLines.position.set(0, 0.1, 0);
+            threePathGroup.add(edgeLines);
+        }
+        // 4. RANURA RECTA ANGULAR (O8108)
+        else if (type === 'O8108') {
+            const x0 = getMacroVar(24, 30);
+            const y0 = getMacroVar(25, 25);
+            const depth = Math.abs(getMacroVar(26, 6));
+            const angDeg = getMacroVar(1, 25);
+            const angRad = angDeg * Math.PI / 180;
+            const distD = Math.max(5, getMacroVar(7, 60));
+            const slotR = Math.max(1, getMacroVar(18, 10));
+
+            const slotGroup = new THREE.Group();
+            slotGroup.position.set(x0, 0.05, -y0);
+            slotGroup.rotation.y = angRad; // En Three.js, rotación en Y orienta +X hacia -Z (CNC +Y)
+
+            const shape = new THREE.Shape();
+            shape.moveTo(0, -slotR);
+            shape.lineTo(distD, -slotR);
+            shape.absarc(distD, 0, slotR, -Math.PI / 2, Math.PI / 2, false);
+            shape.lineTo(0, slotR);
+            shape.absarc(0, 0, slotR, Math.PI / 2, Math.PI * 1.5, false);
+
+            const extrudeSettings = { depth: depth, bevelEnabled: false };
+            const sGeom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const sMat = new THREE.MeshStandardMaterial({ color: 0x091424, metalness: 0.6, roughness: 0.35 });
+            const sMesh = new THREE.Mesh(sGeom, sMat);
+            sMesh.rotation.x = Math.PI / 2;
+            slotGroup.add(sMesh);
+
+            const edgeGeom = new THREE.EdgesGeometry(sGeom);
+            const edgeMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2 });
+            const edgeLines = new THREE.LineSegments(edgeGeom, edgeMat);
+            edgeLines.rotation.x = Math.PI / 2;
+            slotGroup.add(edgeLines);
+
+            threePathGroup.add(slotGroup);
         }
     }
 
