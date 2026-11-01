@@ -15,7 +15,7 @@ METADATA = {
         "title": "O8101 - Patrón de Agujero Angular",
         "subtitle": "Serie lineal equidistante orientada a cualquier ángulo polar",
         "icon": "linear_scale",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8101 X[#24] Y[#25] A[#1] Q[#17] H[#11] T[#20] F[#9] S[#19] Z[#26] R[#18] E[#8]"
     },
     "O8103": {
@@ -26,7 +26,7 @@ METADATA = {
         "title": "O8103 - Patrón de Agujero de Marco Rectangular",
         "subtitle": "Perímetro rectangular de 4 lados con prevención de sobretaladrado en esquinas",
         "icon": "crop_free",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8103 X[#24] Y[#25] U[#21] V[#22] I[#4] J[#5] T[#20] F[#9] S[#19] Z[#26] R[#18] E[#8]"
     },
     "O8104": {
@@ -37,7 +37,7 @@ METADATA = {
         "title": "O8104 - Círculo de Agujeros de Perno (BCD / PCD)",
         "subtitle": "Círculo de barrenado paramétrico con ángulo inicial y selección de orificio de inicio",
         "icon": "donut_large",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8104 X[#24] Y[#25] W[#23] H[#11] A[#1] S[#19] T[#20] F[#9] B[#2] Z[#26] R[#18] E[#8]"
     },
     "O8105": {
@@ -48,7 +48,7 @@ METADATA = {
         "title": "O8105 - Patrón de Agujeros en Arco",
         "subtitle": "Barrenado en segmento circular con paso angular uniforme",
         "icon": "timelapse",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8105 X[#24] Y[#25] W[#23] H[#11] A[#1] I[#4] T[#20] F[#9] S[#19] Z[#26] R[#18] E[#8]"
     },
     "O8106": {
@@ -57,10 +57,10 @@ METADATA = {
         "category_title": "Cajeras (Pockets)",
         "sub_category": "circulares",
         "title": "O8106 - Desbaste de Cajera Circular",
-        "subtitle": "Vaciado concéntrico con control de pasadas Z y paso lateral W",
+        "subtitle": "Vaciado concéntrico con control de sobrematerial en paredes U y fondo V",
         "icon": "radio_button_checked",
-        "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8106 X[#24] Y[#25] D[#7] W[#23] T[#20] F[#9] S[#19] Z[#26] K[#6] R[#18]"
+        "book_chapter": "Ingeniero Nestor Gamez",
+        "g65_template": "G65 P8106 X[#24] Y[#25] D[#7] W[#23] T[#20] F[#9] S[#19] Z[#26] K[#6] U[#21] V[#22] R[#18]"
     },
     "O8107": {
         "id": "O8107",
@@ -70,7 +70,7 @@ METADATA = {
         "title": "O8107 - Acabado de Cajera Circular",
         "subtitle": "Perfilado tangencial suave con compensación G41 y salida en arco",
         "icon": "track_changes",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8107 X[#24] Y[#25] W[#23] T[#20] F[#9] S[#19] Z[#26] R[#18]"
     },
     "O8111": {
@@ -81,8 +81,19 @@ METADATA = {
         "title": "O8111 - Ciclo de Corte Circular G13",
         "subtitle": "Emulación canónica Fanuc G13 / O9013 en fresado ascendente (climb milling)",
         "icon": "all_inclusive",
-        "book_chapter": "Capítulo 21 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8111 X[#24] Y[#25] D[#7] T[#20] F[#9] S[#19] Z[#26] R[#18]"
+    },
+    "O8112": {
+        "id": "O8112",
+        "category": "cajeras",
+        "category_title": "Cajeras (Pockets)",
+        "sub_category": "rectangulares",
+        "title": "O8112 - Desbaste de Cajera Rectangular",
+        "subtitle": "Vaciado concéntrico rectangular con control de sobrematerial en paredes U y fondo V",
+        "icon": "crop_free",
+        "book_chapter": "Ingeniero Nestor Gamez",
+        "g65_template": "G65 P8112 X[#24] Y[#25] W[#23] H[#11] R[#18] T[#20] F[#9] S[#19] Z[#26] K[#6] E[#8] U[#21] V[#22] B[#2]"
     },
     "O8110": {
         "id": "O8110",
@@ -92,19 +103,8 @@ METADATA = {
         "title": "O8110 - Acabado de Cajera Rectangular o Marco",
         "subtitle": "Perfilado rectangular con radios de esquina R y entrada/salida tangencial",
         "icon": "crop_portrait",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8110 W[#23] H[#11] R[#18] D[#7] F[#9] S[#19] Z[#26] B[#2]"
-    },
-    "O8112": {
-        "id": "O8112",
-        "category": "cajeras",
-        "category_title": "Cajeras (Pockets)",
-        "sub_category": "rectangulares",
-        "title": "O8112 - Desbaste de Cajera Rectangular",
-        "subtitle": "Vaciado concéntrico rectangular con radios de esquina R, pasadas en Z y paso lateral",
-        "icon": "crop_free",
-        "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8112 X[#24] Y[#25] W[#23] H[#11] R[#18] T[#20] F[#9] S[#19] Z[#26] K[#6] E[#8] B[#2]"
     },
     "O8108": {
         "id": "O8108",
@@ -114,7 +114,7 @@ METADATA = {
         "title": "O8108 - Ranura Recta Angular",
         "subtitle": "Ranurado orientado a cualquier ángulo polar con arcos extremos de radio R",
         "icon": "linear_scale",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8108 X[#24] Y[#25] A[#1] D[#7] R[#18] T[#20] F[#9] S[#19] Z[#26] B[#2]"
     },
     "O8109": {
@@ -125,7 +125,7 @@ METADATA = {
         "title": "O8109 - Ranura Circular Multi-profundidad",
         "subtitle": "Canal anular circular concéntrico con control de pasadas en Z",
         "icon": "motion_photos_on",
-        "book_chapter": "Capítulo 20 - Peter Smid",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": "G65 P8109 X[#24] Y[#25] W[#23] T[#20] F[#9] S[#19] D[#7] C[#3] R[#18]"
     }
 }
@@ -169,44 +169,46 @@ for filename in nc_files:
         start_idx = 0
         
     for idx in range(start_idx, len(lines)):
-        line_clean = lines[idx].strip()
-        if "CONTROL DE ERRORES" in line_clean or line_clean.startswith("IF [") or line_clean.startswith("G90"):
+        line = lines[idx].strip()
+        if "CONTROL DE ERRORES" in line or "ARRANQUE DE HUSILLO" in line or (line.startswith("IF [") and "#3000" in line):
             end_idx = idx
             break
-        
+            
     variables = []
-    # Match "#1 = 150.0  (DIAMETRO...)" or "#1=150 (DIAMETRO...)"
-    var_pattern = re.compile(r"^\s*#(\d+)\s*=\s*(-?[\d.]+)\s*(\(.*\))?")
+    
+    # Extract variable assignments: #24 = 50.0 (X: ...)
+    var_regex = re.compile(r"^\s*#(\d+)\s*=\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s*(?:\((.*)\))?")
     
     for i in range(start_idx, end_idx):
-        line = lines[i]
-        match = var_pattern.match(line)
-        if match:
-            var_num = int(match.group(1))
-            if var_num < 100:
-                var_val = float(match.group(2))
-                var_comment = match.group(3) if match.group(3) else ""
-                comment_text = var_comment.strip("() ")
-                
-                # Check for explicit letter in comment like "(X: COORDENADA...)"
-                letter_match = re.match(r"^([A-Z]):\s*(.*)", comment_text)
-                if letter_match:
-                    arg_letter = letter_match.group(1)
-                    clean_desc = letter_match.group(2)
-                else:
-                    arg_letter = FANUC_LETTER_MAP.get(var_num, f"#{var_num}")
-                    clean_desc = comment_text
-                
-                variables.append({
-                    "num": var_num,
-                    "letter": arg_letter,
-                    "value": var_val,
-                    "comment": clean_desc,
-                    "full_comment": comment_text,
-                    "line_idx": i,
-                    "original_line": line
-                })
-                
+        line = lines[i].strip()
+        if not line or line.startswith("%") or line.startswith("O"):
+            continue
+            
+        m = var_regex.match(line)
+        if m:
+            var_num = int(m.group(1))
+            var_val = float(m.group(2))
+            comment_text = m.group(3) if m.group(3) else ""
+            
+            # Check for explicit letter in comment like "(X: COORDENADA...)"
+            letter_match = re.match(r"^([A-Z]):\s*(.*)", comment_text)
+            if letter_match:
+                arg_letter = letter_match.group(1)
+                clean_desc = letter_match.group(2)
+            else:
+                arg_letter = FANUC_LETTER_MAP.get(var_num, f"#{var_num}")
+                clean_desc = comment_text
+            
+            variables.append({
+                "num": var_num,
+                "letter": arg_letter,
+                "value": var_val,
+                "comment": clean_desc,
+                "full_comment": comment_text,
+                "line_idx": i,
+                "original_line": line
+            })
+            
     meta = METADATA.get(prog_id, {
         "id": prog_id or filename,
         "category": "otros",
@@ -215,7 +217,7 @@ for filename in nc_files:
         "title": title,
         "subtitle": "Ciclo Fanuc Custom Macro B",
         "icon": "settings",
-        "book_chapter": "Peter Smid - Fanuc CNC Custom Macros",
+        "book_chapter": "Ingeniero Nestor Gamez",
         "g65_template": f"G65 P{prog_id[1:] if prog_id else '0000'}"
     })
             
@@ -234,8 +236,8 @@ for filename in nc_files:
         "full_content": content
     })
 
-# Sort according to program order: O8101, O8103, O8104, O8105, O8106, O8107, O8111, O8110, O8108, O8109
-prog_order = ["O8101", "O8103", "O8104", "O8105", "O8106", "O8107", "O8111", "O8110", "O8108", "O8109"]
+# Sort according to program order
+prog_order = ["O8101", "O8103", "O8104", "O8105", "O8106", "O8107", "O8111", "O8112", "O8110", "O8108", "O8109"]
 macros.sort(key=lambda m: prog_order.index(m["id"]) if m["id"] in prog_order else 999)
 
 # Output as a JS file for the browser
