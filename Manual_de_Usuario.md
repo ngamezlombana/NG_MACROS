@@ -1,305 +1,739 @@
-# Manual de Usuario: Aplicación de Macros CNC Paramétricas (NG CNC)
+# Manual de Usuario — NG_MACROS · CNC Precision Studio v4.4
 
-¡Bienvenido al manual oficial de la aplicación **NG CNC**! Esta herramienta ha sido diseñada para permitirte generar códigos de mecanizado CNC (Código G) de forma rápida y sencilla mediante el uso de plantillas inteligentes (macros). 
+**Autor:** Ingeniero Nestor Gamez
 
-No es necesario que seas un programador experto en código G o que tengas formación técnica avanzada. Este manual te explicará de forma sencilla cómo funciona la interfaz, cómo interactuar con el simulador en 2D y 3D, y qué significa cada una de las variables en las 8 macros disponibles.
+**Licencia:** MIT (ver `LICENSE`)
+
+**Aplicación:** `index.html` (HTML + JavaScript, sin backend)
 
 ---
 
 ## Índice
-1. [¿Qué es la Programación Paramétrica?](#1-qué-es-la-programación-paramétrica)
-2. [Guía de Uso de la Interfaz Web](#2-guía-de-uso-de-la-interfaz-web)
-3. [El Módulo de Simulación (2D y 3D Isométrico)](#3-el-módulo-de-simulación-2d-y-3d-isométrico)
-4. [Explicación Detallada de las 8 Macros](#4-explicación-detallada-de-las-8-macros)
-5. [Consideraciones de Seguridad en la Máquina Real](#5-consideraciones-de-seguridad-en-la-máquina-real)
+
+1. [Qué es NG_MACROS](#1-qué-es-ng_macros)
+2. [Requisitos y puesta en marcha](#2-requisitos-y-puesta-en-marcha)
+3. [Flujo de trabajo](#3-flujo-de-trabajo)
+4. [Interfaz de usuario](#4-interfaz-de-usuario)
+5. [Seguridad y validación](#5-seguridad-y-validación)
+6. [Generación de código G](#6-generación-de-código-g)
+7. [Referencia de las 11 macros](#7-referencia-de-las-11-macros)
+8. [Simulación 3D y 2D](#8-simulación-3d-y-2d)
+9. [Almacén de herramientas](#9-almacén-de-herramientas)
+10. [Hoja de taller](#10-hoja-de-taller)
+11. [Uso sin conexión e instalación](#11-uso-sin-conexión-e-instalación)
+12. [Datos guardados en el navegador](#12-datos-guardados-en-el-navegador)
+13. [Estructura y desarrollo](#13-estructura-y-desarrollo)
+14. [Solución de problemas](#14-solución-de-problemas)
+15. [Licencia y descargo de responsabilidad](#15-licencia-y-descargo-de-responsabilidad)
 
 ---
 
-## 1. ¿Qué es la Programación Paramétrica?
+## 1. Qué es NG_MACROS
 
-En el mecanizado CNC tradicional, si quieres hacer una cajera (un agujero en forma de piscina) y luego decides cambiar su diámetro, tendrías que volver a dibujar la pieza en un software CAD/CAM y volver a generar todo el programa.
+NG_MACROS es una aplicación web local para preparar y verificar **macros Fanuc Custom
+Macro B** (`O81xx`) usadas en taladrado, cajeras y ranuras. Permite:
 
-La **programación paramétrica** soluciona esto usando **plantillas ajustables**. En lugar de escribir trayectorias fijas, la macro utiliza variables (identificadas con el símbolo `#` y un número, por ejemplo, `#1`). 
-* Tú solo escribes las dimensiones (los parámetros) en la página web.
-* La aplicación calcula de inmediato la trayectoria completa de corte.
-* Obtienes un archivo de código G listo para cargar en tu máquina CNC.
+- Editar los parámetros de cada macro con validación inmediata.
+- Visualizar la geometría y la trayectoria del centro de herramienta en 2D.
+- Simular la trayectoria en 3D.
+- Generar un programa principal en modo `G65` o con la macro expandida.
+- Copiar o descargar el código G.
+- Imprimir una hoja de taller para el operario.
+
+La aplicación **no controla ninguna máquina**. Solo genera texto G-code y gráficos de
+verificación. La ejecución real siempre se realiza en el control CNC.
 
 ---
 
-## 2. Guía de Uso de la Interfaz Web
+## 2. Requisitos y puesta en marcha
 
-La interfaz de usuario está dividida en secciones claras y modernas:
+### 2.1 Navegador
+
+Se recomienda un navegador actualizado:
+
+- Chrome / Edge 110 o superior.
+- Firefox 110 o superior.
+- Safari 16 o superior.
+
+La simulación 3D necesita WebGL. Si no está disponible, el simulador muestra una vista 2D
+de respaldo.
+
+### 2.2 Abrir la aplicación
+
+**Opción A — doble clic:** abre `index.html`. Funciona con `file://`, pero el service worker
+no se registra en ese protocolo.
+
+**Opción B — servidor local (recomendado):**
+
+```bash
+python3 -m http.server 8080
+```
+
+Abre `http://localhost:8080`. Así se activa el uso sin conexión y la instalación como PWA.
+
+### 2.3 Regenerar los datos
+
+`macros_data.js` se genera automáticamente desde los archivos `.nc` y `parse_macros.py`.
+Si editas una macro `.nc` o los metadatos, ejecuta:
+
+```bash
+python3 parse_macros.py
+```
+
+Después recarga la página con `Ctrl+F5`. **No edites `macros_data.js` a mano**: se
+sobrescribe.
+
+---
+
+## 3. Flujo de trabajo
+
+1. **Inicio:** elige una categoría (Patrones de agujeros, Cajeras o Ranuras).
+2. **Selección:** elige la macro concreta.
+3. **Parámetros:** ajusta geometría, herramienta, avances, profundidad y seguridad.
+4. **Validación:** revisa el aviso rojo si aparece. Corrige todos los problemas.
+5. **CAD 2D:** comprueba la forma, la trayectoria y las cotas.
+6. **G-code:** elige el modo de salida y copia o descarga el programa.
+7. **Simulación:** verifica la trayectoria en 3D y el terminal de código.
+8. **Hoja de taller:** imprímela para el operario.
+
+Los parámetros se guardan automáticamente por macro en el navegador. El botón
+**Restablecer** devuelve la macro a sus valores originales.
+
+---
+
+## 4. Interfaz de usuario
+
+### 4.1 Cabecera
+
+- **Logo:** vuelve al inicio.
+- **Navegación:** Inicio, Librería, Hoja de taller.
+- **Licencia:** abre el modal informativo. La aplicación está en modo local abierto: no hay
+  claves, tokens ni bloqueo.
+- **E-STOP:** parada de emergencia visual de la simulación. No actúa sobre una máquina real.
+
+### 4.2 Vista de ciclo
+
+- Título y archivo de la macro activa.
+- Botones **Copiar código G**, **Descargar .NC**, **Simulación** y **Restablecer**.
+- Aviso de validación de parámetros.
+- Panel de parámetros agrupados por tipo (geometría, corte, seguridad).
+- Esquema CAD 2D con selector **Plano XY / Perfil Z**.
+- Panel **Salida G-code** con vista previa y opciones.
+
+### 4.3 Rutas compartibles
+
+La barra de direcciones refleja la vista actual:
+
+| Ruta | Vista |
+|---|---|
+| `#inicio` | Inicio |
+| `#categoria/cajeras` | Lista de una categoría |
+| `#ciclo/O8101` | Macro concreta |
+| `#simulador` | Simulación |
+| `#libreria` | Almacén de herramientas |
+| `#hoja-taller` | Hoja de taller |
+
+Puedes guardar o compartir estos enlaces. Al abrir uno, la aplicación carga la vista
+correspondiente.
+
+### 4.4 Accesibilidad
+
+- Enlace **Saltar al contenido principal** al inicio.
+- Foco visible en controles.
+- Etiquetas `aria-label` en botones y paneles importantes.
+- Estilos de impresión que ocultan la cabecera y el modal de licencia.
+
+---
+
+## 5. Seguridad y validación
+
+### 5.1 Validaciones de la interfaz
+
+Antes de generar el código, la aplicación comprueba:
+
+- Diámetro de herramienta, avance y husillo mayores que cero.
+- Dimensiones de cajera, ranura o patrón coherentes.
+- Que la fresa quepa en la cajera o ranura.
+- Que el radio de esquina sea mayor que el radio de la fresa.
+- Cantidades enteras de agujeros y agujero inicial dentro de rango.
+- Pasos de profundidad y pasos radiales positivos.
+
+Los avisos son orientativos: **no sustituyen la validación del control**.
+
+### 5.2 Alarmas `#3000` en las macros
+
+Cada macro incluye etiquetas `N91xx` con alarmas `#3000`. Si un parámetro es inválido, el
+control detiene el programa con un mensaje. Ejemplo:
+
+```gcode
+N9101 #3000 = 101 (DIAMETRO DE LA CAJERA DEBE SER MAYOR A CERO)
+```
+
+El número después de `#3000 =` es el código de alarma. Consulta la tabla de cada macro en
+la sección 7.
+
+### 5.3 Buenas prácticas obligatorias
+
+1. Verifica la sintaxis en el control o en un simulador real.
+2. Comprueba cero pieza, cero herramienta y correctores H/D.
+3. Revisa límites de carrera y posibles colisiones.
+4. Simula en vacío antes del primer corte.
+5. Haz la primera pasada con la mano en la parada de emergencia.
+6. No mecanices materiales o geometrías fuera del rango previsto sin recalcular.
+
+---
+
+## 6. Generación de código G
+
+### 6.1 Cabecera común
+
+Ambos modos generan una cabecera con:
+
+- `%` de inicio.
+- Número de programa y nombre del archivo.
+- Autor y control seleccionado.
+- Lista de parámetros configurados.
+- `G21` (milímetros) y `G54` (origen de trabajo), ambos opcionales.
+- `G90 G94 G17` (absoluto, avance por minuto, plano XY).
+
+Al final se añade:
+
+```gcode
+M05
+M09
+G91 G28 Z0.0
+G91 G28 X0.0 Y0.0
+M30
+%
+```
+
+### 6.2 Modo llamada G65 (recomendado)
+
+Genera un programa principal corto:
+
+```gcode
+%
+O8101 (NG_MACROS - LLAMADA G65)
+...
+G65 P8101 X50.0 Y30.0 A30.0 Q25.0 H5.0 T10.0 F250.0 S1200.0 Z20.0 R2.0 E5.0
+...
+M30
+%
+```
+
+Requisitos:
+
+- La macro `O8101` debe estar cargada como subprograma en el control.
+- El número de programa debe coincidir (`P8101`).
+- Los argumentos deben ser aceptados por el control.
+
+Ventajas: programa principal corto, macro reutilizable y mantenimiento centralizado.
+
+### 6.3 Modo macro expandida
+
+Inserta el cuerpo completo de la macro en el programa principal:
+
+- Elimina el `%` interno, la línea `O81xx` y el `M99`.
+- Sustituye los valores de las variables de entrada por los configurados.
+- Conserva las alarmas, los saltos y la lógica.
+- Añade el cierre seguro y `M30`.
+
+Ventajas: programa autónomo, fácil de auditar y de transferir a controles que no admiten
+subprogramas. Inconveniente: archivo más largo y menos reutilizable.
+
+> En modo expandido no se debe cargar el archivo como subprograma. Es un programa
+> principal.
+
+### 6.4 Opciones de salida
+
+- **G21:** incluye el bloque de milímetros. Desactívalo solo si tu control ya está en
+  métrico y no admite el bloque.
+- **G54:** incluye la selección de origen de trabajo. Desactívalo si usas otro origen
+  (G55–G59) o lo gestionas fuera del programa.
+- **Copiar:** copia el texto al portapapeles.
+- **Descargar .NC:** descarga el programa con sufijo `_g65.nc` o `_expandida.nc`.
+
+### 6.5 Integración en el control
+
+1. Revisa el código en el editor del control o en un PC.
+2. Transfiere la macro `O81xx` al directorio de subprogramas si usas `G65`.
+3. Comprueba que el número `O` y `P` coinciden.
+4. Verifica que las letras de argumento de tu control coinciden con las de la macro.
+5. Ejecuta bloque a bloque la primera vez.
+
+---
+
+## 7. Referencia de las 11 macros
+
+Convención de letras Fanuc usada por el parser:
+
+| Letra | Variable | Letra | Variable | Letra | Variable |
+|---|---|---|---|---|---|
+| A | `#1` | I | `#4` | R | `#18` |
+| B | `#2` | J | `#5` | S | `#19` |
+| C | `#3` | K | `#6` | T | `#20` |
+| D | `#7` | Q | `#17` | U | `#21` |
+| E | `#8` | H | `#11` | V | `#22` |
+| F | `#9` | W | `#23` | X | `#24` |
+| | | | | Y | `#25` |
+| | | | | Z | `#26` |
+
+> Atención: en **O8104** el husillo se programa con **B (#2)** y **S (#19)** es el número de
+> agujero inicial. En el resto de macros, **S (#19)** es la velocidad del husillo.
+
+---
+
+### 7.1 O8101 — Patrón de agujero angular
+
+Serie lineal de agujeros equidistantes orientada a cualquier ángulo polar. Usa ciclo fijo
+`G83` con picoteo.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | Coordenada X del primer agujero | 50.0 |
+| Y | `#25` | Coordenada Y del primer agujero | 30.0 |
+| A | `#1` | Ángulo de la línea desde X+ (grados) | 30.0 |
+| Q | `#17` | Distancia entre agujeros | 25.0 |
+| H | `#11` | Número total de agujeros (entero ≥ 2) | 5 |
+| T | `#20` | Diámetro de broca/herramienta | 10.0 |
+| F | `#9` | Avance de taladrado (mm/min) | 250.0 |
+| S | `#19` | Velocidad del husillo (rpm) | 1200.0 |
+| Z | `#26` | Profundidad total (positiva) | 20.0 |
+| R | `#18` | Plano de retroceso/seguridad | 2.0 |
+| E | `#8` | Paso de picoteo en Z | 5.0 |
+
+Alarmas: 101 cantidad inválida, 102 paso Q ≤ 0, 103 profundidad ≤ 0, 104 avance ≤ 0,
+105 diámetro ≤ 0, 106 picoteo ≤ 0.
+
+---
+
+### 7.2 O8103 — Patrón de agujero de marco rectangular
+
+Perímetro rectangular de cuatro lados, con prevención de sobretaladrado en las esquinas.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X de la esquina inferior izquierda | 20.0 |
+| Y | `#25` | Y de la esquina inferior izquierda | 20.0 |
+| U | `#21` | Cantidad de agujeros en X (entero ≥ 2) | 6 |
+| V | `#22` | Cantidad de agujeros en Y (entero ≥ 2) | 4 |
+| I | `#4` | Paso entre agujeros en X | 25.0 |
+| J | `#5` | Paso entre agujeros en Y | 20.0 |
+| T | `#20` | Diámetro de broca | 10.0 |
+| F | `#9` | Avance de taladrado | 250.0 |
+| S | `#19` | Velocidad del husillo | 1200.0 |
+| Z | `#26` | Profundidad total | 18.0 |
+| R | `#18` | Plano de retroceso | 2.0 |
+| E | `#8` | Paso de picoteo | 5.0 |
+
+Alarmas: 101 pasos I/J ≤ 0, 102 menos de 2 agujeros por lado, 103 cantidades no enteras,
+104 profundidad ≤ 0, 105 avance ≤ 0, 106 diámetro ≤ 0, 107 picoteo ≤ 0.
+
+---
+
+### 7.3 O8104 — Círculo de agujeros BCD / PCD
+
+Círculo de agujeros equiespaciados con ángulo inicial y agujero de inicio seleccionable.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro del círculo | 0.0 |
+| Y | `#25` | Y del centro del círculo | 0.0 |
+| W | `#23` | Diámetro del círculo de paso (BCD/PCD) | 120.0 |
+| H | `#11` | Cantidad total de agujeros (entero) | 8 |
+| A | `#1` | Ángulo del primer agujero desde X+ | 0.0 |
+| S | `#19` | Número del agujero inicial (1…H) | 1 |
+| T | `#20` | Diámetro de broca | 12.0 |
+| F | `#9` | Avance de taladrado | 280.0 |
+| B | `#2` | Velocidad del husillo (rpm) | 1200.0 |
+| Z | `#26` | Profundidad total | 25.0 |
+| R | `#18` | Plano de retroceso | 3.0 |
+| E | `#8` | Paso de picoteo | 6.0 |
+
+Alarmas: 101 BCD ≤ 0, 102 cantidad o inicio no entero, 103 cantidad ≤ 0, 104 inicio < 1,
+105 inicio > total, 106 profundidad ≤ 0, 107 avance ≤ 0, 108 husillo ≤ 0, 109 diámetro ≤ 0,
+110 picoteo ≤ 0.
+
+---
+
+### 7.4 O8105 — Patrón de agujeros en arco
+
+Barrenado en un segmento circular con paso angular uniforme.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro del arco | 0.0 |
+| Y | `#25` | Y del centro del arco | 0.0 |
+| W | `#23` | Diámetro del arco de agujeros | 100.0 |
+| H | `#11` | Cantidad de agujeros (entero ≥ 1) | 6 |
+| A | `#1` | Ángulo del primer agujero desde X+ | 15.0 |
+| I | `#4` | Separación angular entre agujeros | 30.0 |
+| T | `#20` | Diámetro de broca | 10.0 |
+| F | `#9` | Avance de taladrado | 250.0 |
+| S | `#19` | Velocidad del husillo | 1200.0 |
+| Z | `#26` | Profundidad total | 20.0 |
+| R | `#18` | Plano de retroceso | 2.0 |
+| E | `#8` | Paso de picoteo | 5.0 |
+
+`I` puede ser negativo para recorrer el arco en sentido horario. Alarmas: 101 diámetro ≤ 0,
+102 menos de 1 agujero, 103 cantidad no entera, 104 incremento angular 0, 105 profundidad
+≤ 0, 106 avance ≤ 0, 107 diámetro de herramienta ≤ 0, 108 picoteo ≤ 0.
+
+---
+
+### 7.5 O8106 — Desbaste de cajera circular
+
+Vaciado concéntrico con pasadas en Z y sobrematerial para el acabado.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro de la cajera | 0.0 |
+| Y | `#25` | Y del centro de la cajera | 0.0 |
+| D | `#7` | Diámetro final de la cajera | 80.0 |
+| T | `#20` | Diámetro de la fresa | 10.0 |
+| F | `#9` | Avance de mecanizado | 400.0 |
+| S | `#19` | Velocidad del husillo | 1800.0 |
+| Z | `#26` | Profundidad total | 15.0 |
+| K | `#6` | Profundidad por pasada en Z | 3.0 |
+| W | `#23` | Paso radial / ancho de corte | 6.0 |
+| U | `#21` | Sobrematerial en paredes | 0.5 |
+| V | `#22` | Sobrematerial en fondo | 0.2 |
+| R | `#18` | Plano de retroceso | 2.0 |
+
+El radio máximo de la trayectoria del centro es `D/2 − U − T/2`. Alarmas: 101 diámetro ≤ 0,
+102 herramienta ≤ 0, 103 paso radial ≤ 0, 104 profundidad ≤ 0, 105 avance ≤ 0,
+106 herramienta + sobrematerial exceden la cajera, 107 paso Z ≤ 0.
+
+---
+
+### 7.6 O8107 — Acabado de cajera circular
+
+Perfilado circular con entrada y salida tangencial en arco, directo al centro de herramienta.
+No usa compensación G41/G42: la trayectoria ya está corregida por el radio de la fresa.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro | 0.0 |
+| Y | `#25` | Y del centro | 0.0 |
+| W | `#23` | Diámetro final terminado | 80.0 |
+| T | `#20` | Diámetro de la fresa de acabado | 10.0 |
+| F | `#9` | Avance de acabado | 250.0 |
+| S | `#19` | Velocidad del husillo | 2200.0 |
+| Z | `#26` | Profundidad terminada | 15.0 |
+| R | `#18` | Plano de seguridad | 2.0 |
+
+Radio de trayectoria: `W/2 − T/2`. Radio de entrada/salida: la mitad de ese valor.
+Alarmas: 101 diámetro ≤ 0, 102 herramienta ≤ 0, 103 profundidad ≤ 0, 104 avance ≤ 0,
+105 herramienta ≥ radio de cajera, 106 husillo ≤ 0.
+
+---
+
+### 7.7 O8111 — Ciclo de corte circular (emulación G13)
+
+Emula la trayectoria de `G13` con `G03` en fresado ascendente. Útil en controles que no
+implementan `G13`.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro | 0.0 |
+| Y | `#25` | Y del centro | 0.0 |
+| D | `#7` | Diámetro de la cajera | 60.0 |
+| T | `#20` | Diámetro de la fresa | 12.0 |
+| F | `#9` | Avance de corte | 300.0 |
+| S | `#19` | Velocidad del husillo | 2000.0 |
+| Z | `#26` | Profundidad | 12.0 |
+| R | `#18` | Plano de seguridad | 2.0 |
+
+Radio de trayectoria: `D/2 − T/2`. Alarmas: 101 diámetro ≤ 0, 102 herramienta ≤ 0,
+103 avance ≤ 0, 104 herramienta ≥ radio, 105 profundidad ≤ 0, 106 husillo ≤ 0.
+
+---
+
+### 7.8 O8112 — Desbaste de cajera rectangular
+
+Vaciado concéntrico rectangular con radios de esquina y sobrematerial para acabado.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro | 0.0 |
+| Y | `#25` | Y del centro | 0.0 |
+| W | `#23` | Longitud total en X | 100.0 |
+| H | `#11` | Anchura total en Y | 60.0 |
+| R | `#18` | Radio de esquinas interiores | 10.0 |
+| T | `#20` | Diámetro de la fresa | 10.0 |
+| F | `#9` | Avance de corte | 350.0 |
+| S | `#19` | Velocidad del husillo | 1800.0 |
+| Z | `#26` | Profundidad total | 15.0 |
+| K | `#6` | Profundidad por pasada en Z | 3.0 |
+| E | `#8` | Paso lateral entre contornos (0 = 65% de T) | 6.0 |
+| U | `#21` | Sobrematerial en paredes | 0.5 |
+| V | `#22` | Sobrematerial en fondo | 0.2 |
+| B | `#2` | Plano de retroceso | 2.0 |
+
+Alarmas: 101 W ≤ 0, 102 H ≤ 0, 103 Z ≤ 0, 104 herramienta ≤ 0, 105 K ≤ 0,
+106 radio de herramienta ≥ R, 107 fresa/sobrematerial exceden W, 108 exceden H,
+109 avance ≤ 0, 110 husillo ≤ 0.
+
+---
+
+### 7.9 O8110 — Acabado de cajera rectangular o marco
+
+Perfilado rectangular con radios de esquina, entrada y salida por el centro de la cajera.
+Trayectoria directa al centro de herramienta (sin G41/G42).
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro | 0.0 |
+| Y | `#25` | Y del centro | 0.0 |
+| W | `#23` | Longitud en X | 100.0 |
+| H | `#11` | Anchura en Y | 60.0 |
+| R | `#18` | Radio de esquinas interiores | 10.0 |
+| T | `#20` | Diámetro de la fresa de acabado | 10.0 |
+| F | `#9` | Avance de acabado | 350.0 |
+| S | `#19` | Velocidad del husillo | 1800.0 |
+| Z | `#26` | Profundidad terminada | 12.0 |
+| B | `#2` | Plano de seguridad | 2.0 |
+
+Condiciones: `R > T/2`, `W > T`, `H > T`. Alarmas: 101 W ≤ 0, 102 H ≤ 0, 103 R ≤ 0,
+104 herramienta ≤ 0, 105 avance ≤ 0, 106 profundidad ≤ 0, 107 herramienta excede la cajera,
+108 R ≤ T/2, 109 husillo ≤ 0.
+
+---
+
+### 7.10 O8108 — Ranura recta angular
+
+Ranura tipo racetrack orientada a cualquier ángulo, con arcos extremos de radio nominal `R` y
+varias pasadas radiales de dentro hacia fuera.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro inicial de la ranura | 30.0 |
+| Y | `#25` | Y del centro inicial de la ranura | 25.0 |
+| A | `#1` | Orientación angular desde X+ | 25.0 |
+| D | `#7` | Distancia entre centros extremos | 60.0 |
+| R | `#18` | Radio nominal de la ranura (ancho total = 2R) | 10.0 |
+| T | `#20` | Diámetro de la fresa | 10.0 |
+| F | `#9` | Avance de corte | 300.0 |
+| S | `#19` | Velocidad del husillo | 1600.0 |
+| Z | `#26` | Profundidad total | 6.0 |
+| B | `#2` | Plano de seguridad | 2.0 |
+
+El radio máximo de la trayectoria del centro es `R − T/2`. El paso radial es el 65% del
+diámetro de la fresa. Alarmas: 101 D ≤ 0, 102 R ≤ 0, 103 herramienta ≤ 0, 104 Z ≤ 0,
+105 avance ≤ 0, 106 herramienta ≥ 2R, 107 husillo ≤ 0.
+
+---
+
+### 7.11 O8109 — Ranura circular multiprofundidad
+
+Canal anular circular concéntrico con pasadas de profundidad controladas. La fresa recorre
+un círculo de diámetro `W`; el ancho del canal es el diámetro de la herramienta.
+
+| Letra | Variable | Parámetro | Defecto |
+|---|---|---|---|
+| X | `#24` | X del centro de la ranura | 0.0 |
+| Y | `#25` | Y del centro de la ranura | 0.0 |
+| W | `#23` | Diámetro de la trayectoria central | 90.0 |
+| T | `#20` | Diámetro de la fresa | 10.0 |
+| F | `#9` | Avance de corte | 350.0 |
+| S | `#19` | Velocidad del husillo | 1500.0 |
+| D | `#7` | Profundidad total | 10.0 |
+| C | `#3` | Profundidad máxima por pasada | 2.0 |
+| R | `#18` | Plano de seguridad | 2.0 |
+
+La última pasada corrige el remanente si `D` no es múltiplo de `C`. Alarmas: 101 W ≤ 0,
+102 D ≤ 0, 103 C ≤ 0, 104 avance ≤ 0, 105 herramienta ≤ 0, 106 husillo ≤ 0.
+
+---
+
+## 8. Simulación 3D y 2D
+
+### 8.1 Controles
+
+- **Play:** ejecuta la trayectoria punto a punto.
+- **Pausa:** detiene la ejecución sin perder la posición.
+- **Paso:** avanza un punto.
+- **Reset:** vuelve al inicio y reinicia contadores.
+- **Velocidad:** multiplicador de la animación.
+- **Vistas:** 3D, planta, frente y lateral.
+- **Material:** aluminio, acero, cobre o madera (solo visual).
+
+### 8.2 Lectura de la simulación
+
+- Líneas ámbar: movimientos rápidos (`G0`).
+- Líneas azules: movimientos de corte (`G1`, `G2`, `G3`).
+- Terminal inferior: código G y resaltado de la línea aproximada.
+- Contador: puntos recorridos y tiempo estimado.
+
+El tiempo estimado usa el avance `F` de la macro y una velocidad de rápido de
+12 000 mm/min. Es una aproximación, no una medida real.
+
+### 8.3 Limitaciones
+
+- La simulación reproduce la geometría paramétrica de la macro, no interpreta G-code
+  arbitrario.
+- No modela colisiones, quillas, portaherramientas ni límites reales de la máquina.
+- No sustituye al simulador del control.
+
+---
+
+## 9. Almacén de herramientas
+
+La vista **Librería** muestra hasta 24 puestos ATC.
+
+- **Agregar:** crea una herramienta nueva (nombre, diámetro, filos).
+- **Asignar:** aplica diámetro, avance y RPM a la macro activa.
+- **Eliminar:** borra la herramienta del almacén.
+- Los cambios se guardan en `localStorage`.
+
+La asignación busca variables por letra y comentario:
+
+- `T` o comentarios de diámetro de fresa/broca → diámetro.
+- `F` o comentarios de avance → avance.
+- Comentarios de RPM/husillo → velocidad.
+- En O8104, `B` se trata como husillo.
+
+Revisa siempre el resultado de la asignación: los comentarios de las macros mandan sobre
+cualquier heurística.
+
+---
+
+## 10. Hoja de taller
+
+La vista **Hoja de taller** genera una ficha imprimible con:
+
+- Fecha.
+- Programa y ciclo activo.
+- Tiempo estimado.
+- Herramienta, diámetro, correctores H/D.
+- Husillo y avance.
+
+Usa **Imprimir** del navegador. Los estilos de impresión ocultan la cabecera y el modal de
+licencia para ahorrar tinta.
+
+---
+
+## 11. Uso sin conexión e instalación
+
+La aplicación incluye:
+
+- `manifest.json` para instalación como PWA.
+- `icon.svg` como icono.
+- `service-worker.js` con caché del app shell.
+- Tailwind, Three.js, OrbitControls y fuentes en `vendor/`.
+
+### 11.1 Primer uso con conexión
+
+1. Sirve la aplicación por HTTP (`python3 -m http.server 8080`).
+2. Abre la URL.
+3. El service worker se registra y cachea los assets.
+4. Recarga una vez para confirmar.
+
+### 11.2 Uso posterior sin conexión
+
+Abre la misma URL. El service worker sirve el app shell desde la caché. Si usas `file://`,
+la aplicación también funciona, pero sin service worker ni instalación.
+
+### 11.3 Actualizar la caché
+
+Si modificas assets, sube `CACHE_VERSION` en `service-worker.js`. Al recargar, el nuevo
+service worker elimina las cachés antiguas.
+
+---
+
+## 12. Datos guardados en el navegador
+
+| Clave | Contenido |
+|---|---|
+| `ng_macros_params_v1` | Parámetros por macro |
+| `ng_cnc_tools` | Almacén de herramientas |
+| `ng_gcode_mode` | Modo de salida (`caller` / `expanded`) |
+| `ng_gcode_g21` | Inclusión de `G21` |
+| `ng_gcode_g54` | Inclusión de `G54` |
+
+Los datos son locales al navegador y al perfil. No se envían a ningún servidor. Para
+borrarlos, usa la configuración del navegador o el botón **Restablecer** de cada macro.
+
+---
+
+## 13. Estructura y desarrollo
 
 ```
-+-------------------------------------------------------------+
-|  NG CNC  [ Macros ] [ Simulación ] [ Herramientas ] [ Historial ]  |
-+-------------------------------------------------------------+
-| Barra Lateral  | Formulario de Variables  | Consola DRO     |
-| (Lista de      | (Ingresar dimensiones)   | (X, Y, Z, RPM)  |
-|  las 8 macros) |                          |                 |
-|                |--------------------------|-----------------|
-|                | Editor de Código G       | Pantalla de     |
-|                | (Visualizar / Copiar)    | Simulación      |
-+-------------------------------------------------------------+
+index.html                 SPA completa (UI, CAD, simulación, generador)
+macros_data.js             Datos generados; no editar a mano
+parse_macros.py            Metadatos y parser de los .nc
+O81xx_*.nc                 Macros Fanuc Custom Macro B
+vendor/                    Assets locales (Tailwind, Three.js, fuentes)
+tests/                     Pruebas automáticas
+manifest.json              PWA
+service-worker.js          Caché offline
 ```
 
-### Paso 1: Ingreso e Introducción de la Licencia
-Al abrir la aplicación por primera vez, verás una ventana flotante solicitando una clave. 
-* Para acceder como administrador con todos los privilegios, introduce la clave maestra: **`nestor69`** y presiona activar. Esto te otorgará acceso permanente.
+### 13.1 Comandos
 
-### Paso 2: Seleccionar una Macro
-En la barra lateral izquierda, verás las 8 macros disponibles (por ejemplo, *Cajera Circular*, *Fresado de Roscas*, *Ranura Cerrada*). Haz clic sobre la macro que deseas programar. De inmediato, se cargarán los parámetros predeterminados.
+```bash
+python3 parse_macros.py          # regenerar macros_data.js
+node --test tests/*.test.mjs     # pruebas
+npm run check                    # parser + pruebas
+python3 -m http.server 8080      # servidor local
+```
 
-### Paso 3: Configurar las Variables
-En el panel central aparecerán las casillas donde debes ingresar las medidas de tu pieza, los datos de la herramienta, las velocidades y los niveles de profundidad. **Ingresa los valores solo en milímetros (mm) o en revoluciones por minuto (RPM) según se indique.**
+### 13.2 Añadir o modificar una macro
 
-### Paso 4: Generar y Copiar el Código G
-Una vez definidos los parámetros:
-1. Haz clic en el botón **"Ejecutar y Generar Código G"**.
-2. La terminal de código mostrará el programa CNC completo listo para usar.
-3. Presiona **"Copiar Código G"** para guardarlo en tu portapapeles, o cópialo directamente para guardarlo en un archivo con extensión `.nc` (por ejemplo, `mi_programa.nc`) para llevarlo a la máquina por USB.
-
----
-
-## 3. El Módulo de Simulación (2D y 3D Isométrico)
-
-Antes de cortar metal real, es vital comprobar que la trayectoria sea la correcta para evitar costosas colisiones o roturas de herramientas. Para ello dispones de la pestaña **Simulación**.
-
-### Controles de la Simulación
-* **Play (▶️), Pausa (⏸️), Detener (⏹️):** Te permiten controlar el avance del mecanizado virtual.
-* **Velocidad de Simulación:** Permite acelerar el recorrido desde 1x hasta 20x para no esperar en operaciones largas.
-* **DRO (Visualizador Digital):** Muestra en tiempo real las coordenadas exactas $X, Y, Z$, los RPM y la velocidad de avance ($F$). También verás una barra dinámica de **Spindle Load (Carga de Husillo)** que cambia según si la herramienta está realizando un corte pesado o moviéndose por el aire.
-* **Materiales:** Puedes seleccionar entre **Acero**, **Aluminio**, **Cobre** o **Madera**. El color de la pieza virtual cambiará para simular la textura del material real.
-* **Parada de Emergencia (E-STOP):** El gran botón rojo detiene de inmediato la simulación y bloquea el panel en caso de que detectes un comportamiento extraño, simulando la parada física de tu máquina.
-
-### Alternar a la Vista 3D Isométrica
-Al presionar el botón **"Vista 3D"** en la tarjeta de estado, la pantalla cambia de una vista plana a una simulación tridimensional:
-* **Perspectiva Isométrica:** La cámara utiliza una proyección técnica ortográfica (sin deformación de perspectiva) que muestra la pieza en el ángulo perfecto de ingeniería.
-* **Interacción:** Haz clic izquierdo y arrastra para **rotar** la pieza en 3D; usa el click derecho para **desplazarla**; y gira la rueda del mouse para hacer **zoom**.
-* **Identificación del Movimiento por Colores:**
-  * **Líneas Blancas:** Desplazamientos rápidos en el aire ($G00$). Aquí la herramienta no corta.
-  * **Líneas Naranjas:** Pasadas de desbaste en avance controlado ($G01/G02/G03$). Remueven la mayor cantidad de material.
-  * **Líneas Turquesas:** Recorrido final de acabado superficial. Aseguran la medida exacta y un acabado liso.
+1. Edita el archivo `.nc`.
+2. Añade o ajusta sus metadatos en `METADATA` de `parse_macros.py`.
+3. Ejecuta `python3 parse_macros.py`.
+4. Añade la ruta CAD y la simulación en `index.html` si la geometría es nueva.
+5. Ejecuta las pruebas y revisa la app.
 
 ---
 
-## 4. Explicación Detallada de las 8 Macros
+## 14. Solución de problemas
 
-A continuación, se detalla qué hace cada macro y qué significa cada una de sus variables de programación.
+### La página se ve sin estilos
 
----
+Comprueba que existe `vendor/tailwindcss.js` y que se abre por HTTP o con la ruta correcta.
+Si abres `index.html` desde otra carpeta, mantén la estructura del repositorio.
 
-### Macro 1: Arreglo Circular de Agujeros (Brida / Círculo de Pernos)
-Se utiliza para realizar una serie de taladrados repartidos uniformemente a lo largo de una circunferencia. Es muy común para fabricar bridas o acoples de tuberías.
+### Las macros no cargan
 
-![Esquema Cajera Circular](cajera_circular_diagram.png)
+Ejecuta `python3 parse_macros.py` y recarga. La consola debe mostrar `MACROS_DATA` con 11
+elementos.
 
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Diámetro del Círculo | El diámetro del círculo sobre el cual se distribuirán los centros de los agujeros. |
-| **#2** | Número de Agujeros | Cantidad total de taladrados a realizar en el patrón (ej: 4, 6, 8, 12). |
-| **#3** | Diámetro de la Broca | El diámetro físico de la broca instalada. Sirve para dibujar la escala en el simulador. |
-| **#4** | RPM (Velocidad de Giro) | Velocidad de rotación del husillo. |
-| **#5** | Avance F | Velocidad de avance de la broca al taladrar en vertical (mm/min). |
-| **#6** | Profundidad Total | La profundidad final del taladrado (medida desde el plano Z inicial hacia abajo). |
-| **#7** | Estrategia (0/1) | **0 = Taladrado Directo** (entra de un solo golpe).<br>**1 = Taladrado con Picoteo** (entra por pasadas cortas y sale para limpiar viruta). |
-| **#8** | Paso de Picoteo | Si usas Picoteo, define la profundidad de cada penetración antes de volver a subir. |
-| **#9** | Seguridad sobre Pieza | Distancia segura en el aire (Z+) donde la máquina se moverá rápido antes de taladrar. |
-| **#10** | Centro X | Posición X del centro del patrón respecto al cero de la máquina. |
-| **#11** | Centro Y | Posición Y del centro del patrón respecto al cero de la máquina. |
-| **#12** | Z Inicial | El nivel de altura donde empieza el material (generalmente 0). |
-| **#13** | Ángulo Inicial | Ángulo en grados del primer agujero respecto a la horizontal (ej: 0° empieza a las 3 en punto). |
-| **#14** | Agujero de Inicio | Número del agujero desde donde iniciará el taladrado (por defecto 1). |
-| **#15** | Agujero Final | Número del agujero donde terminará (permite hacer patrones parciales). |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
+### La simulación 3D está vacía
 
----
+Puede faltar WebGL. Prueba otro navegador o usa la vista 2D. Revisa también que
+`vendor/three.min.js` y `vendor/OrbitControls.js` existan.
 
-### Macro 2: Macho Circular Central (Circular Boss)
-Sirve para mecanizar la superficie exterior de una pieza dejando un cilindro central elevado (macho). En lugar de vaciar un círculo, esta macro desgasta todo lo que está alrededor de un diámetro dado.
+### El service worker no se registra
 
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Diámetro Exterior Inicial | El diámetro original del bloque de material en bruto. |
-| **#2** | Diámetro Final del Macho | El diámetro final que tendrá el cilindro central después de mecanizar. |
-| **#3** | Diámetro de la Herramienta | Diámetro de la fresa de corte que vas a utilizar. |
-| **#4** | Profundidad Total Z | Altura del macho o profundidad del escalón que se va a desgastar (ej: 10). |
-| **#5** | Pasada en Z | Cuántos milímetros desciende la herramienta en profundidad en cada nivel de corte. |
-| **#6** | Paso Radial (Paso Lateral)| Distancia máxima en milímetros que se desplaza la herramienta hacia los lados en cada pasada. |
-| **#7** | Sobrematerial Pared | Material extra que se deja en las paredes durante el desbaste para limpiarlo en el acabado. |
-| **#8** | Sobrematerial Fondo | Espesor extra que se deja en el fondo del escalón antes del acabado. |
-| **#9** | Plano de Retroceso R | Altura segura en Z a la que sube la fresa para realizar movimientos rápidos. |
-| **#10** | Velocidad de Corte (Vc) | Velocidad del cortador en metros por minuto. Ayuda a autocalcular los RPM óptimos. |
-| **#11** | Número de Insertos | Cantidad de filos o dientes de la fresa. |
-| **#12** | Avance por Inserto (fz) | Avance en mm que realiza cada filo por vuelta. Autocalcula el avance F del husillo. |
-| **#13** | Centro X | Coordenada X del centro del macho. |
-| **#14** | Centro Y | Coordenada Y del centro del macho. |
-| **#15** | Z Inicial | Altura donde empieza a cortar la herramienta. |
-| **#16** | Opción (0 / 1 / 2) | **0 = Desbaste y Acabado** (Completo).<br>**1 = Solo Desbaste** (deja el sobrematerial).<br>**2 = Solo Acabado** (limpia el contorno final). |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
+Solo funciona en `http://` o `https://`. Con `file://` no se registra, pero la app sigue
+funcionando.
+
+### Los cambios no aparecen
+
+Recarga con `Ctrl+F5`. Si cambiaste el service worker, cierra todas las pestañas de la app y
+vuelve a abrirla.
+
+### El código G no compila en el control
+
+- Verifica que la macro esté cargada como subprograma en modo `G65`.
+- Comprueba el número `O` y `P`.
+- Revisa las letras de argumento admitidas por tu control.
+- Prueba el modo expandido para descartar problemas de llamada.
+- Consulta las alarmas `#3000` y el manual del control.
 
 ---
 
-### Macro 3: Cajera Circular (Circular Pocket)
-Se utiliza para realizar un vaciado redondo (como un agujero ciego o pasante de gran diámetro) usando una herramienta más pequeña. La herramienta entra en el centro y se desplaza en círculos concéntricos hacia afuera.
+## 15. Licencia y descargo de responsabilidad
 
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Diámetro Final de Caja | El diámetro del agujero circular final que deseas obtener. |
-| **#2** | Diámetro de la Herramienta | El diámetro de la fresa con la que realizarás el vaciado. |
-| **#3** | Profundidad Total Z | Profundidad total del agujero (valor positivo). |
-| **#4** | Pasada Z Desbaste | Altura que desciende en Z la fresa en cada nivel antes de limpiar en espiral. |
-| **#5** | Sobrematerial Acabado | Milímetros extra que se dejan en las paredes de la cajera para la pasada de acabado. |
-| **#6** | Velocidad de Corte (Vc) | Velocidad de corte recomendada para el material en m/min. |
-| **#7** | Número de Labios | Número de filos cortantes de la fresa. |
-| **#8** | Avance por Labio (fz) | Avance por revolución y por diente de la fresa. |
-| **#9** | Plano de Seguridad R | Altura segura Z en el aire a la que subirá la herramienta entre pasadas rápidas. |
-| **#10** | Centro en X | Coordenada X del centro del círculo. |
-| **#11** | Centro en Y | Coordenada Y del centro del círculo. |
-| **#12** | Paso Radial Máximo | Cuánto material come de lado la fresa al limpiar desde el centro hacia afuera (mm). |
-| **#14** | Z Inicial / Reinicio | Altura Z desde donde empieza a cortar (por defecto 0). |
-| **#15** | Radio de Arco Acabado | Radio del arco de entrada suave que hace la herramienta para no marcar la pared en el acabado. |
-| **#16** | Opción (0 / 1 / 2) | **0 = Ambos** (Desbaste + Acabado).<br>**1 = Solo Desbaste**.<br>**2 = Solo Acabado**. |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
+Código distribuido bajo licencia **MIT**. Consulta el archivo `LICENSE`.
 
----
+Las macros, la documentación y el código G generado se ofrecen **“tal cual”**, sin garantía
+de comerciabilidad ni de aptitud para un mecanizado concreto. El autor no se hace
+responsable de daños a máquinas, piezas, herramientas o personas derivados del uso de este
+software.
 
-### Macro 4: Cajera Rectangular (Rectangular Pocket)
-Crea una cavidad rectangular en el material. Es ideal para rebajes, alojamientos de motores, cajones o cuñeros anchos. Permite redondear las esquinas interiores automáticamente.
+**Verifica siempre el programa en el control antes de mecanizar.**
 
-![Esquema Cajera Rectangular](cajera_rectangular_diagram.png)
-
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Longitud X de la Caja | Medida del lado largo de la cajera en la dirección X. |
-| **#2** | Ancho Y de la Caja | Medida del lado corto de la cajera en la dirección Y. |
-| **#3** | Radio en las Esquinas | Radio interno en las 4 esquinas del rectángulo (no puede ser menor al radio de la fresa). |
-| **#4** | Diámetro de la Herramienta | Diámetro de la fresa a utilizar. |
-| **#5** | Profundidad Total Z | Profundidad del rebaje rectangular (valor positivo). |
-| **#6** | Pasada en Z Desbaste | Profundidad que corta la herramienta en cada pasada vertical. |
-| **#7** | Sobrematerial Acabado | Espesor de material para la limpieza final. |
-| **#8** | Velocidad de Corte (Vc) | Parámetro Vc para el cálculo automático de los RPM. |
-| **#9** | Número de Labios | Filos de la fresa. |
-| **#10** | Avance por Labio (fz) | Avance por diente. |
-| **#11** | Plano de Seguridad R | Altura segura de traslado rápido en el aire. |
-| **#12** | Centro en X | Coordenada X del centro del rectángulo. |
-| **#13** | Centro en Y | Coordenada Y del centro del rectángulo. |
-| **#14** | Paso Radial Máximo XY | Paso lateral máximo de la fresa al limpiar el rectángulo por dentro. |
-| **#15** | Z Inicial / Reinicio | Plano Z inicial del material. |
-| **#16** | Radio de Arco Acabado | Radio de entrada tangencial en arco para el acabado de las paredes. |
-| **#17** | Opción (0 / 1 / 2) | **0 = Completo**, **1 = Solo Desbaste**, **2 = Solo Acabado**. |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
-
----
-
-### Macro 5: Ranura Cerrada (Chavetero / Ranura Inclinada)
-Sirve para fresar ranuras lineales o colisas (ranuras con dos semicírculos en los extremos). Esta macro permite posicionar la ranura en cualquier ángulo de inclinación respecto al eje horizontal.
-
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Longitud entre Centros (L) | Distancia en línea recta medida desde el centro del círculo izquierdo al derecho. |
-| **#2** | Radio de la Ranura | El radio del semicírculo de los extremos. El ancho total de la ranura será el doble. |
-| **#3** | Ángulo de Inclinación | Ángulo en grados para girar la ranura (ej: 0° es horizontal, 45° es diagonal hacia arriba). |
-| **#4** | Diámetro de la Herramienta | Diámetro de la fresa (debe ser menor o igual al ancho de la ranura). |
-| **#5** | Profundidad Total Z | Profundidad final del canal (valor positivo). |
-| **#6** | Pasada en Z Desbaste | Cuánto desciende en Z vertical la herramienta por cada nivel. |
-| **#7** | Sobrematerial Acabado | Milímetros extra que se dejan para el acabado de las paredes laterales. |
-| **#8** | Velocidad de Corte (Vc) | Velocidad lineal de corte en m/min. |
-| **#9** | Número de Labios | Cantidad de filos de la herramienta. |
-| **#10** | Avance por Labio (fz) | Carga por diente. |
-| **#11** | Plano de Seguridad R | Altura segura para movimientos en rápido. |
-| **#12** | Centro en X | Coordenada X del centro geográfico de la ranura. |
-| **#13** | Centro en Y | Coordenada Y del centro geográfico de la ranura. |
-| **#14** | Paso Radial Máximo | Desplazamiento lateral de la herramienta para limpiar el fondo si la ranura es ancha. |
-| **#15** | Z Inicial / Reinicio | Plano de partida del mecanizado en Z. |
-| **#16** | Radio de Arco Acabado | Radio del movimiento circular de aproximación de la pasada de acabado. |
-| **#17** | Opción (0 / 1 / 2) | **0 = Completo**, **1 = Solo Desbaste**, **2 = Solo Acabado**. |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
-
----
-
-### Macro 6: Fresado de Roscas Helicoidal (Thread Milling)
-Se utiliza para realizar roscado interior en agujeros previamente taladrados, usando una fresa especial de roscar. La fresa entra al centro, se aproxima a la pared y desciende (o asciende) de forma helicoidal siguiendo el paso exacto de la rosca.
-
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Diámetro Nominal Rosca | El diámetro exterior máximo de la rosca interior (ej: M64 -> 64mm). |
-| **#2** | Diámetro Fresa de Roscar | Diámetro exterior medido de la fresa especial de roscar. |
-| **#3** | Profundidad de la Rosca | Qué tan profundo en Z llegará la rosca tallada (valor positivo). |
-| **#4** | Paso de la Rosca / Pitch | Distancia milimétrica entre filetes consecutivos (ej: paso de 2.0 mm). |
-| **#5** | Número de Vueltas | **1** para fresas multipaso (roscan toda la longitud de una sola vuelta helicoidal).<br>**Más de 1** para fresas de un solo hilo (requieren recorrer toda la rosca vuelta a vuelta). |
-| **#6** | Velocidad de Corte (Vc) | Velocidad de corte recomendada de la fresa en m/min. |
-| **#7** | Número de Labios | Cantidad de filos de corte de la herramienta de roscar. |
-| **#8** | Avance por Labio (fz) | Avance por diente para mecanizado circular del filete. |
-| **#9** | Plano de Seguridad R | Plano seguro en Z para aproximaciones rápidas. |
-| **#10** | Centro X | Coordenada X del eje del agujero roscado. |
-| **#11** | Centro Y | Coordenada Y del eje del agujero roscado. |
-| **#12** | Número de Pasadas Radiales | Cantidad de aproximaciones radiales (1 para una sola pasada directo al diámetro nominal). |
-| **#13** | Profundidad Radial/Pasada | Incremento radial del corte entre pasadas sucesivas (en mm). |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
-
----
-
-### Macro 7: Patrón Rectangular de Agujeros (Marco de Agujeros / Grill)
-Permite realizar una cuadrícula rectangular o marco de taladrados. Es ideal para placas base, patrones de fijación de tornillos en esquinas o parrillas de agujeros.
-
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Longitud Total X del Marco | Distancia horizontal X entre el centro de la columna izquierda y la derecha. |
-| **#2** | Ancho Total Y del Marco | Distancia vertical Y entre el centro de la fila inferior y la superior. |
-| **#3** | Cantidad Agujeros en X | Número de agujeros a realizar a lo largo del eje X (mínimo 2). |
-| **#4** | Cantidad Agujeros en Y | Número de agujeros a realizar a lo largo del eje Y (mínimo 2). |
-| **#5** | RPM (Velocidad Giro) | Revoluciones por minuto del husillo para la broca. |
-| **#6** | Avance F | Velocidad de penetración de taladrado (mm/min). |
-| **#7** | Profundidad Z Total | Profundidad final de los taladrados (valor positivo). |
-| **#8** | Estrategia (0 / 1) | **0 = Directo** (Taladrado directo).<br>**1 = Picoteo** (Rompe la viruta bajando de a pasos). |
-| **#9** | Paso de Picoteo | Si usas Picoteo, la profundidad de cada nivel de penetración. |
-| **#10** | Seguridad Z | Distancia en el aire sobre el material donde inicia la velocidad de taladrado. |
-| **#11** | Centro X | Coordenada X del centro geométrico del marco. |
-| **#12** | Centro Y | Coordenada Y del centro geométrico del marco. |
-| **#13** | Z Inicial | Plano de partida del taladrado en el eje Z. |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
-
----
-
-### Macro 8: Ranura Tipo O-Ring (Canal de Empaque Hermético)
-Especialmente programada para fresar canales circulares concéntricos que alojan empaques de goma redondos (O-rings) para sellar tapas de motores, pistones o tanques de presión. Realiza un descenso helicoidal constante muy suave.
-
-#### Tabla de Variables:
-| Variable | Parámetro en Pantalla | Qué significa y cómo configurarlo |
-| :---: | :--- | :--- |
-| **#1** | Diámetro de la Ranura | El diámetro al centro de la ranura circular (donde pasará el centro del cortador). |
-| **#2** | Diámetro de la Herramienta | Diámetro de la fresa cilíndrica. El ancho de la ranura final será igual a este diámetro. |
-| **#3** | Profundidad Total Z | Profundidad del canal del O-ring (valor positivo). |
-| **#4** | Profundidad por Vuelta (Pitch)| El paso helicoidal. Cuánto desciende en Z la fresa por cada giro completo de 360°. |
-| **#5** | Velocidad de Corte (Vc) | Velocidad de corte recomendada para el material en m/min. |
-| **#6** | Número de Labios | Filos cortantes de la fresa. |
-| **#7** | Avance por Labio (fz) | Avance por diente de fresado. |
-| **#8** | Plano de Seguridad R | Altura segura Z para movimientos en vacío. |
-| **#9** | Centro en X | Coordenada X del centro de la ranura circular. |
-| **#10** | Centro en Y | Coordenada Y del centro de la ranura circular. |
-| **#14** | Z Inicial | Altura Z de inicio del mecanizado. |
-| **#20** | Número de Herramienta | Número de la herramienta en el almacén/magazín (para cambio de herramienta T y compensación de longitud H). |
-
----
-
-## 5. Consideraciones de Seguridad en la Máquina Real
-
-Aunque el simulador muestra un mecanizado perfecto, en el taller debes seguir estas pautas para proteger tu máquina, tu herramienta y tu salud:
-
-1. **Establecer el Cero Pieza Correctamente (X0 Y0 Z0):**
-   * En todas las macros, el cero de las coordenadas **X e Y** está localizado en el **centro** del patrón o de la cavidad (excepto si programas el desfase en las variables de centro X/Y). Asegúrate de posicionar la aguja detectora o el palpador en el centro real de tu bloque de metal.
-   * El cero en **Z (Z0)** corresponde siempre a la **superficie superior del bloque de material**.
-2. **Revisar las Alturas de Seguridad:**
-   * Nunca reduzcas la variable **Plano de Seguridad R (o Seguridad Z)** por debajo de 5 mm. Si hay bridas de sujeción, tornillos o grapas sujetando el bloque, asegúrate de que el plano seguro de retroceso sea lo suficientemente alto para saltarlas sin chocar.
-3. **Sentido de Giro:**
-   * La aplicación genera trayectorias para **Fresado Concordante (Climb Milling)** mediante el uso de códigos `G03` para cajeras internas. Esto reduce el desgaste y da mejor acabado, pero requiere que el husillo de la máquina gire a derechas (sentido horario, comando `M03`).
-4. **Verificación en Vacío:**
-   * Te sugerimos realizar la primera corrida del programa en tu máquina "en el aire" (retirando el bloque de material o levantando el cero Z unos 50 mm por encima de la pieza). Así podrás comprobar visualmente que los movimientos de la máquina física coincidan exactamente con lo que viste en la **Vista 3D** de la aplicación web.
+Copyright © 2026 Ingeniero Nestor Gamez.

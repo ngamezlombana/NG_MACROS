@@ -1,0 +1,25 @@
+{
+  "name": "ng-macros-cnc-studio",
+  "version": "4.4.0",
+  "private": true,
+  "description": "Configurador, simulador y generador de código G para macros Fanuc Custom Macro B.",
+  "author": "Ingeniero Nestor Gamez",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "parse": "python3 parse_macros.py",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run parse && npm test",
+    "serve": "python3 -m http.server 8080"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "cnc",
+    "fanuc",
+    "custom-macro-b",
+    "gcode",
+    "g65"
+  ]
+}

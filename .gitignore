@@ -1,0 +1,22 @@
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Dependencias y artefactos
+node_modules/
+dist/
+build/
+coverage/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Archivos locales de trabajo (no forman parte de la app)
+*.local
+*.tmp

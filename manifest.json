@@ -1,0 +1,19 @@
+{
+  "name": "NG_MACROS CNC Precision Studio",
+  "short_name": "NG_MACROS",
+  "description": "Configurador, simulador y generador de código G para macros Fanuc Custom Macro B.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070e1d",
+  "theme_color": "#070e1d",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

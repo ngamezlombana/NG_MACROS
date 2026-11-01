@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Regenerar macros_data.js
+        run: python3 parse_macros.py
+
+      - name: Verificar que el archivo generado está actualizado
+        run: git diff --exit-code -- macros_data.js
+
+      - name: Ejecutar pruebas
+        run: node --test tests/*.test.mjs

@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>NG_MACROS | CNC Precision Studio v4.3</title>
+    <title>NG_MACROS | CNC Precision Studio v4.4</title>
+    <meta name="description" content="Studio local para configurar, simular y generar código G de macros Fanuc Custom Macro B."/>
+    <meta name="theme-color" content="#070e1d"/>
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070e1d'/%3E%3Cpath d='M16 46V18h9l7 14 7-14h9v28h-7V29l-9 17-9-17v17z' fill='%234cd7f6'/%3E%3C/svg%3E"/>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <!-- Fuentes y estilos locales: la aplicación funciona sin conexión -->
+    <link rel="stylesheet" href="vendor/fonts.css"/>
 
     <!-- Carga temprana de datos de las macros -->
     <script src="macros_data.js"></script>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS local -->
+    <script src="vendor/tailwindcss.js"></script>
     <script id="tailwind-config">
     tailwind.config = {
         darkMode: "class",
@@ -55,9 +56,9 @@
     };
     </script>
 
-    <!-- Three.js + OrbitControls para simulación WebGL 3D -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Three.js + OrbitControls para simulación WebGL 3D (locales) -->
+    <script src="vendor/three.min.js"></script>
+    <script src="vendor/OrbitControls.js"></script>
 
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -66,15 +67,22 @@
         ::-webkit-scrollbar-thumb:hover { background: #4cd7f6; }
         .font-code-terminal { font-family: 'JetBrains Mono', monospace; }
         .font-dro-display { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        :focus-visible { outline: 2px solid #4cd7f6; outline-offset: 2px; }
+        .skip-link { position: fixed; top: -60px; left: 12px; z-index: 10000; background: #4cd7f6; color: #003643; padding: 10px 16px; border-radius: 0 0 8px 8px; font-weight: 700; transition: top .2s; }
+        .skip-link:focus { top: 0; }
+        @media print {
+            header, .no-print, #licenseModal { display: none !important; }
+            main { padding-top: 0 !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .view-section { display: none !important; }
+            #view-hoja-taller { display: flex !important; padding: 0 !important; }
+            #view-hoja-taller * { background: transparent !important; color: #000 !important; box-shadow: none !important; }
+            #view-hoja-taller table, #view-hoja-taller th, #view-hoja-taller td { border-color: #999 !important; }
+        }
     </style>
 </head>
 <body class="bg-background text-on-surface font-sans min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
-
-    <!-- Banner de Cuenta Regresiva para Demostración / Licencia Temporal -->
-    <div id="demoCountdownBanner" class="fixed top-2 left-1/2 -translate-x-1/2 z-50 bg-primary/95 text-on-primary font-bold px-4 py-1.5 rounded-full text-xs shadow-xl flex items-center gap-2" style="display: none;">
-        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        <span>⏱️ Demo Restante: <strong id="demoTimeRemaining" class="font-code-terminal ml-1">--:--:--</strong></span>
-    </div>
+    <a class="skip-link" href="#mainContent">Saltar al contenido principal</a>
 
     <!-- ========================================== -->
     <!-- CABECERA SUPERIOR ULTRA COMPACTA Y LIMPIA  -->
@@ -86,7 +94,7 @@
                 <span class="material-symbols-outlined text-primary text-2xl group-hover:rotate-45 transition-transform duration-300">precision_manufacturing</span>
                 <div>
                     <span class="text-xs font-black tracking-widest text-on-surface uppercase group-hover:text-primary transition-colors block">NG_MACROS</span>
-                    <span class="text-[9px] font-code-terminal text-primary font-bold tracking-wider block">CNC STUDIO v4.3</span>
+                    <span class="text-[9px] font-code-terminal text-primary font-bold tracking-wider block">CNC STUDIO v4.4</span>
                 </div>
             </button>
         </div>
@@ -121,11 +129,11 @@
                 <span class="material-symbols-outlined text-[16px]">description</span>
                 <span class="hidden lg:inline">Setup</span>
             </button>
-            <button onclick="showAdminPrompt(event)" class="px-2.5 py-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors" title="Gestor de Licencias">
+            <button onclick="showLicenseInfo(event)" class="px-2.5 py-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors" title="Información de uso y licencia" aria-label="Información de licencia">
                 <span class="material-symbols-outlined text-[16px]">verified_user</span>
-                <span class="hidden lg:inline">Licencias</span>
+                <span class="hidden lg:inline">Licencia</span>
             </button>
-            <button onclick="triggerEmergencyStop()" class="px-2.5 py-1.5 bg-error-container hover:bg-red-700 text-white rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors shadow-sm ml-1">
+            <button onclick="triggerEmergencyStop()" class="px-2.5 py-1.5 bg-error-container hover:bg-red-700 text-white rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors shadow-sm ml-1" title="Parada de emergencia" aria-label="Parada de emergencia">
                 <span class="material-symbols-outlined text-[16px]">emergency</span>
                 <span>E-STOP</span>
             </button>
@@ -136,14 +144,14 @@
     <div class="hidden">
         <span id="feedOverrideValue">100%</span>
         <div id="licenseStatusCard">
-            <span id="licenseStatusValue">Acceso Ilimitado (Admin)</span>
+            <span id="licenseStatusValue">Modo local abierto</span>
         </div>
     </div>
 
     <!-- ========================================== -->
     <!-- ÁREA DE CONTENIDO PRINCIPAL (FULL WIDTH)   -->
     <!-- ========================================== -->
-    <main class="flex-1 pt-16 pb-8 min-h-screen">
+    <main id="mainContent" class="flex-1 pt-16 pb-8 min-h-screen">
 
         <!-- ========================================================= -->
         <!-- VISTA 1: PANTALLAZO INICIAL // 2 OPCIONES (FRESADO/PERFORADO) -->
@@ -304,8 +312,15 @@
                         <span class="material-symbols-outlined text-[18px]">play_circle</span>
                         <span>Simulación ▷</span>
                     </button>
+                    <button onclick="resetMacroParameters()" class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors" title="Restablecer los valores originales de la macro">
+                        <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                        <span>Restablecer</span>
+                    </button>
                 </div>
             </div>
+
+            <!-- Avisos de validación de parámetros -->
+            <div id="paramValidationBanner" class="hidden rounded-xl border px-4 py-3 text-xs font-code-terminal" role="status" aria-live="polite"></div>
 
             <!-- Contenido en 2 Columnas Equilibradas: Parámetros a la Izquierda | Gráfico CAD Dinámico a la Derecha -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -386,6 +401,33 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Panel de salida G-Code: llamada G65 o macro expandida -->
+            <div class="bg-surface-container rounded-xl border border-outline-variant/30 overflow-hidden shadow-md">
+                <div class="bg-surface-container-high px-4 py-2.5 border-b border-outline-variant/30 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                        <span class="material-symbols-outlined text-[18px]">terminal</span>
+                        <span>Salida G-Code</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                        <label class="flex items-center gap-1.5 font-code-terminal text-on-surface-variant cursor-pointer">
+                            <input type="checkbox" id="optG21" checked onchange="setOutputOption('g21', this.checked)" class="accent-primary"/>
+                            G21
+                        </label>
+                        <label class="flex items-center gap-1.5 font-code-terminal text-on-surface-variant cursor-pointer">
+                            <input type="checkbox" id="optG54" checked onchange="setOutputOption('g54', this.checked)" class="accent-primary"/>
+                            G54
+                        </label>
+                        <select id="gcodeModeSelect" onchange="setGCodeMode(this.value)" class="bg-surface-container-lowest text-on-surface text-xs font-code-terminal px-2.5 py-1.5 rounded border border-outline-variant/30 outline-none" aria-label="Modo de salida G-Code">
+                            <option value="caller">Llamada G65 (recomendada)</option>
+                            <option value="expanded">Macro expandida en línea</option>
+                        </select>
+                        <button onclick="copyGCode()" class="px-2.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 rounded font-bold uppercase">Copiar</button>
+                        <button onclick="downloadGCode()" class="px-2.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded font-bold uppercase">Descargar .NC</button>
+                    </div>
+                </div>
+                <pre id="gcodePreview" class="max-h-80 overflow-auto bg-surface-container-lowest p-4 text-[11px] leading-relaxed font-code-terminal text-on-surface-variant whitespace-pre" aria-label="Vista previa del código G generado">Configura una macro para ver el código G.</pre>
+            </div>
         </section>
 
         <!-- ========================================================= -->
@@ -451,8 +493,10 @@
             <div class="relative bg-[#132238] rounded-xl border border-outline-variant/30 overflow-hidden shadow-2xl h-[580px] md:h-[630px] lg:h-[660px] flex items-center justify-center">
                 <!-- Contenedor 3D Three.js -->
                 <div id="sim3dContainer" class="absolute inset-0 w-full h-full bg-[#132238]"></div>
-                <!-- Canvas 2D Ortogonal -->
-                <canvas id="sim2dCanvas" class="absolute inset-0 w-full h-full hidden"></canvas>
+                <!-- Contenedor 2D Ortogonal (respaldo sin WebGL) -->
+                <div id="sim2dContainer" class="absolute inset-0 w-full h-full hidden">
+                    <canvas id="sim2dCanvas" class="w-full h-full"></canvas>
+                </div>
 
                 <!-- Overlay de Ayuda 3D -->
                 <div class="absolute bottom-3 left-3 bg-surface-container-lowest/85 backdrop-blur-md px-3 py-1 rounded border border-outline-variant/20 text-[10px] font-code-terminal text-on-surface-variant pointer-events-none">
@@ -502,6 +546,15 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Terminal de código G sincronizado con la simulación -->
+            <details class="bg-surface-container rounded-xl border border-outline-variant/30 overflow-hidden shadow-md">
+                <summary class="px-4 py-2.5 bg-surface-container-high cursor-pointer text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">terminal</span>
+                    <span>Terminal de Código G</span>
+                </summary>
+                <div id="simCodeContainer" class="max-h-48 overflow-auto bg-surface-container-lowest p-2 font-code-terminal text-[11px] text-on-surface-variant" aria-label="Código G de la simulación"></div>
+            </details>
         </section>
 
         <!-- ========================================================= -->
@@ -518,6 +571,10 @@
                     <h2 class="text-xl font-black text-on-surface uppercase tracking-wide">
                         ALMACÉN DE HERRAMIENTAS (24 ESTACIONES ATC)
                     </h2>
+                    <button onclick="openAddToolModal()" id="btnAddTool" class="ml-2 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">add</span>
+                        <span>Agregar</span>
+                    </button>
                 </div>
             </div>
 
@@ -527,12 +584,13 @@
                         <thead class="bg-surface-container-high text-primary font-bold uppercase tracking-wider border-b border-outline-variant/30">
                             <tr>
                                 <th class="p-3">Posición (T)</th>
-                                <th class="p-3">Tipo de Fresa / Broca</th>
+                                <th class="p-3">Herramienta</th>
+                                <th class="p-3">Tipo</th>
                                 <th class="p-3">Diámetro (mm)</th>
-                                <th class="p-3">Longitud Flauta</th>
-                                <th class="p-3">Z Dientes</th>
-                                <th class="p-3">Recubrimiento</th>
-                                <th class="p-3">Estado</th>
+                                <th class="p-3">Filos (Z)</th>
+                                <th class="p-3">RPM máx</th>
+                                <th class="p-3">Avance</th>
+                                <th class="p-3">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="toolTableBody" class="divide-y divide-outline-variant/20 font-code-terminal">
@@ -547,7 +605,7 @@
         <!-- VISTA AUXILIAR: HOJA DE SETUP DE TALLER                   -->
         <!-- ========================================================= -->
         <section id="view-hoja-taller" class="view-section hidden py-6 px-4 max-w-5xl mx-auto flex flex-col gap-6">
-            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30">
+            <div class="no-print flex items-center justify-between pb-4 border-b border-outline-variant/30">
                 <button onclick="switchView('inicio')" class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider text-on-surface flex items-center gap-2 transition-colors">
                     <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                     <span>Regresar al Inicio</span>
@@ -571,8 +629,21 @@
                 </div>
                 <div>
                     <h3 class="text-xs font-bold text-secondary uppercase tracking-wider mb-2">LISTADO DE HERRAMIENTAS REQUERIDAS</h3>
-                    <div id="setupToolList" class="flex flex-col gap-2 font-code-terminal text-xs">
-                        <!-- Inyectado por JS -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-surface-container-high text-secondary font-bold uppercase tracking-wider border-b border-outline-variant/30">
+                                <tr>
+                                    <th class="p-2.5">Puesto</th>
+                                    <th class="p-2.5">Herramienta</th>
+                                    <th class="p-2.5">Diámetro</th>
+                                    <th class="p-2.5">Corrector</th>
+                                    <th class="p-2.5">Husillo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="setupToolList" class="divide-y divide-outline-variant/20 font-code-terminal">
+                                <!-- Inyectado por JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -581,72 +652,32 @@
     </main>
 
     <!-- ========================================================= -->
-    <!-- MODAL DE ACCESO / LICENCIA TEMPORAL O PERMANENTE          -->
+    <!-- MODAL INFORMATIVO DE LICENCIA (MODO LOCAL ABIERTO)        -->
     <!-- ========================================================= -->
-    <div id="accessModal" class="fixed inset-0 z-[9998] flex items-center justify-center bg-surface-container-lowest/90 backdrop-blur-xl" style="display: none;">
-        <div class="bg-surface-container-high border border-outline-variant/40 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-secondary text-3xl">lock</span>
-                <div>
-                    <h3 class="text-lg font-black text-on-surface uppercase">Control de Licencia</h3>
-                    <p id="accessModalBody" class="text-xs text-on-surface-variant">Introduce tu clave de acceso o token temporal</p>
-                </div>
-            </div>
-            <input type="password" id="licenseKeyInput" onkeydown="if(event.key==='Enter') activateLicenseKey()" placeholder="Introduce tu clave..." class="w-full bg-surface-container-lowest px-4 py-3 rounded-xl border border-outline-variant/40 text-on-surface font-code-terminal text-sm outline-none focus:border-primary"/>
-            <div class="flex items-center justify-end gap-2">
-                <button onclick="activateLicenseKey()" class="px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md">Validar Acceso</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- MODAL DE ADMINISTRACIÓN Y GENERADOR DE TOKENS (nestor69) -->
-    <!-- ========================================================= -->
-    <div id="adminModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-surface-container-lowest/90 backdrop-blur-xl" style="display: none;">
-        <div class="bg-surface-container-high border border-outline-variant/40 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl flex flex-col gap-5">
+    <div id="licenseModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-surface-container-lowest/90 backdrop-blur-xl" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="licenseModalTitle" onclick="if(event.target===this) closeLicenseModal()">
+        <div class="bg-surface-container-high border border-outline-variant/40 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl flex flex-col gap-4">
             <div class="flex items-center justify-between pb-3 border-b border-outline-variant/20">
-                <div class="flex items-center gap-2 text-secondary font-black text-sm uppercase">
-                    <span class="material-symbols-outlined text-xl">admin_panel_settings</span>
-                    <span>Panel Maestro de Licencias (nestor69)</span>
+                <div class="flex items-center gap-3 text-secondary">
+                    <span class="material-symbols-outlined text-3xl">verified_user</span>
+                    <div>
+                        <h3 id="licenseModalTitle" class="text-lg font-black text-on-surface uppercase">Modo Local Abierto</h3>
+                        <p class="text-[11px] text-on-surface-variant font-code-terminal">NG_MACROS CNC Studio v4.4</p>
+                    </div>
                 </div>
-                <button onclick="closeAdminModal()" class="text-on-surface-variant hover:text-on-surface">
+                <button onclick="closeLicenseModal()" class="text-on-surface-variant hover:text-on-surface" aria-label="Cerrar información de licencia">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <div class="flex flex-col gap-3 text-xs">
-                <label class="text-on-surface-variant font-bold uppercase">Duración de la Licencia a Compartir:</label>
-                <select id="adminDurationSelect" class="bg-surface-container-lowest px-3 py-2 rounded-lg border border-outline-variant/40 text-on-surface font-code-terminal outline-none">
-                    <option value="60">1 Hora (Prueba Rápida)</option>
-                    <option value="1440">1 Día (24 Horas)</option>
-                    <option value="10080">7 Días (1 Semana)</option>
-                    <option value="43200" selected>30 Días (1 Mes)</option>
-                    <option value="129600">90 Días (3 Meses)</option>
-                    <option value="525600">1 Año</option>
-                    <option value="5256000">10 Años (Ilimitada Operario)</option>
-                </select>
-                <button onclick="generateDemoLink()" class="px-4 py-2.5 bg-secondary hover:bg-secondary-container text-on-secondary hover:text-white font-bold text-xs uppercase tracking-wider rounded-lg mt-1 transition-all">
-                    Generar Clave Temporal
-                </button>
+            <div class="text-xs text-on-surface-variant leading-relaxed flex flex-col gap-3">
+                <p>Esta aplicación funciona <strong class="text-on-surface">100% en tu navegador y sin conexión</strong>. No hay claves, tokens, cuentas ni telemetría: no se bloquea el acceso y tus parámetros permanecen en este equipo.</p>
+                <p>Los programas generados son borradores de ingeniería. <strong class="text-error">Verifica siempre la sintaxis, los límites, el cero pieza, el corrector de herramienta y la simulación en el control CNC antes de mecanizar.</strong></p>
+                <p>Copyright © 2026 Ingeniero Nestor Gamez. Código distribuido bajo licencia MIT; las macros y la documentación se ofrecen “tal cual”, sin garantía de aptitud para un mecanizado concreto.</p>
             </div>
-            <div id="adminResultContainer" class="hidden flex flex-col gap-3 pt-3 border-t border-outline-variant/20 text-xs">
-                <div>
-                    <span class="text-on-surface-variant font-bold block mb-1">CÓDIGO DE ACCESO GENERADO:</span>
-                    <div class="flex items-stretch gap-2">
-                        <input type="text" id="adminGeneratedCodeInput" readonly class="w-full bg-surface-container-lowest px-3 py-2 rounded border border-outline-variant/40 text-secondary font-code-terminal text-xs"/>
-                        <button onclick="copyAdminCode()" class="px-3 py-2 bg-surface-container hover:bg-surface-container-highest border border-outline-variant/40 rounded text-xs font-bold uppercase shrink-0">Copiar</button>
-                    </div>
-                </div>
-                <div>
-                    <span class="text-on-surface-variant font-bold block mb-1">ENLACE DIRECTO CON LICENCIA PRE-ACTIVADA:</span>
-                    <div class="flex items-stretch gap-2">
-                        <input type="text" id="adminGeneratedLinkInput" readonly class="w-full bg-surface-container-lowest px-3 py-2 rounded border border-outline-variant/40 text-primary font-code-terminal text-xs"/>
-                        <button onclick="copyAdminLink()" class="px-3 py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 rounded text-xs font-bold uppercase shrink-0">Copiar</button>
-                    </div>
-                </div>
+            <div class="flex justify-end pt-2 border-t border-outline-variant/20">
+                <button id="licenseCloseBtn" onclick="closeLicenseModal()" class="px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md">Entendido</button>
             </div>
         </div>
     </div>
-
 
     <script>
     /* ========================================================= */
@@ -662,251 +693,38 @@
         return [];
     }
 
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, ch => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[ch]));
+    }
+
 /* ========================================================= */
-    /* 2. SISTEMA DE LICENCIAS Y ACCESO (CLAVE MAESTRA: nestor69)*/
+    /* 2. MODO LOCAL ABIERTO (SIN DRM NI TELEMETRÍA)             */
     /* ========================================================= */
-    const LICENSING_SALT = "ng-cnc-salt-2026";
-    const ADMIN_SALT = "admin-salt";
-    const ADMIN_HASH = "sszz6a"; // Contraseña: "nestor69"
-    let licensingTimer = null;
-
-    function generateSignature(expiryStr, salt) {
-        let hash = 0;
-        const combined = expiryStr + salt;
-        for (let i = 0; i < combined.length; i++) {
-            hash = (hash << 5) - hash + combined.charCodeAt(i);
-            hash |= 0;
-        }
-        return Math.abs(hash).toString(36);
-    }
-
+    // La aplicación no valida claves en el cliente. Si en el futuro se
+    // necesita licenciamiento real, debe implementarse en un backend y
+    // nunca con un hash o una clave maestra embebida en el HTML.
     function checkLicensing() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let keyParam = urlParams.get('key') || urlParams.get('pass');
-        if (keyParam) {
-            const computedAdminHash = generateSignature(keyParam, ADMIN_SALT);
-            if (computedAdminHash === ADMIN_HASH || keyParam === 'nestor69') {
-                const expiryTimestamp = Date.now() + (5256000 * 60 * 1000);
-                const expiryMinutes = Math.floor(expiryTimestamp / 60000);
-                const expiryStr = expiryMinutes.toString(36);
-                const signature = generateSignature(expiryStr, LICENSING_SALT);
-                const masterToken = expiryStr + "-" + signature;
-                localStorage.setItem('ng_cnc_active_token', masterToken);
-                localStorage.setItem('ng_cnc_is_admin', 'true');
-            }
-        }
-        let token = urlParams.get('demo');
-
-        if (token) {
-            localStorage.setItem('ng_cnc_active_token', token);
-            try {
-                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                window.history.replaceState({ path: newUrl }, '', newUrl);
-            } catch (e) {}
-        } else {
-            token = localStorage.getItem('ng_cnc_active_token');
-        }
-
-        if (urlParams.get('admin') === 'true') {
-            localStorage.setItem('ng_cnc_is_admin', 'true');
-        }
-
-        if (!token) {
-            showAccessDenied("No se detectó un código de acceso activo. Ingresa tu clave.");
-            return;
-        }
-
-        const parts = token.split('-');
-        if (parts.length !== 2) {
-            showAccessDenied("El formato de la clave no es válido.");
-            return;
-        }
-
-        const expiryStr = parts[0];
-        const signature = parts[1];
-        const expectedSig = generateSignature(expiryStr, LICENSING_SALT);
-
-        if (signature !== expectedSig) {
-            showAccessDenied("La firma de la licencia es inválida.");
-            return;
-        }
-
-        const expiryMinutes = parseInt(expiryStr, 36);
-        const expiryTimestamp = expiryMinutes * 60 * 1000;
-        const now = Date.now();
-
-        if (now > expiryTimestamp) {
-            showAccessDenied("Tu tiempo de acceso ha terminado. Contáctanos para renovar.");
-            return;
-        }
-
-        startCountdown(expiryTimestamp);
-    }
-
-    function showAccessDenied(message) {
-        document.getElementById('accessModal').style.display = 'flex';
-        document.getElementById('accessModalBody').textContent = message;
-    }
-
-    function startCountdown(expiryTimestamp) {
-        const banner = document.getElementById('demoCountdownBanner');
-        const timeRemainingSpan = document.getElementById('demoTimeRemaining');
-        const licenseCard = document.getElementById('licenseStatusCard');
         const licenseVal = document.getElementById('licenseStatusValue');
-
-        const diff = expiryTimestamp - Date.now();
-        const ONE_DAY = 24 * 60 * 60 * 1000;
-
-        if (diff > ONE_DAY) {
-            if (banner) banner.style.display = 'none';
-            if (licenseCard) {
-                licenseCard.style.display = 'flex';
-                const expDate = new Date(expiryTimestamp);
-                if (expiryTimestamp - Date.now() > 2 * 365 * ONE_DAY) {
-                    if (licenseVal) licenseVal.textContent = "Acceso Ilimitado (Admin)";
-                } else {
-                    if (licenseVal) licenseVal.textContent = "Expira: " + expDate.toLocaleDateString();
-                }
-            }
-            return;
-        }
-
-        if (banner && timeRemainingSpan) {
-            banner.style.display = 'flex';
-        }
-
-        function updateTime() {
-            const now = Date.now();
-            const currentDiff = expiryTimestamp - now;
-            if (currentDiff <= 0) {
-                clearInterval(licensingTimer);
-                if (banner) banner.style.display = 'none';
-                showAccessDenied("Tu tiempo de acceso ha terminado.");
-                return;
-            }
-            const hours = Math.floor(currentDiff / 3600000);
-            const minutes = Math.floor((currentDiff % 3600000) / 60000);
-            const seconds = Math.floor((currentDiff % 60000) / 1000);
-            timeRemainingSpan.textContent = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
-        }
-        updateTime();
-        licensingTimer = setInterval(updateTime, 1000);
+        if (licenseVal) licenseVal.textContent = 'Modo local abierto';
     }
 
-    function activateLicenseKey() {
-        const key = document.getElementById('licenseKeyInput').value.trim();
-        if (!key) {
-            alert("Por favor, ingresa una clave.");
-            return;
-        }
-
-        const computedAdminHash = generateSignature(key, ADMIN_SALT);
-        if (computedAdminHash === ADMIN_HASH) {
-            const expiryTimestamp = Date.now() + (5256000 * 60 * 1000);
-            const expiryMinutes = Math.floor(expiryTimestamp / 60000);
-            const expiryStr = expiryMinutes.toString(36);
-            const signature = generateSignature(expiryStr, LICENSING_SALT);
-            const masterToken = expiryStr + "-" + signature;
-
-            localStorage.setItem('ng_cnc_active_token', masterToken);
-            localStorage.setItem('ng_cnc_is_admin', 'true');
-            alert("¡Acceso de Administrador Ilimitado activado con éxito! Bienvenido.");
-            window.location.reload();
-            return;
-        }
-
-        const parts = key.split('-');
-        if (parts.length !== 2) {
-            alert("La clave de licencia no es válida.");
-            return;
-        }
-        const expiryStr = parts[0];
-        const signature = parts[1];
-        if (signature !== generateSignature(expiryStr, LICENSING_SALT)) {
-            alert("La firma de la clave es inválida.");
-            return;
-        }
-        const expiryMinutes = parseInt(expiryStr, 36);
-        if (Date.now() > expiryMinutes * 60 * 1000) {
-            alert("Esta clave ya ha expirado.");
-            return;
-        }
-
-        localStorage.setItem('ng_cnc_active_token', key);
-        alert("¡Licencia activada con éxito!");
-        window.location.reload();
-    }
-
-    function showAdminPrompt(e) {
+    function showLicenseInfo(e) {
         if (e) e.preventDefault();
-        if (localStorage.getItem('ng_cnc_is_admin') === 'true') {
-            document.getElementById('adminModal').style.display = 'flex';
-            return;
-        }
-        const password = prompt("Introduce tu contraseña de administrador:");
-        if (!password) return;
-
-        if (generateSignature(password, ADMIN_SALT) === ADMIN_HASH) {
-            localStorage.setItem('ng_cnc_is_admin', 'true');
-            document.getElementById('adminModal').style.display = 'flex';
-        } else {
-            alert("Contraseña incorrecta.");
+        const modal = document.getElementById('licenseModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            const btn = document.getElementById('licenseCloseBtn');
+            if (btn) btn.focus();
         }
     }
 
-    function closeAdminModal() {
-        document.getElementById('adminModal').style.display = 'none';
+    function closeLicenseModal() {
+        const modal = document.getElementById('licenseModal');
+        if (modal) modal.style.display = 'none';
     }
 
-    function generateDemoLink() {
-        const minutes = parseInt(document.getElementById('adminDurationSelect').value);
-        const expiryTimestamp = Date.now() + (minutes * 60 * 1000);
-        const expiryMinutes = Math.floor(expiryTimestamp / 60000);
-        const expiryStr = expiryMinutes.toString(36);
-        const signature = generateSignature(expiryStr, LICENSING_SALT);
-        const token = expiryStr + "-" + signature;
-
-        document.getElementById('adminGeneratedCodeInput').value = token;
-
-        let originUrl = window.location.origin;
-        if (!originUrl || originUrl === 'null') {
-            originUrl = window.location.href.split('?')[0];
-        } else {
-            originUrl = originUrl + window.location.pathname;
-        }
-        document.getElementById('adminGeneratedLinkInput').value = originUrl + "?demo=" + token;
-        document.getElementById('adminResultContainer').classList.remove('hidden');
-    }
-
-    function copyAdminCode() {
-        const input = document.getElementById('adminGeneratedCodeInput');
-        navigator.clipboard.writeText(input.value).then(() => alert("¡Clave copiada al portapapeles!"));
-    }
-
-    function copyAdminLink() {
-        const input = document.getElementById('adminGeneratedLinkInput');
-        navigator.clipboard.writeText(input.value).then(() => alert("¡Enlace copiado al portapapeles!"));
-    }
-
-    function logoutAdmin() {
-        if (confirm("¿Deseas cerrar la sesión para probar el bloqueo de acceso?")) {
-            localStorage.removeItem('ng_cnc_active_token');
-            localStorage.removeItem('ng_cnc_is_admin');
-            window.location.reload();
-        }
-    }
-
-    
-    
-    function validateAccessCode() {
-        activateLicenseKey();
-    }
-    function generateAdminToken() {
-        generateDemoLink();
-    }
-
-    
-    /* ========================================================= */
     /* 3. ESTADO GENERAL, CATEGORÍAS Y NAVEGACIÓN LIMPIA        */
     /* ========================================================= */
     let currentView = 'inicio';
@@ -916,42 +734,38 @@
     let activeMacro = null;
     let cncDialect = 'fanuc';
 
-    const MACRO_CATEGORIES = {
-        'patrones_agujeros': {
-            title: 'PATRONES DE AGUJEROS // TALADRADO PARAMÉTRICO',
-            icon: 'adjust',
-            color: 'primary',
-            items: [
-                { id: 'O8101', name: 'O8101 - Patrón de Agujero Angular', desc: 'Serie de agujeros lineales equidistantes orientados a cualquier ángulo polar.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8103', name: 'O8103 - Patrón de Agujero de Marco Rectangular', desc: 'Matriz perimetral sobre 4 lados con prevención de sobretaladrado en esquinas.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8104', name: 'O8104 - Círculo de Agujeros de Perno (BCD / PCD)', desc: 'Barrenado sobre círculo de paso W con ángulo inicial A y orificio de inicio S.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8105', name: 'O8105 - Patrón de Agujeros en Arco', desc: 'Barrenado sobre segmento de arco circular con incremento angular uniforme I.', book: 'Ing. Nestor Gamez' }
-            ]
-        },
-        'cajeras': {
-            title: 'CAJERAS (POCKETS) // CIRCULARES Y RECTANGULARES',
-            icon: 'layers',
-            color: 'secondary',
-            items: [
-                { id: 'O8106', sub: 'circulares', name: 'O8106 - Desbaste de Cajera Circular', desc: 'Vaciado concéntrico con control de sobrematerial en paredes U y fondo V.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8107', sub: 'circulares', name: 'O8107 - Acabado de Cajera Circular', desc: 'Perfilado perimetral con entrada tangencial suave, círculo 360° y salida en arco.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8111', sub: 'circulares', name: 'O8111 - Ciclo de Corte Circular G13', desc: 'Emulación directa Fanuc G13 / O9013 en fresado ascendente (climb milling).', book: 'Ing. Nestor Gamez' },
-                { id: 'O8112', sub: 'rectangulares', name: 'O8112 - Desbaste de Cajera Rectangular', desc: 'Vaciado concéntrico rectangular con control de sobrematerial en paredes U y fondo V.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8110', sub: 'rectangulares', name: 'O8110 - Acabado de Cajera Rectangular', desc: 'Perfilado rectangular con radios de esquina R y entrada/salida tangencial.', book: 'Ing. Nestor Gamez' }
-            ]
-        },
-        'ranuras': {
-            title: 'RANURAS (SLOTS) // RECTAS Y CIRCULARES',
-            icon: 'reorder',
-            color: 'tertiary',
-            items: [
-                { id: 'O8108', name: 'O8108 - Ranura Recta Angular', desc: 'Ranurado orientado a cualquier ángulo polar A con extremos redondeados de radio R.', book: 'Ing. Nestor Gamez' },
-                { id: 'O8109', name: 'O8109 - Ranura Circular Multi-profundidad', desc: 'Canal anular circular concéntrico con control de profundidades múltiples en Z.', book: 'Ing. Nestor Gamez' }
-            ]
+    // Las categorías se generan en parse_macros.py junto con MACROS_DATA.
+    // Así no hay listas de macros duplicadas ni desincronizadas.
+    const MACRO_CATEGORIES = (() => {
+        if (typeof MACRO_CATEGORIES_DATA !== 'undefined' && MACRO_CATEGORIES_DATA) {
+            return MACRO_CATEGORIES_DATA;
         }
-    };
+        const cats = {};
+        getMacros().forEach(m => {
+            if (!cats[m.category]) {
+                cats[m.category] = {
+                    title: m.category_title || m.category.toUpperCase(),
+                    icon: m.icon || 'settings',
+                    color: 'primary',
+                    items: []
+                };
+            }
+            cats[m.category].items.push({
+                id: m.id,
+                name: m.title,
+                desc: m.subtitle,
+                sub: m.sub_category,
+                book: 'Ing. Nestor Gamez'
+            });
+        });
+        return cats;
+    })();
 
     function switchView(viewName) {
+        if (!document.getElementById('view-' + viewName)) {
+            console.warn('Vista inexistente:', viewName);
+            viewName = 'inicio';
+        }
         currentView = viewName;
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
         const target = document.getElementById('view-' + viewName);
@@ -959,14 +773,44 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
         if (viewName === 'simulador') {
-            setTimeout(simInit, 60);
-        } else if (viewName === 'ciclo') {
-            setTimeout(() => { draw2DCadSchematic(); }, 60);
-        } else if (viewName === 'libreria') {
-            renderToolTable();
-        } else if (viewName === 'hoja-taller') {
-            updateSetupSheet();
+            stopAnimationLoop();
+            setTimeout(() => { simInit(); startAnimationLoop(); }, 60);
+        } else {
+            stopAnimationLoop();
+            if (viewName === 'ciclo') {
+                setTimeout(() => { draw2DCadSchematic(); updateGCodeOutput(); updateValidationBanner(); }, 60);
+            } else if (viewName === 'libreria') {
+                renderToolTable();
+            } else if (viewName === 'hoja-taller') {
+                updateSetupSheet();
+            }
         }
+        updateHash();
+    }
+
+    /* RUTAS COMPARTIBLES: #inicio, #ciclo/O8101, #simulador, #libreria, #hoja-taller */
+    function updateHash() {
+        let hash = currentView;
+        if (currentView === 'ciclo' && activeMacro) hash = 'ciclo/' + activeMacro.id;
+        if (currentView === 'seleccion-ciclo') hash = 'categoria/' + currentCategory;
+        try { history.replaceState(null, '', '#' + hash); } catch (e) {}
+    }
+
+    function handleRoute() {
+        const raw = (location.hash || '').replace(/^#\/?/, '');
+        if (!raw) return false;
+        const [route, param] = raw.split('/');
+        if (route === 'ciclo' && param) {
+            const idx = getMacros().findIndex(m => m.id === param);
+            if (idx !== -1) { selectMacro(idx); switchView('ciclo'); return true; }
+        }
+        if (route === 'categoria' && param && MACRO_CATEGORIES[param]) {
+            openCategory(param); return true;
+        }
+        if (['inicio', 'libreria', 'hoja-taller', 'simulador', 'seleccion-ciclo'].includes(route)) {
+            switchView(route); return true;
+        }
+        return false;
     }
 
     function openCategory(category) {
@@ -1098,11 +942,35 @@
         switchView('ciclo');
     }
 
+    function loadSavedParams(macroId) {
+        try {
+            const all = JSON.parse(localStorage.getItem('ng_macros_params_v1') || '{}');
+            return all[macroId] || null;
+        } catch (e) { return null; }
+    }
+
+    function saveActiveMacroParams() {
+        if (!activeMacro) return;
+        try {
+            const all = JSON.parse(localStorage.getItem('ng_macros_params_v1') || '{}');
+            all[activeMacro.id] = {};
+            activeMacro.variables.forEach(v => { all[activeMacro.id][v.num] = v.value; });
+            localStorage.setItem('ng_macros_params_v1', JSON.stringify(all));
+        } catch (e) {}
+    }
+
     function selectMacro(idx) {
         const data = getMacros();
         if (!data || !data[idx]) return;
         activeMacroIdx = idx;
         activeMacro = JSON.parse(JSON.stringify(data[idx]));
+
+        const saved = loadSavedParams(activeMacro.id);
+        if (saved) {
+            activeMacro.variables.forEach(v => {
+                if (saved[v.num] !== undefined && !isNaN(parseFloat(saved[v.num]))) v.value = parseFloat(saved[v.num]);
+            });
+        }
 
         const titleEl = document.getElementById('activeMacroTitle');
         const filenameEl = document.getElementById('activeMacroFilename');
@@ -1118,6 +986,9 @@
         renderMacroParameterGroups();
         draw2DCadSchematic();
         buildSimulationPoints();
+        updateGCodeOutput();
+        updateValidationBanner();
+        renderSimTerminal();
 
         const timeStr = calculateEstimatedCycleTime();
         const timeEl = document.getElementById('simEstimatedCycleTime');
@@ -1219,16 +1090,46 @@
     function updateVariableValue(varNum, newVal) {
         if (!activeMacro) return;
         const v = activeMacro.variables.find(item => item.num === varNum);
-        if (v) {
-            v.value = parseFloat(newVal) || 0;
-            draw2DCadSchematic();
-            calculateCuttingParameters();
-            buildSimulationPoints();
+        if (!v) return;
+        v.value = parseFloat(newVal);
+        if (isNaN(v.value)) v.value = 0;
+        saveActiveMacroParams();
+        scheduleCadRedraw();
+        calculateCuttingParameters();
+        buildSimulationPoints();
+        updateGCodeOutput();
+        updateValidationBanner();
 
-            const timeStr = calculateEstimatedCycleTime();
-            const timeEl = document.getElementById('simEstimatedCycleTime');
-            if (timeEl) timeEl.textContent = timeStr;
-        }
+        const timeStr = calculateEstimatedCycleTime();
+        const timeEl = document.getElementById('simEstimatedCycleTime');
+        if (timeEl) timeEl.textContent = timeStr;
+    }
+
+    let cadRedrawHandle = null;
+    function scheduleCadRedraw() {
+        if (cadRedrawHandle) return;
+        cadRedrawHandle = requestAnimationFrame(() => {
+            cadRedrawHandle = null;
+            draw2DCadSchematic();
+        });
+    }
+
+    function resetMacroParameters() {
+        if (!activeMacro) return;
+        const original = getMacros().find(m => m.id === activeMacro.id);
+        if (!original) return;
+        if (!confirm('¿Restablecer los parámetros de ' + activeMacro.id + ' a sus valores originales?')) return;
+        activeMacro.variables = JSON.parse(JSON.stringify(original.variables));
+        try {
+            const all = JSON.parse(localStorage.getItem('ng_macros_params_v1') || '{}');
+            delete all[activeMacro.id];
+            localStorage.setItem('ng_macros_params_v1', JSON.stringify(all));
+        } catch (e) {}
+        renderMacroParameterGroups();
+        draw2DCadSchematic();
+        buildSimulationPoints();
+        updateGCodeOutput();
+        updateValidationBanner();
     }
 
     function calculateCuttingParameters() {
@@ -1261,6 +1162,78 @@
         if (badge) {
             badge.textContent = `Vc: ${calcVc.toFixed(1)} m/min | S: ${Math.round(spindleRpm)} RPM | F: ${Math.round(feedRate)} mm/min`;
         }
+    }
+
+    /* VALIDACIÓN PREVIA: evita generar programas con geometrías imposibles */
+    function validateActiveMacro() {
+        const issues = [];
+        if (!activeMacro) return issues;
+        const val = num => getMacroVar(num, NaN);
+        const toolRad = val(20) / 2;
+        const id = activeMacro.id;
+
+        if (!(val(20) > 0)) issues.push('El diámetro de herramienta T debe ser mayor que cero.');
+        if (!(val(9) > 0)) issues.push('El avance F debe ser mayor que cero.');
+        if (id !== 'O8104' && !(val(19) > 0)) issues.push('La velocidad de husillo S debe ser mayor que cero.');
+
+        if (id === 'O8106') {
+            if (!(val(7) > 0)) issues.push('El diámetro de cajera D debe ser mayor que cero.');
+            if (!(val(6) > 0)) issues.push('La profundidad por pasada K debe ser mayor que cero.');
+            if (!(val(23) > 0)) issues.push('El paso radial W debe ser mayor que cero.');
+            if (val(23) > val(20)) issues.push('El paso radial W no debería superar el diámetro de la fresa T (dejaría material sin cortar).');
+            if (toolRad >= val(7) / 2 - Math.abs(val(21))) issues.push('La fresa T no cabe en la cajera después de dejar el sobrematerial U.');
+        } else if (id === 'O8107' || id === 'O8111') {
+            const dia = id === 'O8107' ? val(23) : val(7);
+            if (!(dia > 0)) issues.push('El diámetro de la cajera debe ser mayor que cero.');
+            if (toolRad >= dia / 2) issues.push('La fresa T es igual o mayor que el radio de la cajera.');
+        } else if (id === 'O8110' || id === 'O8112') {
+            const toolDia = val(20);
+            if (!(val(23) > 0) || !(val(11) > 0)) issues.push('Las dimensiones W y H deben ser mayores que cero.');
+            if (toolDia / 2 >= val(23) / 2 || toolDia / 2 >= val(11) / 2) issues.push('La fresa T no cabe dentro de la cajera W × H.');
+            if (!(val(18) > toolDia / 2)) issues.push('El radio de esquina R debe ser mayor que el radio de la fresa T/2.');
+            if (id === 'O8112' && !(val(6) > 0)) issues.push('El paso de profundidad K debe ser mayor que cero.');
+            if (id === 'O8112' && val(8) < 0) issues.push('El paso lateral E no puede ser negativo (0 usa el 65% del diámetro).');
+        } else if (id === 'O8108') {
+            if (!(val(7) > 0)) issues.push('La distancia entre centros D debe ser mayor que cero.');
+            if (!(val(18) > 0)) issues.push('El radio de ranura R debe ser mayor que cero.');
+            if (toolRad >= val(18)) issues.push('La fresa T debe ser menor que el ancho total de la ranura (2R).');
+        } else if (id === 'O8109') {
+            if (!(val(23) > 0)) issues.push('El diámetro de trayectoria W debe ser mayor que cero.');
+            if (!(val(7) > 0)) issues.push('La profundidad total D debe ser mayor que cero.');
+            if (!(val(3) > 0)) issues.push('El paso en Z C debe ser mayor que cero.');
+        } else if (id === 'O8103') {
+            if (!(val(4) > 0) || !(val(5) > 0)) issues.push('Los pasos I y J deben ser mayores que cero.');
+            if (val(21) < 2 || val(22) < 2) issues.push('El marco requiere al menos 2 agujeros por lado (U y V).');
+            if (!Number.isInteger(val(21)) || !Number.isInteger(val(22))) issues.push('Las cantidades U y V deben ser números enteros.');
+        } else if (id === 'O8101') {
+            if (val(11) < 2) issues.push('El patrón requiere al menos 2 agujeros (H).');
+            if (!Number.isInteger(val(11))) issues.push('La cantidad de agujeros H debe ser un número entero.');
+            if (!(val(17) > 0)) issues.push('El paso Q debe ser mayor que cero.');
+        } else if (id === 'O8104') {
+            if (!(val(23) > 0)) issues.push('El diámetro del círculo BCD W debe ser mayor que cero.');
+            if (!(val(2) > 0)) issues.push('La velocidad de husillo B debe ser mayor que cero.');
+            if (!Number.isInteger(val(11)) || val(11) < 1) issues.push('La cantidad de agujeros H debe ser un entero mayor que cero.');
+            if (!Number.isInteger(val(19)) || val(19) < 1 || val(19) > val(11)) issues.push('El agujero inicial S debe ser un entero entre 1 y H.');
+        } else if (id === 'O8105') {
+            if (!(val(23) > 0)) issues.push('El diámetro del arco W debe ser mayor que cero.');
+            if (val(11) < 1) issues.push('El arco requiere al menos 1 agujero (H).');
+            if (!Number.isInteger(val(11))) issues.push('La cantidad de agujeros H debe ser un número entero.');
+        }
+
+        return issues;
+    }
+
+    function updateValidationBanner() {
+        const banner = document.getElementById('paramValidationBanner');
+        if (!banner) return;
+        const issues = validateActiveMacro();
+        if (!issues.length) {
+            banner.className = 'hidden rounded-xl border px-4 py-3 text-xs font-code-terminal';
+            banner.innerHTML = '';
+            return;
+        }
+        banner.className = 'rounded-xl border border-error/50 bg-error-container/20 px-4 py-3 text-xs font-code-terminal text-error';
+        banner.innerHTML = `<strong class="uppercase">Revisa ${issues.length} parámetro(s) antes de mecanizar:</strong><ul class="mt-1.5 list-disc list-inside space-y-0.5">${issues.map(i => `<li>${i}</li>`).join('')}</ul>`;
     }
 
     /* CÁLCULO PRECISO DEL TIEMPO DE EJECUCIÓN DEL CICLO */
@@ -1297,94 +1270,181 @@
     }
 
     /* ========================================================= */
-    /* 4. GENERADOR DE CÓDIGO G CONTINUO (SIN SUBPROGRAMAS)      */
+    /* 4. GENERADOR DE CÓDIGO G: LLAMADA G65 O MACRO EXPANDIDA     */
     /* ========================================================= */
+    let gcodeMode = (() => {
+        try { return localStorage.getItem('ng_gcode_mode') || 'caller'; } catch (e) { return 'caller'; }
+    })();
+    const outputOptions = {
+        g21: (() => { try { return localStorage.getItem('ng_gcode_g21') !== '0'; } catch (e) { return true; } })(),
+        g54: (() => { try { return localStorage.getItem('ng_gcode_g54') !== '0'; } catch (e) { return true; } })()
+    };
+
     function formatCNCValue(val) {
-        if (Number.isInteger(val)) return val.toFixed(1);
-        return parseFloat(val.toFixed(4)).toString();
+        const n = Number(val);
+        if (!isFinite(n)) return '0.0';
+        if (Number.isInteger(n)) return n.toFixed(1);
+        return parseFloat(n.toFixed(4)).toString();
+    }
+
+    function buildProgramHeader(programId, modeLabel) {
+        const out = [];
+        out.push('%');
+        out.push(`${programId} (NG_MACROS - ${modeLabel})`);
+        out.push('(================================================)');
+        out.push(`( ARCHIVO: ${activeMacro.filename} )`);
+        out.push(`( AUTOR: ${activeMacro.book_chapter || 'Ingeniero Nestor Gamez'} )`);
+        out.push(`( CONTROL: ${cncDialect.toUpperCase()} | GENERADO POR NG_MACROS v4.4 )`);
+        out.push('(================================================)');
+        out.push('( PARAMETROS CONFIGURADOS: )');
+        activeMacro.variables.forEach(v => {
+            out.push(`(   ${v.letter || ('#' + v.num)} [#${v.num}] = ${formatCNCValue(v.value)} // ${v.comment} )`);
+        });
+        out.push('(================================================)');
+        out.push('');
+        if (outputOptions.g21) out.push('G21 (SISTEMA METRICO MILIMETROS)');
+        out.push('G90 G94 G17 (ABSOLUTO, AVANCE POR MINUTO, PLANO XY)');
+        if (outputOptions.g54) out.push('G54 (ORIGEN DE TRABAJO PRINCIPAL)');
+        out.push('');
+        return out;
+    }
+
+    function buildCallerGCode() {
+        const out = buildProgramHeader(activeMacro.id, 'LLAMADA G65');
+        const args = activeMacro.variables
+            .map(v => `${v.letter || ('#' + v.num)}${formatCNCValue(v.value)}`)
+            .join(' ');
+        out.push(`( La macro ${activeMacro.id} debe estar cargada como subprograma en el control. )`);
+        out.push(`( Verifica que el numero de programa y los argumentos coincidan con tu control. )`);
+        out.push(`G65 P${activeMacro.id.replace(/^O/i, '')} ${args}`);
+        out.push('');
+        out.push('M05 (APAGAR HUSILLO)');
+        out.push('M09 (APAGAR REFRIGERANTE)');
+        out.push('G91 G28 Z0.0 (RETORNO SEGURO A HOME Z)');
+        out.push('G91 G28 X0.0 Y0.0 (RETORNO SEGURO A HOME XY)');
+        out.push('M30 (FIN DE PROGRAMA)');
+        out.push('%');
+        return out.join('\n');
+    }
+
+    function buildExpandedGCode() {
+        const out = buildProgramHeader(activeMacro.id, 'MACRO EXPANDIDA EN LINEA');
+        out.push('( MODO EXPANDIDO: el cuerpo de la macro se inserta en este programa. )');
+        out.push('( No cargues este archivo como subprograma; es un programa principal. )');
+        out.push('');
+
+        const varMap = {};
+        activeMacro.variables.forEach(v => { varMap[v.num] = v.value; });
+
+        const lines = activeMacro.full_content.split('\n');
+        const varStart = lines.findIndex(l => l.includes('VARIABLES DE ENTRADA'));
+        let varEnd = lines.findIndex((l, i) => i > varStart && (l.includes('CONTROL DE ERRORES') || l.includes('ARRANQUE DE HUSILLO')));
+        if (varEnd === -1 && varStart !== -1) varEnd = varStart + 80;
+        const hasN9999 = lines.some(l => /^N9999\b/i.test(l.trim()));
+
+        for (let i = 1; i < lines.length; i++) {
+            let line = lines[i].trimEnd();
+            const trimmed = line.trim();
+            if (!trimmed) { out.push(''); continue; }
+            if (trimmed === '%') continue;
+            if (/^O\d{3,}\b/i.test(trimmed)) continue;
+            if (/^M99\b/i.test(trimmed)) continue;
+            if (!hasN9999 && /^GOTO\s*9999\b/i.test(trimmed)) continue;
+
+            if (varStart !== -1 && i > varStart && i < varEnd) {
+                const m = line.match(/^(\s*#(\d+)\s*=\s*)([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)(.*)$/);
+                if (m && varMap[parseInt(m[2], 10)] !== undefined) {
+                    line = m[1] + formatCNCValue(varMap[parseInt(m[2], 10)]) + m[4];
+                }
+            }
+            out.push(line);
+        }
+
+        out.push('');
+        out.push('M05 (APAGAR HUSILLO)');
+        out.push('M09 (APAGAR REFRIGERANTE)');
+        out.push('G91 G28 Z0.0 (RETORNO SEGURO A HOME Z)');
+        out.push('G91 G28 X0.0 Y0.0 (RETORNO SEGURO A HOME XY)');
+        out.push('M30 (FIN DE PROGRAMA)');
+        out.push('%');
+        return out.join('\n');
     }
 
     function buildGCodeString() {
-        if (!activeMacro) return "";
+        if (!activeMacro) return '';
+        return gcodeMode === 'expanded' ? buildExpandedGCode() : buildCallerGCode();
+    }
 
-        const varMap = {};
-        activeMacro.variables.forEach(v => {
-            varMap[v.num] = v.value;
-        });
+    function updateGCodeOutput() {
+        const preview = document.getElementById('gcodePreview');
+        if (!preview) return;
+        preview.textContent = activeMacro ? buildGCodeString() : 'Configura una macro para ver el código G.';
+    }
 
-        const lines = activeMacro.full_content.split('\n');
-        const out = [];
+    function syncOutputControls() {
+        const modeSel = document.getElementById('gcodeModeSelect');
+        if (modeSel) modeSel.value = gcodeMode;
+        const g21 = document.getElementById('optG21');
+        if (g21) g21.checked = outputOptions.g21;
+        const g54 = document.getElementById('optG54');
+        if (g54) g54.checked = outputOptions.g54;
+    }
 
-        out.push(`%`);
-        out.push(`${lines[0].trim() || 'O1001 (PROGRAMA CNC ESTANDAR)'}`);
-        out.push(`(================================================)`);
-        out.push(`( NG_MACROS STUDIO - GENERACION CONTINUA DIRECTA )`);
-        out.push(`( ARCHIVO: ${activeMacro.filename} )`);
-        out.push(`( AUTOR: ${activeMacro.book_chapter || 'Ingeniero Nestor Gamez'} )`);
-        out.push(`( DIALECTO: ${cncDialect.toUpperCase()} )`);
-        out.push(`(================================================)`);
-        out.push(`( PARAMETROS CONFIGURADOS G65: )`);
-        activeMacro.variables.forEach(v => {
-            out.push(`(   ${v.letter || ('#'+v.num)} [#${v.num}] = ${formatCNCValue(v.value)} // ${v.comment} )`);
-        });
-        out.push(`(================================================)`);
-        out.push(``);
-        out.push(`G21 (SISTEMA METRICO MILIMETROS)`);
-        out.push(`G90 G94 G17 (MODO ABSOLUTO, AVANCE POR MINUTO, PLANO XY)`);
-        out.push(`G54 (ORIGEN DE TRABAJO PRINCIPAL)`);
-        out.push(``);
+    function setGCodeMode(mode) {
+        gcodeMode = (mode === 'expanded') ? 'expanded' : 'caller';
+        try { localStorage.setItem('ng_gcode_mode', gcodeMode); } catch (e) {}
+        updateGCodeOutput();
+    }
 
-        for (let i = 1; i < lines.length; i++) {
-            let line = lines[i].trim();
-            if (!line) continue;
+    function setOutputOption(name, enabled) {
+        if (name === 'g21') outputOptions.g21 = !!enabled;
+        if (name === 'g54') outputOptions.g54 = !!enabled;
+        try { localStorage.setItem('ng_gcode_g21', outputOptions.g21 ? '1' : '0'); } catch (e) {}
+        try { localStorage.setItem('ng_gcode_g54', outputOptions.g54 ? '1' : '0'); } catch (e) {}
+        updateGCodeOutput();
+    }
 
-            let processed = line.replace(/#(\d+)/g, (match, numStr) => {
-                const num = parseInt(numStr);
-                if (varMap[num] !== undefined) return formatCNCValue(varMap[num]);
-                return match;
-            });
-
-            if (processed.includes('M98') || processed.includes('M99')) {
-                continue;
-            }
-
-            out.push(processed);
+    function copyTextToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
         }
-
-        out.push(``);
-        out.push(`M05 (APAGAR HUSILLO)`);
-        out.push(`M09 (APAGAR REFRIGERANTE)`);
-        out.push(`G91 G28 Z0.0 (RETORNO SEGURO A HOME Z)`);
-        out.push(`G28 X0.0 Y0.0 (RETORNO SEGURO A HOME XY)`);
-        out.push(`M30 (FIN DE PROGRAMA)`);
-        out.push(`%`);
-
-        return out.join('\n');
+        return new Promise((resolve, reject) => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); resolve(); } catch (e) { reject(e); }
+            document.body.removeChild(ta);
+        });
     }
 
     function copyGCode() {
         if (!activeMacro) return;
-        const gcode = buildGCodeString();
-        navigator.clipboard.writeText(gcode).then(() => {
+        copyTextToClipboard(buildGCodeString()).then(() => {
             const btnText = document.getElementById('btnCopyText');
             if (btnText) {
                 const prev = btnText.textContent;
-                btnText.textContent = "¡Copiado!";
+                btnText.textContent = '¡Copiado!';
                 setTimeout(() => { btnText.textContent = prev; }, 1800);
-            } else {
-                alert("¡Código G copiado con éxito al portapapeles!");
             }
-        });
+        }).catch(() => alert('No se pudo copiar al portapapeles. Selecciona el texto y copia manualmente.'));
     }
 
     function downloadGCode() {
         if (!activeMacro) return;
         const gcode = buildGCodeString();
         const blob = new Blob([gcode], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = activeMacro.filename || "programa_cnc.nc";
+        const suffix = gcodeMode === 'expanded' ? '_expandida' : '_g65';
+        link.href = url;
+        link.download = (activeMacro.filename || 'programa_cnc.nc').replace(/\.nc$/i, suffix + '.nc');
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     /* ========================================================= */
@@ -1917,21 +1977,21 @@
         ctx.arc(cx, cy, rPocket, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Tangential lead-in (amber)
+        // Entrada tangencial desde el centro (ámbar)
         ctx.strokeStyle = "#f59e0b";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(cx + leadRad, cy, leadRad, Math.PI, 0, true);
         ctx.stroke();
 
-        // 360 circle (emerald)
+        // Trayectoria circular del centro de herramienta (esmeralda)
         ctx.strokeStyle = "#10b981";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(cx, cy, cutRad, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Lead-out (amber)
+        // Salida tangencial hacia el centro (ámbar)
         ctx.strokeStyle = "#f59e0b";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -1949,7 +2009,7 @@
         ctx.textAlign = "left";
         ctx.fillText(`Acabado W: Ø${diam}mm  |  Profundidad Z: -${depth}mm`, 12, 20);
         ctx.fillStyle = "#10b981";
-        ctx.fillText(`Compensación G41 activa  |  Fresado ascendente (Climb)`, 12, 34);
+        ctx.fillText(`Trayectoria directa al centro de herramienta (R = W/2 - T/2)`, 12, 34);
     }
 
     /* 7. CAD O8111: CICLO DE CORTE CIRCULAR G13 */
@@ -2008,17 +2068,23 @@
 
     /* 8. CAD O8110: ACABADO DE CAJERA RECTANGULAR */
     function drawCadO8110(ctx, w, h, cx, cy) {
+        const centerX = getMacroVar(24, 0);
+        const centerY = getMacroVar(25, 0);
         const lenX = Math.max(10, getMacroVar(23, 100));
         const lenY = Math.max(10, getMacroVar(11, 60));
         const depth = Math.abs(getMacroVar(26, 12));
         const cornerR = Math.max(1, getMacroVar(18, 10));
-        const toolDiam = Math.max(1, getMacroVar(7, 10));
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
         const toolRad = toolDiam / 2;
 
         const scale = Math.min((w - 140) / (lenX + 20), (h - 140) / (lenY + 20));
         const rw = lenX * scale;
         const rh = lenY * scale;
-        const cr = cornerR * scale;
+        const cr = Math.min(rw / 2, rh / 2, cornerR * scale);
+
+        const cutHalfX = Math.max(0, (lenX / 2 - toolRad) * scale);
+        const cutHalfY = Math.max(0, (lenY / 2 - toolRad) * scale);
+        const cutR = Math.max(0, (cornerR - toolRad) * scale);
 
         // Placa
         ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
@@ -2026,28 +2092,39 @@
         ctx.strokeStyle = "rgba(220, 226, 247, 0.25)";
         ctx.strokeRect(cx - rw / 2 - 15, cy - rh / 2 - 15, rw + 30, rh + 30);
 
-        // Rectángulo con esquinas redondeadas
+        // Contorno nominal de la cajera
         ctx.strokeStyle = "#4cd7f6";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(cx - rw / 2, cy - rh / 2, rw, rh, cr);
         ctx.stroke();
 
-        // Entrada tangencial desde centro
+        // Trayectoria real del centro de herramienta (inset por radio de fresa)
+        if (cutHalfX > 0 && cutHalfY > 0) {
+            ctx.strokeStyle = "#10b981";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 3]);
+            ctx.beginPath();
+            ctx.roundRect(cx - cutHalfX, cy - cutHalfY, cutHalfX * 2, cutHalfY * 2, cutR);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Entrada y salida por el centro de la cajera
         ctx.strokeStyle = "#f59e0b";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(cx, cy);
-        ctx.lineTo(cx, cy + rh / 2 - cr);
+        ctx.lineTo(cx, cy + cutHalfY);
         ctx.stroke();
 
         // Info
         ctx.fillStyle = "#4cd7f6";
         ctx.font = "bold 10px monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`W: ${lenX}mm  x  H: ${lenY}mm  |  Radios R: ${cornerR}mm`, 12, 20);
+        ctx.fillText(`Centro X${centerX} Y${centerY}  |  W: ${lenX}mm × H: ${lenY}mm  |  R: ${cornerR}mm`, 12, 20);
         ctx.fillStyle = "#94a3b8";
-        ctx.fillText(`Profundidad Z: -${depth}mm  |  Corrector D: R${toolRad}mm`, 12, 34);
+        ctx.fillText(`Profundidad Z: -${depth}mm  |  Fresa T: Ø${toolDiam}mm  |  Trayectoria al centro`, 12, 34);
     }
 
     /* 8B. CAD O8112: DESBASTE DE CAJERA RECTANGULAR */
@@ -2148,19 +2225,21 @@
         ctx.fillText(`Paso lateral E: ${stepE}mm  |  Paso Z: ${stepZ}mm  |  Fresa ⌀T: ${toolDiam}mm`, 12, 48);
     }
 
-    /* 9. CAD O8108: RANURA RECTA ANGULAR */
+    /* 9. CAD O8108: RANURA RECTA ANGULAR (MULTIPASADA RACETRACK) */
     function drawCadO8108(ctx, w, h, cx, cy) {
         const startX = getMacroVar(24, 30);
         const startY = getMacroVar(25, 25);
         const depth = Math.abs(getMacroVar(26, 6));
         const angleDeg = getMacroVar(1, 25);
-        const distD = Math.max(5, getMacroVar(7, 60));
+        const distD = Math.max(1, getMacroVar(7, 60));
         const slotR = Math.max(1, getMacroVar(18, 10));
         const toolDiam = Math.max(1, getMacroVar(20, 10));
         const toolRad = toolDiam / 2;
+        const maxPathR = slotR - toolRad;
 
         const angleRad = (angleDeg * Math.PI) / 180;
-        const scale = Math.min((w - 140) / (distD + slotR * 4), (h - 140) / (distD + slotR * 4));
+        const span = distD + slotR * 2;
+        const scale = Math.min((w - 160) / (span + 40), (h - 160) / (span + 40));
 
         const midX = distD / 2 * Math.cos(angleRad);
         const midY = distD / 2 * Math.sin(angleRad);
@@ -2170,6 +2249,7 @@
         const oy2 = cy - midY * scale;
 
         const sR = slotR * scale;
+        const toolRs = toolRad * scale;
 
         // Eje central de la ranura
         ctx.strokeStyle = "#f59e0b";
@@ -2180,7 +2260,7 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Contorno de la ranura (obround)
+        // Contorno nominal de la ranura (ancho total 2R)
         const perp = angleRad + Math.PI / 2;
         const dx = Math.cos(perp) * sR;
         const dy = Math.sin(perp) * sR;
@@ -2194,7 +2274,36 @@
         ctx.lineTo(ox2 + dx, oy2 - dy);
         ctx.stroke();
 
-        // Centros
+        // Trayectorias del centro de herramienta, de dentro hacia fuera
+        if (maxPathR > 0.05) {
+            const radialStep = Math.max(0.5, toolDiam * 0.65);
+            const passes = Math.max(1, Math.ceil(maxPathR / radialStep));
+            ctx.strokeStyle = "rgba(16, 185, 129, 0.75)";
+            ctx.lineWidth = 1.2;
+            ctx.setLineDash([5, 3]);
+            const shown = Math.min(passes, 8);
+            for (let p = 1; p <= shown; p++) {
+                const rr = (maxPathR * p / passes) * scale;
+                if (rr < 0.5) continue;
+                const pdx = Math.cos(perp) * rr;
+                const pdy = Math.sin(perp) * rr;
+                ctx.beginPath();
+                ctx.arc(ox2, oy2, rr, -angleRad - Math.PI / 2, -angleRad + Math.PI / 2);
+                ctx.lineTo(ox1 - pdx, oy1 + pdy);
+                ctx.arc(ox1, oy1, rr, -angleRad + Math.PI / 2, -angleRad + Math.PI * 1.5);
+                ctx.lineTo(ox2 + pdx, oy2 - pdy);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+
+        // Centro de herramienta en el extremo izquierdo
+        ctx.fillStyle = "rgba(245, 158, 11, 0.25)";
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(ox1, oy1, toolRs, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Centros extremos
         ctx.fillStyle = "#10b981";
         ctx.beginPath(); ctx.arc(ox1, oy1, 3, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(ox2, oy2, 3, 0, Math.PI * 2); ctx.fill();
@@ -2203,9 +2312,12 @@
         ctx.fillStyle = "#4cd7f6";
         ctx.font = "bold 10px monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`Distancia D: ${distD}mm  |  Radio R: ${slotR}mm (Ancho: ${slotR * 2}mm)`, 12, 20);
+        ctx.fillText(`Centro X${startX} Y${startY}  |  Distancia D: ${distD}mm  |  Radio R: ${slotR}mm (Ancho: ${slotR * 2}mm)`, 12, 20);
         ctx.fillStyle = "#f59e0b";
-        ctx.fillText(`Ángulo A: ${angleDeg}°  |  Profundidad Z: -${depth}mm`, 12, 34);
+        ctx.fillText(`Ángulo A: ${angleDeg}°  |  Profundidad Z: -${depth}mm  |  Fresa T: Ø${toolDiam}mm`, 12, 34);
+        ctx.fillStyle = "#10b981";
+        const passCount = maxPathR > 0 ? Math.max(1, Math.ceil(maxPathR / Math.max(0.5, toolDiam * 0.65))) : 0;
+        ctx.fillText(`Trayectoria al centro (R - T/2): ${maxPathR.toFixed(2)}mm  |  Pasadas radiales: ${passCount}`, 12, 48);
     }
 
     /* 10. CAD O8109: RANURA CIRCULAR MULTI-PROFUNDIDAD */
@@ -2410,7 +2522,10 @@
     let stockCenter = { x: 0, y: 0, z: 0 };
 
     function setSimView(viewName) {
-        if (!threeCamera) return;
+        if (!threeCamera) {
+            if (viewName !== '2d') switchSimView('2d');
+            return;
+        }
         document.querySelectorAll('.sim-view-btn').forEach(b => {
             b.className = 'sim-view-btn px-3 py-1 rounded transition-all text-on-surface-variant hover:text-on-surface';
         });
@@ -2590,9 +2705,18 @@
 
         threeCamera = new THREE.PerspectiveCamera(45, w / h, 1, 2000);
 
-        threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        try {
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        } catch (err) {
+            console.warn('WebGL no disponible; se usa la vista 2D.', err);
+            threeScene = null;
+            threeCamera = null;
+            threeRenderer = null;
+            switchSimView('2d');
+            return;
+        }
         threeRenderer.setSize(w, h);
-        threeRenderer.setPixelRatio(window.devicePixelRatio);
+        threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         container.innerHTML = '';
         container.appendChild(threeRenderer.domElement);
 
@@ -2641,17 +2765,39 @@
         threeStock.position.y = -15;
         threeScene.add(threeStock);
 
-        window.addEventListener('resize', resize3DScene);
         animate();
     }
 
+    function startAnimationLoop() {
+        if (animationFrameId) return;
+        animate();
+    }
+
+    function stopAnimationLoop() {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    }
+
     function animate() {
+        // Solo se renderiza mientras el simulador está visible. Así no se
+        // consume GPU/CPU en las demás vistas ni con la pestaña en segundo plano.
+        if (currentView !== 'simulador' || document.hidden) {
+            animationFrameId = null;
+            return;
+        }
         animationFrameId = requestAnimationFrame(animate);
         if (threeControls) threeControls.update();
         if (threeRenderer && threeScene && threeCamera) {
             threeRenderer.render(threeScene, threeCamera);
         }
     }
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && currentView === 'simulador') startAnimationLoop();
+        else stopAnimationLoop();
+    });
 
     /* GENERADOR DE TRAYECTORIAS Y PUNTOS DE SIMULACIÓN POR MACRO */
     function buildSimulationPoints() {
@@ -2892,41 +3038,44 @@
     }
 
     function buildSimO8110() {
+        const cx = getMacroVar(24, 0);
+        const cy = getMacroVar(25, 0);
         const lenX = Math.max(10, getMacroVar(23, 100));
         const lenY = Math.max(10, getMacroVar(11, 60));
         const depth = Math.abs(getMacroVar(26, 12));
         const cornerR = Math.max(1, getMacroVar(18, 10));
-        const toolRad = Math.max(0.5, getMacroVar(7, 10) / 2);
+        const toolRad = Math.max(0.5, getMacroVar(20, 10) / 2);
         const safeB = getMacroVar(2, 2.0);
 
-        const halfX = lenX / 2 - toolRad;
-        const halfY = lenY / 2 - toolRad;
-        const effR = Math.max(1, cornerR - toolRad);
+        const halfX = Math.max(0, lenX / 2 - toolRad);
+        const halfY = Math.max(0, lenY / 2 - toolRad);
+        const effR = Math.max(0, cornerR - toolRad);
 
-        simPoints.push({ x: 0, y: 0, z: 25, type: 'G0' });
-        simPoints.push({ x: 0, y: 0, z: safeB, type: 'G0' });
-        simPoints.push({ x: 0, y: 0, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
 
-        simPoints.push({ x: 0, y: -halfY, z: -depth, type: 'G1' });
-        simPoints.push({ x: halfX - effR, y: -halfY, z: -depth, type: 'G1' });
+        // Entrada desde el centro al borde inferior
+        simPoints.push({ x: cx, y: cy - halfY, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx + halfX - effR, y: cy - halfY, z: -depth, type: 'G1' });
         for (let a = -Math.PI / 2; a <= 0; a += 0.2) {
-            simPoints.push({ x: halfX - effR + effR * Math.cos(a), y: -halfY + effR + effR * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx + halfX - effR + effR * Math.cos(a), y: cy - halfY + effR + effR * Math.sin(a), z: -depth, type: 'G1' });
         }
-        simPoints.push({ x: halfX, y: halfY - effR, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx + halfX, y: cy + halfY - effR, z: -depth, type: 'G1' });
         for (let a = 0; a <= Math.PI / 2; a += 0.2) {
-            simPoints.push({ x: halfX - effR + effR * Math.cos(a), y: halfY - effR + effR * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx + halfX - effR + effR * Math.cos(a), y: cy + halfY - effR + effR * Math.sin(a), z: -depth, type: 'G1' });
         }
-        simPoints.push({ x: -halfX + effR, y: halfY, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx - halfX + effR, y: cy + halfY, z: -depth, type: 'G1' });
         for (let a = Math.PI / 2; a <= Math.PI; a += 0.2) {
-            simPoints.push({ x: -halfX + effR + effR * Math.cos(a), y: halfY - effR + effR * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx - halfX + effR + effR * Math.cos(a), y: cy + halfY - effR + effR * Math.sin(a), z: -depth, type: 'G1' });
         }
-        simPoints.push({ x: -halfX, y: -halfY + effR, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx - halfX, y: cy - halfY + effR, z: -depth, type: 'G1' });
         for (let a = Math.PI; a <= Math.PI * 1.5; a += 0.2) {
-            simPoints.push({ x: -halfX + effR + effR * Math.cos(a), y: -halfY + effR + effR * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx - halfX + effR + effR * Math.cos(a), y: cy - halfY + effR + effR * Math.sin(a), z: -depth, type: 'G1' });
         }
-        simPoints.push({ x: 0, y: -halfY, z: -depth, type: 'G1' });
-        simPoints.push({ x: 0, y: 0, z: -depth, type: 'G1' });
-        simPoints.push({ x: 0, y: 0, z: 25.0, type: 'G0' });
+        simPoints.push({ x: cx, y: cy - halfY, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
     }
 
     function buildSimO8112() {
@@ -3044,33 +3193,58 @@
         const y0 = getMacroVar(25, 25);
         const depth = Math.abs(getMacroVar(26, 6));
         const ang = getMacroVar(1, 25) * Math.PI / 180;
-        const distD = Math.max(5, getMacroVar(7, 60));
+        const distD = Math.max(1, getMacroVar(7, 60));
         const slotR = Math.max(1, getMacroVar(18, 10));
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
+        const toolRad = toolDiam / 2;
         const safeB = getMacroVar(2, 2.0);
 
         const x1 = x0 + distD * Math.cos(ang);
         const y1 = y0 + distD * Math.sin(ang);
+        const maxPathR = Math.max(0, slotR - toolRad);
+        const radialStep = Math.max(0.5, toolDiam * 0.65);
+        const passes = maxPathR > 0 ? Math.max(1, Math.ceil(maxPathR / radialStep)) : 0;
 
         simPoints.push({ x: x0, y: y0, z: 25, type: 'G0' });
         simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
         simPoints.push({ x: x0, y: y0, z: -depth, type: 'G1' });
 
-        simPoints.push({ x: x1, y: y1, z: -depth, type: 'G1' });
-        for (let a = -Math.PI / 2; a <= Math.PI / 2; a += 0.2) {
-            simPoints.push({ x: x1 + slotR * Math.cos(ang + a), y: y1 + slotR * Math.sin(ang + a), z: -depth, type: 'G1' });
+        // Vector perpendicular a la ranura
+        const px = -Math.sin(ang);
+        const py = Math.cos(ang);
+
+        for (let pass = 1; pass <= passes; pass++) {
+            const rr = maxPathR * pass / passes;
+            const sx = x0 + px * rr;
+            const sy = y0 + py * rr;
+
+            // Lado superior hacia el extremo derecho
+            simPoints.push({ x: sx, y: sy, z: -depth, type: 'G1' });
+            simPoints.push({ x: x1 + px * rr, y: y1 + py * rr, z: -depth, type: 'G1' });
+
+            // Arco extremo derecho
+            for (let a = -Math.PI / 2; a <= Math.PI / 2; a += 0.18) {
+                simPoints.push({
+                    x: x1 + rr * Math.cos(ang + a),
+                    y: y1 + rr * Math.sin(ang + a),
+                    z: -depth,
+                    type: 'G1'
+                });
+            }
+
+            // Lado inferior de regreso
+            simPoints.push({ x: x0 - px * rr, y: y0 - py * rr, z: -depth, type: 'G1' });
+
+            // Arco extremo izquierdo
+            for (let a = Math.PI / 2; a <= Math.PI * 1.5; a += 0.18) {
+                simPoints.push({
+                    x: x0 + rr * Math.cos(ang + a),
+                    y: y0 + rr * Math.sin(ang + a),
+                    z: -depth,
+                    type: 'G1'
+                });
+            }
         }
-
-        const backX0 = x0 + slotR * Math.cos(ang + Math.PI / 2);
-        const backY0 = y0 + slotR * Math.sin(ang + Math.PI / 2);
-        simPoints.push({ x: backX0, y: backY0, z: -depth, type: 'G1' });
-
-        for (let a = Math.PI / 2; a <= Math.PI * 1.5; a += 0.2) {
-            simPoints.push({ x: x0 + slotR * Math.cos(ang + a), y: y0 + slotR * Math.sin(ang + a), z: -depth, type: 'G1' });
-        }
-
-        const botX1 = x1 + slotR * Math.cos(ang - Math.PI / 2);
-        const botY1 = y1 + slotR * Math.sin(ang - Math.PI / 2);
-        simPoints.push({ x: botX1, y: botY1, z: -depth, type: 'G1' });
 
         simPoints.push({ x: x0, y: y0, z: -depth, type: 'G1' });
         simPoints.push({ x: x0, y: y0, z: 25.0, type: 'G0' });
@@ -3175,18 +3349,27 @@
         if (simPoints && simPoints.length > 1) {
             const rapidMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.65, linewidth: 1.5 });
             const feedMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2.5 });
+            const rapidPts = [];
+            const feedPts = [];
 
+            // Se agrupan todos los segmentos en dos LineSegments: mucho menos
+            // overhead de draw calls que crear una línea por tramo.
             for (let i = 0; i < simPoints.length - 1; i++) {
                 const p1 = simPoints[i];
                 const p2 = simPoints[i + 1];
+                const a = new THREE.Vector3(p1.x, p1.z, -p1.y);
+                const b = new THREE.Vector3(p2.x, p2.z, -p2.y);
+                if (p2.type === 'G0') { rapidPts.push(a, b); }
+                else { feedPts.push(a, b); }
+            }
 
-                const geom = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(p1.x, p1.z, -p1.y),
-                    new THREE.Vector3(p2.x, p2.z, -p2.y)
-                ]);
-
-                const line = new THREE.Line(geom, p2.type === 'G0' ? rapidMat : feedMat);
-                threePathGroup.add(line);
+            if (rapidPts.length) {
+                const rapidGeom = new THREE.BufferGeometry().setFromPoints(rapidPts);
+                threePathGroup.add(new THREE.LineSegments(rapidGeom, rapidMat));
+            }
+            if (feedPts.length) {
+                const feedGeom = new THREE.BufferGeometry().setFromPoints(feedPts);
+                threePathGroup.add(new THREE.LineSegments(feedGeom, feedMat));
             }
         }
 
@@ -3322,8 +3505,8 @@
         }
         // 3. CAJERA RECTANGULAR CON ESQUINAS REDONDEADAS (O8110 y O8112)
         else if (type === 'O8110' || type === 'O8112') {
-            const cx = (type === 'O8112') ? getMacroVar(24, 0) : 0;
-            const cy = (type === 'O8112') ? getMacroVar(25, 0) : 0;
+            const cx = getMacroVar(24, 0);
+            const cy = getMacroVar(25, 0);
             const stockWall = (type === 'O8112') ? Math.max(0, getMacroVar(21, 0.5)) : 0;
             const stockFloor = (type === 'O8112') ? Math.max(0, getMacroVar(22, 0.2)) : 0;
 
@@ -3429,6 +3612,20 @@
     /* CONTROL DE SIMULACIÓN (PLAY, PAUSE, STEP, RESET) */
     let simTimer = null;
 
+    function updateSimControlButtons(running) {
+        const play = document.getElementById('simPlayBtn');
+        const pause = document.getElementById('simPauseBtn');
+        const stop = document.getElementById('simStopBtn');
+        const step = document.getElementById('simStepBtn');
+        if (play) play.disabled = !!running;
+        if (pause) pause.disabled = !running;
+        if (stop) stop.disabled = !(running || simStepIdx > 0);
+        if (step) step.disabled = !!running;
+        [play, pause, stop, step].forEach(b => {
+            if (b) b.classList.toggle('disabled:opacity-40', true);
+        });
+    }
+
     function resetSimCounters() {
         simStepIdx = 0;
         updateSimPosition(simPoints[0] || { x: 0, y: 0, z: 25, type: 'G0' });
@@ -3436,13 +3633,16 @@
         if (badge) badge.textContent = "LISTO";
         const ctr = document.getElementById('simLineCounter');
         if (ctr) ctr.textContent = `Puntos: 0 / ${simPoints.length}`;
+        updateSimControlButtons(false);
     }
 
     function startSimulation() {
         if (!simPoints || simPoints.length === 0) return;
+        if (simStepIdx >= simPoints.length) simStepIdx = 0;
         simIsRunning = true;
         const badge = document.getElementById('simStatusBadge');
         if (badge) badge.textContent = "EJECUTANDO";
+        updateSimControlButtons(true);
 
         if (simTimer) clearInterval(simTimer);
         const intervalMs = Math.max(10, Math.round(60 / simSpeed));
@@ -3464,8 +3664,10 @@
     function pauseSimulation() {
         simIsRunning = false;
         if (simTimer) clearInterval(simTimer);
+        simTimer = null;
         const badge = document.getElementById('simStatusBadge');
         if (badge && badge.textContent !== "COMPLETO") badge.textContent = "PAUSADO";
+        updateSimControlButtons(false);
     }
 
     function stepSimulation() {
@@ -3477,6 +3679,7 @@
             if (ctr) ctr.textContent = `Puntos: ${simStepIdx + 1} / ${simPoints.length}`;
             simStepIdx++;
         }
+        updateSimControlButtons(false);
     }
 
     function stopSimulation() {
@@ -3514,6 +3717,9 @@
             }
             droS.textContent = rpmVal;
         }
+
+        const c2d = document.getElementById('sim2dContainer');
+        if (c2d && !c2d.classList.contains('hidden')) render2DSimCanvas();
     }
 
     function changeSimSpeed(val) {
@@ -3550,17 +3756,124 @@
             const div = document.createElement('div');
             div.id = `simLine_${idx}`;
             div.className = "py-0.5 px-2 hover:bg-surface-container-high transition-colors";
-            div.innerHTML = `<span class="text-on-surface-variant select-none mr-2">${(idx + 1).toString().padStart(3, ' ')}</span><span>${l}</span>`;
+            div.innerHTML = `<span class="text-on-surface-variant select-none mr-2">${(idx + 1).toString().padStart(3, ' ')}</span><span>${escapeHtml(l)}</span>`;
             term.appendChild(div);
         });
     }
 
     function highlightSimTerminalLine(stepIdx) {
-        // Subtle terminal sync
+        const total = simPoints.length || 1;
+        const term = document.getElementById('simCodeContainer');
+        if (!term) return;
+        const lines = term.children;
+        if (!lines.length) return;
+        const target = Math.min(lines.length - 1, Math.floor(stepIdx / total * lines.length));
+        for (let i = 0; i < lines.length; i++) {
+            lines[i].classList.toggle('bg-primary/15', i === target);
+            lines[i].classList.toggle('text-primary', i === target);
+        }
+        const active = lines[target];
+        if (active && active.scrollIntoView) {
+            active.scrollIntoView({ block: 'nearest' });
+        }
     }
 
     function render2DSimCanvas() {
-        // Fallback for 2D mode
+        const canvas = document.getElementById('sim2dCanvas');
+        if (!canvas) return;
+        const container = canvas.parentElement;
+        const w = container.clientWidth || 800;
+        const h = container.clientHeight || 550;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const pxW = Math.round(w * dpr);
+        const pxH = Math.round(h * dpr);
+        if (canvas.width !== pxW || canvas.height !== pxH) {
+            canvas.width = pxW;
+            canvas.height = pxH;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#132238';
+        ctx.fillRect(0, 0, w, h);
+
+        if (!simPoints || simPoints.length < 2) {
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 13px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sin trayectoria para mostrar', w / 2, h / 2);
+            return;
+        }
+
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const p of simPoints) {
+            minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+            minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+        }
+        const spanX = Math.max(1, maxX - minX);
+        const spanY = Math.max(1, maxY - minY);
+        const pad = 46;
+        const scale = Math.min((w - pad * 2) / spanX, (h - pad * 2) / spanY);
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+        const toPx = (x, y) => [w / 2 + (x - cx) * scale, h / 2 - (y - cy) * scale];
+
+        // Rejilla técnica
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+        ctx.lineWidth = 1;
+        const gridStep = 10;
+        for (let gx = Math.ceil(minX / gridStep) * gridStep; gx <= maxX; gx += gridStep) {
+            const [px] = toPx(gx, cy);
+            ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+        }
+        for (let gy = Math.ceil(minY / gridStep) * gridStep; gy <= maxY; gy += gridStep) {
+            const [, py] = toPx(cx, gy);
+            ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
+        }
+
+        for (let i = 0; i < simPoints.length - 1; i++) {
+            const p1 = simPoints[i];
+            const p2 = simPoints[i + 1];
+            const [x1, y1] = toPx(p1.x, p1.y);
+            const [x2, y2] = toPx(p2.x, p2.y);
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            if (p2.type === 'G0') {
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.75)';
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([5, 4]);
+            } else {
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([]);
+            }
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Herramienta en la posición actual
+        const current = simPoints[Math.max(0, Math.min(simPoints.length - 1, simStepIdx - 1))];
+        const [tx, ty] = toPx(current.x, current.y);
+        const toolRad = Math.max(3, getMacroVar(20, 10) / 2 * scale);
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(tx, ty, toolRad, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#4cd7f6';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Vista 2D · X ${current.x.toFixed(2)}  Y ${current.y.toFixed(2)}  Z ${current.z.toFixed(2)}`, 12, 20);
+        ctx.fillStyle = '#10b981';
+        ctx.fillText('Trayectoria de corte', 12, 36);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('Movimiento rápido', 12, 50);
     }
 
     /* ========================================================= */
@@ -3596,55 +3909,83 @@
             tr.className = "hover:bg-surface-container-high transition-colors";
             tr.innerHTML = `
                 <td class="p-3 text-primary font-bold">T${String(t.id).padStart(2, '0')}</td>
-                <td class="p-3 font-title-sm text-on-surface font-semibold">${t.name}</td>
-                <td class="p-3 text-on-surface-variant">${t.type}</td>
+                <td class="p-3 font-title-sm text-on-surface font-semibold">${escapeHtml(t.name)}</td>
+                <td class="p-3 text-on-surface-variant">${escapeHtml(t.type)}</td>
                 <td class="p-3 text-secondary font-bold">Ø ${t.diam.toFixed(1)}</td>
                 <td class="p-3 text-on-surface-variant">${t.flutes}</td>
                 <td class="p-3 text-on-surface-variant">${t.maxRpm} RPM</td>
                 <td class="p-3 text-on-surface-variant">${t.feed} mm/min</td>
                 <td class="p-3">
-                    <button onclick="applyToolToMacro(${t.id})" class="px-2 py-1 bg-surface-container-lowest hover:bg-surface-bright text-tertiary border border-tertiary/30 rounded text-[11px] font-bold">
-                        Asignar
-                    </button>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="applyToolToMacro(${t.id})" class="px-2 py-1 bg-surface-container-lowest hover:bg-surface-bright text-tertiary border border-tertiary/30 rounded text-[11px] font-bold">
+                            Asignar
+                        </button>
+                        <button onclick="removeTool(${t.id})" class="px-1.5 py-1 bg-surface-container-lowest hover:bg-error-container/40 text-error border border-error/30 rounded" title="Eliminar herramienta" aria-label="Eliminar herramienta T${String(t.id).padStart(2, '0')}">
+                            <span class="material-symbols-outlined text-[14px]">delete</span>
+                        </button>
+                    </div>
                 </td>
             `;
             body.appendChild(tr);
         });
     }
 
+    function removeTool(toolId) {
+        const tools = getTools();
+        const tool = tools.find(t => t.id === toolId);
+        if (!tool) return;
+        if (!confirm(`¿Eliminar ${tool.name} del almacén?`)) return;
+        const next = tools.filter(t => t.id !== toolId);
+        localStorage.setItem('ng_cnc_tools', JSON.stringify(next));
+        renderToolTable();
+    }
+
     function applyToolToMacro(toolId) {
         const tools = getTools();
         const t = tools.find(x => x.id === toolId);
-        if (!t || !activeMacro) return;
+        if (!t) return;
+        if (!activeMacro) {
+            alert('Primero selecciona una macro para asignarle la herramienta.');
+            return;
+        }
 
         activeMacro.variables.forEach(v => {
-            const c = v.comment.toUpperCase();
-            if (c.includes('NUMERO DE HERRAMIENTA') || c.includes('NUMERO HERRAMIENTA')) v.value = t.id;
-            if (c.includes('DIAMETRO') && (c.includes('HERRAMIENTA') || c.includes('BROCA'))) v.value = t.diam;
-            if (c.includes('RPM')) v.value = t.maxRpm;
-            if (c.includes('AVANCE F')) v.value = t.feed;
-            if (c.includes('INSERTOS') || c.includes('LABIOS')) v.value = t.flutes;
+            const c = ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase();
+            const isToolDiameter = v.letter === 'T' || (c.includes('DIAMETRO') && (c.includes('FRESA') || c.includes('BROCA') || c.includes('HERRAMIENTA')));
+            const isSpindle = c.includes('RPM') || c.includes('HUSILLO') || c.includes('GIRO') || (activeMacro.id === 'O8104' && v.letter === 'B');
+            if (isToolDiameter) v.value = t.diam;
+            if (v.letter === 'F' || c.includes('AVANCE')) v.value = t.feed;
+            if (isSpindle) v.value = t.maxRpm;
         });
 
-        alert(`Herramienta T${String(t.id).padStart(2, '0')} asignada a la macro actual con éxito.`);
+        saveActiveMacroParams();
         renderMacroParameterGroups();
+        buildSimulationPoints();
         updateGCodeOutput();
+        updateValidationBanner();
         draw2DCadSchematic();
-        switchView('modulos');
+        switchView('ciclo');
+        alert(`Herramienta T${String(t.id).padStart(2, '0')} asignada a ${activeMacro.id}.`);
     }
 
     function openAddToolModal() {
-        const name = prompt("Nombre de la herramienta (ej: Fresa Toroidal Ø10 R1):");
-        if (!name) return;
-        const diam = parseFloat(prompt("Diámetro en mm:", "10.0")) || 10.0;
-        const flutes = parseInt(prompt("Número de filos / labios:", "4")) || 4;
-
         const tools = getTools();
+        if (tools.length >= 24) {
+            alert('El almacén ATC ya tiene 24 herramientas. Elimina una antes de agregar otra.');
+            return;
+        }
+        const name = prompt('Nombre de la herramienta (ej: Fresa Toroidal Ø10 R1):');
+        if (!name) return;
+        const diam = parseFloat(prompt('Diámetro en mm:', '10.0'));
+        if (!(diam > 0)) { alert('El diámetro debe ser mayor que cero.'); return; }
+        const flutes = parseInt(prompt('Número de filos / labios:', '4'));
+        if (!(flutes > 0)) { alert('El número de filos debe ser mayor que cero.'); return; }
+
         const newId = tools.length > 0 ? Math.max(...tools.map(x => x.id)) + 1 : 1;
         tools.push({
             id: newId,
             name: name,
-            type: "Fresa Paramétrica",
+            type: 'Fresa Paramétrica',
             diam: diam,
             flutes: flutes,
             maxRpm: 6000,
@@ -3668,22 +4009,42 @@
         const toolListEl = document.getElementById('setupToolList');
 
         if (dateEl) dateEl.textContent = new Date().toLocaleDateString();
-        if (activeMacro) {
-            if (progEl) progEl.textContent = activeMacro.filename;
-            if (cycleEl) cycleEl.textContent = activeMacro.title || activeMacro.filename;
-            if (timeEl) timeEl.textContent = "~2 min 30 s";
+        if (!activeMacro) {
+            if (progEl) progEl.textContent = '—';
+            if (cycleEl) cycleEl.textContent = 'Selecciona una macro';
+            if (timeEl) timeEl.textContent = '—';
+            if (toolListEl) toolListEl.innerHTML = '<tr><td colspan="5" class="p-3 text-on-surface-variant">Sin macro activa.</td></tr>';
+            return;
+        }
 
-            if (toolListEl) {
-                toolListEl.innerHTML = `
-                    <tr class="bg-surface-container-lowest">
-                        <td class="p-2.5 text-primary font-bold">T01</td>
-                        <td class="p-2.5 text-on-surface">Herramienta de Corte Principal</td>
-                        <td class="p-2.5 text-secondary">Ø ${activeMacro.variables.find(v => v.comment.includes('DIAMETRO'))?.value || 12.0} mm</td>
-                        <td class="p-2.5">H01 / D01</td>
-                        <td class="p-2.5">S2500 M03</td>
-                    </tr>
-                `;
-            }
+        if (progEl) progEl.textContent = activeMacro.filename;
+        if (cycleEl) cycleEl.textContent = activeMacro.title || activeMacro.filename;
+        if (timeEl) timeEl.textContent = calculateEstimatedCycleTime();
+
+        if (toolListEl) {
+            const toolVar = activeMacro.variables.find(v => v.letter === 'T' || ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase().includes('DIAMETRO DE LA FRESA'));
+            const toolDiam = toolVar ? parseFloat(toolVar.value) : 10;
+            const rpmVar = activeMacro.variables.find(v => {
+                const c = ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase();
+                return c.includes('RPM') || c.includes('HUSILLO') || c.includes('GIRO') || (activeMacro.id === 'O8104' && v.letter === 'B');
+            });
+            const rpm = rpmVar ? parseFloat(rpmVar.value) : 0;
+            const feedVar = activeMacro.variables.find(v => v.letter === 'F' || ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase().includes('AVANCE'));
+            const feed = feedVar ? parseFloat(feedVar.value) : 0;
+            const items = getTools();
+            const match = items.find(t => Math.abs(t.diam - toolDiam) < 0.01);
+            const name = match ? match.name : `Fresa / broca Ø${toolDiam.toFixed(1)} mm`;
+            const toolId = match ? String(match.id).padStart(2, '0') : '01';
+
+            toolListEl.innerHTML = `
+                <tr class="bg-surface-container-lowest">
+                    <td class="p-2.5 text-primary font-bold">T${toolId}</td>
+                    <td class="p-2.5 text-on-surface">${escapeHtml(name)}</td>
+                    <td class="p-2.5 text-secondary">Ø ${toolDiam.toFixed(1)} mm</td>
+                    <td class="p-2.5">H${toolId} / D${toolId}</td>
+                    <td class="p-2.5">S${Math.round(rpm)} M03 · F${Math.round(feed)}</td>
+                </tr>
+            `;
         }
     }
 
@@ -3702,26 +4063,46 @@
         alert("¡PARADA DE EMERGENCIA (E-STOP) ACTIVADA!\nHusillo detenido y avance bloqueado.");
     }
 
-    
-    
-    
     /* ========================================================= */
     /* 9. INICIALIZACIÓN DE LA APLICACIÓN                        */
     /* ========================================================= */
     document.addEventListener('DOMContentLoaded', () => {
         checkLicensing();
+        syncOutputControls();
 
         const data = getMacros();
         if (data && data.length > 0) {
             selectMacro(0);
+            if (!handleRoute()) {
+                // La ruta se actualiza sin recargar; si no hay hash, inicio.
+                updateHash();
+            }
         } else {
-            console.error("No se pudo cargar MACROS_DATA.");
+            console.error('No se pudo cargar MACROS_DATA. Ejecuta: python3 parse_macros.py');
+            const preview = document.getElementById('gcodePreview');
+            if (preview) preview.textContent = 'No se pudieron cargar las macros. Ejecuta python3 parse_macros.py y recarga.';
         }
 
+        let resizeTimer = null;
         window.addEventListener('resize', () => {
-            draw2DCadSchematic();
-            resize3DScene();
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                draw2DCadSchematic();
+                resize3DScene();
+            }, 150);
         });
+
+        window.addEventListener('hashchange', handleRoute);
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeLicenseModal();
+        });
+
+        // Registro del service worker para uso sin conexión (solo http/https).
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            navigator.serviceWorker.register('service-worker.js').catch(err => {
+                console.warn('Service worker no registrado:', err.message);
+            });
+        }
     });
     </script>
 </body>
