@@ -448,9 +448,9 @@
             </div>
 
             <!-- ÁREA GIGANTE DE SIMULACIÓN -->
-            <div class="relative bg-surface-container-lowest rounded-xl border border-outline-variant/30 overflow-hidden shadow-2xl h-[580px] md:h-[630px] lg:h-[660px] flex items-center justify-center">
+            <div class="relative bg-[#132238] rounded-xl border border-outline-variant/30 overflow-hidden shadow-2xl h-[580px] md:h-[630px] lg:h-[660px] flex items-center justify-center">
                 <!-- Contenedor 3D Three.js -->
-                <div id="sim3dContainer" class="absolute inset-0 w-full h-full"></div>
+                <div id="sim3dContainer" class="absolute inset-0 w-full h-full bg-[#132238]"></div>
                 <!-- Canvas 2D Ortogonal -->
                 <canvas id="sim2dCanvas" class="absolute inset-0 w-full h-full hidden"></canvas>
 
@@ -485,7 +485,7 @@
                 <!-- BARRA HIPER-SENSIBLE DE CONTROL DE VELOCIDAD -->
                 <div class="flex items-center gap-3 bg-surface-container-lowest px-4 py-2 rounded-lg border border-outline-variant/30">
                     <span class="text-on-surface-variant text-xs font-bold uppercase tracking-wider">Velocidad:</span>
-                    <input type="range" min="0.1" max="10.0" step="0.1" value="1.0" id="simSpeedSlider" oninput="changeSimSpeed(this.value)" class="w-36 md:w-48 accent-primary cursor-pointer"/>
+                    <input type="range" min="0.05" max="5.0" step="0.05" value="1.0" id="simSpeedSlider" oninput="changeSimSpeed(this.value)" class="w-36 md:w-48 accent-primary cursor-pointer"/>
                     <span class="font-code-terminal text-primary font-black text-xs tabular-nums min-w-[3rem]" id="simSpeedLabel">1.0x</span>
                 </div>
 
@@ -2251,30 +2251,38 @@
     let animationFrameId = null;
 
     let threeControls = null;
+    let stockCenter = { x: 0, y: 0, z: 0 };
 
     function setSimView(viewName) {
         if (!threeCamera) return;
         document.querySelectorAll('.sim-view-btn').forEach(b => {
             b.className = 'sim-view-btn px-3 py-1 rounded transition-all text-on-surface-variant hover:text-on-surface';
         });
+        const tx = stockCenter.x;
+        const ty = 0;
+        const tz = stockCenter.z;
+
         if (viewName === '3d' || viewName === 'iso') {
             const b = document.getElementById('btnView3D');
             if (b) b.className = 'sim-view-btn px-3 py-1 rounded transition-all bg-primary text-on-primary';
-            threeCamera.position.set(140, 150, 140);
-            threeCamera.lookAt(0, 0, 0);
+            threeCamera.up.set(0, 1, 0);
+            threeCamera.position.set(tx + 140, 150, tz + 140);
+            threeCamera.lookAt(tx, ty, tz);
         } else if (viewName === 'xy' || viewName === 'top') {
             const b = document.getElementById('btnViewXY');
             if (b) b.className = 'sim-view-btn px-3 py-1 rounded transition-all bg-primary text-on-primary';
-            threeCamera.position.set(0, 260, 0.01);
-            threeCamera.lookAt(0, 0, 0);
+            threeCamera.up.set(0, 0, -1);
+            threeCamera.position.set(tx, 280, tz);
+            threeCamera.lookAt(tx, ty, tz);
         } else if (viewName === 'xz' || viewName === 'front') {
             const b = document.getElementById('btnViewXZ');
             if (b) b.className = 'sim-view-btn px-3 py-1 rounded transition-all bg-primary text-on-primary';
-            threeCamera.position.set(0, 20, 260);
-            threeCamera.lookAt(0, 0, 0);
+            threeCamera.up.set(0, 1, 0);
+            threeCamera.position.set(tx, 20, tz + 260);
+            threeCamera.lookAt(tx, ty, tz);
         }
         if (threeControls) {
-            threeControls.target.set(0, 0, 0);
+            threeControls.target.set(tx, ty, tz);
             threeControls.update();
         }
     }
@@ -2293,10 +2301,107 @@
         }
     }
 
+    function buildToolMesh(toolDiam = 10) {
+        const group = new THREE.Group();
+        const r = Math.max(1.5, toolDiam / 2);
+
+        // 1. Cono portaherramientas BT40 (Cromado brillante / Acero inoxidable pulido)
+        const holderGeom = new THREE.CylinderGeometry(14, 20, 28, 32);
+        const holderMat = new THREE.MeshStandardMaterial({
+            color: 0xe2e8f0,
+            metalness: 0.9,
+            roughness: 0.15
+        });
+        const holder = new THREE.Mesh(holderGeom, holderMat);
+        holder.position.y = 50;
+        group.add(holder);
+
+        // 2. Anillo de retención dorado / Latón
+        const ringGeom = new THREE.CylinderGeometry(20.5, 20.5, 5, 32);
+        const ringMat = new THREE.MeshStandardMaterial({
+            color: 0xf59e0b,
+            metalness: 0.85,
+            roughness: 0.2
+        });
+        const ring = new THREE.Mesh(ringGeom, ringMat);
+        ring.position.y = 38;
+        group.add(ring);
+
+        // 3. Tuerca de boquilla ER (Collet nut - titanio grafito)
+        const nutGeom = new THREE.CylinderGeometry(11, 15, 12, 6);
+        const nutMat = new THREE.MeshStandardMaterial({
+            color: 0x475569,
+            metalness: 0.85,
+            roughness: 0.35
+        });
+        const nut = new THREE.Mesh(nutGeom, nutMat);
+        nut.position.y = 28;
+        group.add(nut);
+
+        // 4. Vástago de la herramienta (Carburo de tungsteno espejo)
+        const shankGeom = new THREE.CylinderGeometry(r, r, 16, 24);
+        const shankMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            metalness: 0.95,
+            roughness: 0.1
+        });
+        const shank = new THREE.Mesh(shankGeom, shankMat);
+        shank.position.y = 14;
+        group.add(shank);
+
+        // 5. Filos helicoidales de corte (Cilindro con recubrimiento brillante)
+        const fluteH = 6;
+        const fluteGeom = new THREE.CylinderGeometry(r, r, fluteH, 24);
+        const fluteMat = new THREE.MeshStandardMaterial({
+            color: 0x38bdf8,
+            metalness: 0.8,
+            roughness: 0.2,
+            emissive: 0x0369a1,
+            emissiveIntensity: 0.3
+        });
+        const flutes = new THREE.Mesh(fluteGeom, fluteMat);
+        flutes.position.y = fluteH / 2 + 3;
+        group.add(flutes);
+
+        // 6. Punta de corte / Broca (Cono con punta exactamente en y = 0)
+        const tipH = Math.min(3, r * 0.8);
+        const tipGeom = new THREE.ConeGeometry(r, tipH, 24);
+        const tipMat = new THREE.MeshStandardMaterial({
+            color: 0x22d3ee,
+            metalness: 0.5,
+            roughness: 0.2,
+            emissive: 0x06b6d4,
+            emissiveIntensity: 0.6
+        });
+        const tip = new THREE.Mesh(tipGeom, tipMat);
+        tip.rotation.x = Math.PI;
+        tip.position.y = tipH / 2;
+        group.add(tip);
+
+        // 7. Anillo luminoso LED de iluminación del husillo
+        const spindleLight = new THREE.PointLight(0x67e8f9, 2.5, 75);
+        spindleLight.position.set(0, 15, 0);
+        group.add(spindleLight);
+
+        return group;
+    }
+
+    function updateToolMesh() {
+        if (!threeScene) return;
+        if (threeTool) {
+            threeScene.remove(threeTool);
+        }
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
+        threeTool = buildToolMesh(toolDiam);
+        threeScene.add(threeTool);
+    }
+
     function simInit() {
         init3DScene();
+        updateToolMesh();
         buildSimulationPoints();
         update3DWorkpieceAndPath();
+        setSimView('3d');
         renderSimTerminal();
         resetSimCounters();
     }
@@ -2324,7 +2429,8 @@
         const h = container.clientHeight || 550;
 
         threeScene = new THREE.Scene();
-        threeScene.background = new THREE.Color(0x070e1d);
+        threeScene.background = new THREE.Color(0x132238);
+        threeScene.fog = new THREE.FogExp2(0x132238, 0.0012);
 
         threeCamera = new THREE.PerspectiveCamera(45, w / h, 1, 2000);
 
@@ -2340,55 +2446,40 @@
             threeControls.dampingFactor = 0.05;
         }
 
-        setSimView('3d');
-
-        // Luces
-        const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+        // Iluminación Técnica Estudio CNC 3 Puntos
+        const ambLight = new THREE.AmbientLight(0xffffff, 1.2);
         threeScene.add(ambLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        dirLight.position.set(120, 200, 150);
-        threeScene.add(dirLight);
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        keyLight.position.set(160, 260, 160);
+        threeScene.add(keyLight);
 
-        // Cuadrícula y ejes
-        const grid = new THREE.GridHelper(260, 26, 0x1e293b, 0x0f172a);
+        const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.9);
+        fillLight.position.set(-160, 180, -140);
+        threeScene.add(fillLight);
+
+        const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        frontLight.position.set(0, 80, 200);
+        threeScene.add(frontLight);
+
+        // Cuadrícula técnica azul
+        const grid = new THREE.GridHelper(320, 32, 0x38bdf8, 0x1e3a5f);
         grid.position.y = -0.5;
         threeScene.add(grid);
 
         threePathGroup = new THREE.Group();
         threeScene.add(threePathGroup);
 
-        // Modelo de la herramienta (cono + cilindro + mandril)
-        threeTool = new THREE.Group();
-
-        const shankGeom = new THREE.CylinderGeometry(14, 18, 30, 24);
-        const shankMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.3 });
-        const shank = new THREE.Mesh(shankGeom, shankMat);
-        shank.position.y = 35;
-        threeTool.add(shank);
-
-        const fluteGeom = new THREE.CylinderGeometry(5, 5, 20, 24);
-        const fluteMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9, roughness: 0.2 });
-        const flutes = new THREE.Mesh(fluteGeom, fluteMat);
-        flutes.position.y = 10;
-        threeTool.add(flutes);
-
-        const tipGeom = new THREE.ConeGeometry(5, 4, 24);
-        const tipMat = new THREE.MeshStandardMaterial({ color: 0x4cd7f6 });
-        const tip = new THREE.Mesh(tipGeom, tipMat);
-        tip.rotation.x = Math.PI;
-        tip.position.y = -2;
-        threeTool.add(tip);
-
-        threeScene.add(threeTool);
+        // Herramienta
+        updateToolMesh();
 
         // Pieza en bruto (Stock)
         const stockMat = new THREE.MeshStandardMaterial({
-            color: 0x1e293b,
-            metalness: 0.4,
-            roughness: 0.5,
+            color: 0x94a3b8,
+            metalness: 0.6,
+            roughness: 0.35,
             transparent: true,
-            opacity: 0.85
+            opacity: 0.75
         });
         threeStock = new THREE.Mesh(new THREE.BoxGeometry(140, 30, 140), stockMat);
         threeStock.position.y = -15;
@@ -2751,56 +2842,78 @@
 
         const type = getMacroType();
 
+        // Calcular envolvente de la trayectoria para centrar la pieza y la cámara
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        let minZ = 0;
+        if (simPoints && simPoints.length > 0) {
+            simPoints.forEach(p => {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+                if (p.z < minZ) minZ = p.z;
+            });
+        } else {
+            minX = -50; maxX = 50; minY = -50; maxY = 50;
+        }
+
+        const midX = (minX + maxX) / 2;
+        const midY = (minY + maxY) / 2;
+        const spanX = Math.max(90, (maxX - minX) + 40);
+        const spanY = Math.max(90, (maxY - minY) + 40);
+        const stockH = Math.max(25, Math.abs(minZ) + 15);
+
         // Actualizar geometría de la pieza en bruto (Stock)
         if (threeStock) {
             threeStock.geometry.dispose();
 
             if (type === 'O8104' || type === 'O8105' || type === 'O8106' || type === 'O8107' || type === 'O8111' || type === 'O8109') {
                 let diam = 120;
-                let hgt = 35;
-                if (type === 'O8104' || type === 'O8105') { diam = getMacroVar(23, 120) + 40; hgt = 30; }
-                else if (type === 'O8106') { diam = getMacroVar(7, 80) + 30; hgt = Math.abs(getMacroVar(26, 15)) + 15; }
-                else if (type === 'O8107') { diam = getMacroVar(23, 80) + 30; hgt = Math.abs(getMacroVar(26, 15)) + 15; }
-                else if (type === 'O8111') { diam = getMacroVar(7, 60) + 30; hgt = 28; }
-                else if (type === 'O8109') { diam = getMacroVar(23, 90) + 35; hgt = Math.abs(getMacroVar(7, 10)) + 15; }
+                if (type === 'O8104' || type === 'O8105') { diam = getMacroVar(23, 120) + 40; }
+                else if (type === 'O8106') { diam = getMacroVar(7, 80) + 30; }
+                else if (type === 'O8107') { diam = getMacroVar(23, 80) + 30; }
+                else if (type === 'O8111') { diam = getMacroVar(7, 60) + 30; }
+                else if (type === 'O8109') { diam = getMacroVar(23, 90) + 35; }
 
                 const rad = diam / 2;
-                threeStock.geometry = new THREE.CylinderGeometry(rad, rad, hgt, 48);
-                threeStock.position.set(0, -hgt / 2, 0);
-            } else if (type === 'O8110') {
-                const lx = getMacroVar(23, 100) + 35;
-                const ly = getMacroVar(11, 60) + 35;
-                const hgt = Math.abs(getMacroVar(26, 12)) + 15;
-                threeStock.geometry = new THREE.BoxGeometry(lx, hgt, ly);
-                threeStock.position.set(0, -hgt / 2, 0);
-            } else if (type === 'O8108') {
-                const distD = getMacroVar(7, 60);
-                const slotR = getMacroVar(18, 10);
-                const ang = getMacroVar(1, 25) * Math.PI / 180;
-                const spanX = Math.abs(distD * Math.cos(ang)) + slotR * 4 + 30;
-                const spanY = Math.abs(distD * Math.sin(ang)) + slotR * 4 + 30;
-                const hgt = Math.abs(getMacroVar(26, 6)) + 15;
-                threeStock.geometry = new THREE.BoxGeometry(spanX, hgt, spanY);
-                threeStock.position.set(0, -hgt / 2, 0);
+                threeStock.geometry = new THREE.CylinderGeometry(rad, rad, stockH, 48);
+                const cx = getMacroVar(24, 0);
+                const cy = getMacroVar(25, 0);
+                threeStock.position.set(cx, -stockH / 2, -cy);
+                stockCenter = { x: cx, y: 0, z: -cy };
             } else {
-                // O8101 or O8103 (Placas rectangulares)
-                threeStock.geometry = new THREE.BoxGeometry(160, 30, 140);
-                threeStock.position.set(0, -15, 0);
+                // Placas rectangulares y ranuras (O8101, O8103, O8108, O8110)
+                threeStock.geometry = new THREE.BoxGeometry(spanX, stockH, spanY);
+                threeStock.position.set(midX, -stockH / 2, -midY);
+                stockCenter = { x: midX, y: 0, z: -midY };
             }
+
+            // Actualizar líneas de borde biseladas para dar definición CAD
+            while (threeStock.children.length > 0) {
+                const child = threeStock.children[0];
+                if (child.geometry) child.geometry.dispose();
+                threeStock.remove(child);
+            }
+            const edgesGeom = new THREE.EdgesGeometry(threeStock.geometry);
+            const edgesMat = new THREE.LineBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.65 });
+            const edgesLine = new THREE.LineSegments(edgesGeom, edgesMat);
+            threeStock.add(edgesLine);
         }
 
         // Trazado de líneas 3D para la trayectoria
-        if (simPoints.length > 1) {
-            const rapidMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.5 });
-            const feedMat = new THREE.LineBasicMaterial({ color: 0x4cd7f6, linewidth: 2 });
+        // IMPORTANTE CNC: X -> X, Z CNC -> Y 3D, Y CNC -> -Z 3D (para que ángulo positivo sea antihorario)
+        if (simPoints && simPoints.length > 1) {
+            const rapidMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.65, linewidth: 1.5 });
+            const feedMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2.5 });
 
             for (let i = 0; i < simPoints.length - 1; i++) {
                 const p1 = simPoints[i];
                 const p2 = simPoints[i + 1];
 
                 const geom = new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(p1.x, p1.z, p1.y),
-                    new THREE.Vector3(p2.x, p2.z, p2.y)
+                    new THREE.Vector3(p1.x, p1.z, -p1.y),
+                    new THREE.Vector3(p2.x, p2.z, -p2.y)
                 ]);
 
                 const line = new THREE.Line(geom, p2.type === 'G0' ? rapidMat : feedMat);
@@ -2808,20 +2921,40 @@
             }
         }
 
-        // Marcadores cilíndricos 3D para agujeros
-        if (type === 'O8104') {
-            const rad = getMacroVar(23, 120) / 2;
-            const numHoles = Math.max(1, Math.round(getMacroVar(11, 8)));
-            const startAng = getMacroVar(1, 0) * Math.PI / 180;
-            const holeGeom = new THREE.CylinderGeometry(5, 5, 2, 16);
-            const holeMat = new THREE.MeshBasicMaterial({ color: 0x070e1d });
+        // Marcadores cilíndricos y anillos brillantes para todos los taladros
+        const drilledHoles = [];
+        const seenHoles = new Set();
+        if (simPoints) {
+            simPoints.forEach(p => {
+                if (p.z < 0 && p.type === 'G1') {
+                    const key = `${p.x.toFixed(2)},${p.y.toFixed(2)}`;
+                    if (!seenHoles.has(key)) {
+                        seenHoles.add(key);
+                        drilledHoles.push({ x: p.x, y: p.y, depth: Math.abs(p.z) });
+                    }
+                }
+            });
+        }
 
-            for (let k = 1; k <= numHoles; k++) {
-                const a = startAng + ((k - 1) * 2 * Math.PI) / numHoles;
-                const mesh = new THREE.Mesh(holeGeom, holeMat);
-                mesh.position.set(rad * Math.cos(a), 0.1, rad * Math.sin(a));
-                threePathGroup.add(mesh);
-            }
+        if (drilledHoles.length > 0) {
+            const holeToolDiam = Math.max(3, getMacroVar(20, 10));
+            const holeR = holeToolDiam / 2;
+            const holeGeom = new THREE.CylinderGeometry(holeR, holeR, 2, 24);
+            const holeMat = new THREE.MeshBasicMaterial({ color: 0x09121f });
+
+            const ringGeom = new THREE.RingGeometry(holeR * 0.95, holeR * 1.35, 24);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
+
+            drilledHoles.forEach(h => {
+                const holeMesh = new THREE.Mesh(holeGeom, holeMat);
+                holeMesh.position.set(h.x, 0.05, -h.y);
+                threePathGroup.add(holeMesh);
+
+                const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+                ringMesh.rotation.x = -Math.PI / 2;
+                ringMesh.position.set(h.x, 0.1, -h.y);
+                threePathGroup.add(ringMesh);
+            });
         }
     }
 
@@ -2833,6 +2966,8 @@
         updateSimPosition(simPoints[0] || { x: 0, y: 0, z: 25, type: 'G0' });
         const badge = document.getElementById('simStatusBadge');
         if (badge) badge.textContent = "LISTO";
+        const ctr = document.getElementById('simLineCounter');
+        if (ctr) ctr.textContent = `Puntos: 0 / ${simPoints.length}`;
     }
 
     function startSimulation() {
@@ -2848,6 +2983,8 @@
             if (simStepIdx < simPoints.length) {
                 updateSimPosition(simPoints[simStepIdx]);
                 highlightSimTerminalLine(simStepIdx);
+                const ctr = document.getElementById('simLineCounter');
+                if (ctr) ctr.textContent = `Puntos: ${simStepIdx + 1} / ${simPoints.length}`;
                 simStepIdx++;
             } else {
                 pauseSimulation();
@@ -2868,6 +3005,8 @@
         if (simStepIdx < simPoints.length) {
             updateSimPosition(simPoints[simStepIdx]);
             highlightSimTerminalLine(simStepIdx);
+            const ctr = document.getElementById('simLineCounter');
+            if (ctr) ctr.textContent = `Puntos: ${simStepIdx + 1} / ${simPoints.length}`;
             simStepIdx++;
         }
     }
@@ -2879,10 +3018,6 @@
 
     function updateSimPosition(pt) {
         if (!pt) return;
-        if (threeTool) {
-            threeTool.position.set(pt.x, pt.z, pt.y);
-        }
-
         if (threeTool) {
             threeTool.position.set(pt.x, pt.z, -pt.y);
         }
@@ -2896,8 +3031,21 @@
         if (droX) droX.textContent = pt.x.toFixed(3);
         if (droY) droY.textContent = pt.y.toFixed(3);
         if (droZ) droZ.textContent = pt.z.toFixed(3);
-        if (droF) droF.textContent = (pt.type === 'G0') ? "12000" : (activeMacro ? (activeMacro.variables.find(v=>v.letter==='F')?.value || 300) : 300);
-        if (droS) droS.textContent = "2500";
+        if (droF) {
+            const feedVar = activeMacro ? activeMacro.variables.find(v => v.letter === 'F' || ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase().includes('AVANCE')) : null;
+            droF.textContent = (pt.type === 'G0') ? "12000" : (feedVar ? feedVar.value : 300);
+        }
+        if (droS) {
+            let rpmVal = 2200;
+            if (activeMacro) {
+                const rpmVar = activeMacro.variables.find(v => {
+                    const c = ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase();
+                    return c.includes('RPM') || c.includes('HUSILLO') || c.includes('GIRO') || (v.letter === 'S' && activeMacro.id !== 'O8104');
+                });
+                if (rpmVar) rpmVal = rpmVar.value;
+            }
+            droS.textContent = rpmVal;
+        }
     }
 
     function changeSimSpeed(val) {
@@ -2911,13 +3059,15 @@
 
     function changeSimMaterial(val) {
         if (!threeStock) return;
-        let col = 0x1e293b, met = 0.4, rough = 0.5;
-        if (val === 'al') { col = 0x94a3b8; met = 0.7; rough = 0.2; }
-        else if (val === 'steel') { col = 0x334155; met = 0.9; rough = 0.3; }
-        else if (val === 'brass') { col = 0xd97706; met = 0.6; rough = 0.3; }
+        let col = 0x94a3b8, met = 0.6, rough = 0.35, opac = 0.75;
+        if (val === 'aluminum') { col = 0x94a3b8; met = 0.6; rough = 0.35; opac = 0.75; }
+        else if (val === 'steel') { col = 0x475569; met = 0.85; rough = 0.3; opac = 0.85; }
+        else if (val === 'copper') { col = 0xd97706; met = 0.7; rough = 0.25; opac = 0.8; }
+        else if (val === 'wood') { col = 0x0284c7; met = 0.2; rough = 0.4; opac = 0.7; }
         threeStock.material.color.setHex(col);
         threeStock.material.metalness = met;
         threeStock.material.roughness = rough;
+        threeStock.material.opacity = opac;
     }
 
     function renderSimTerminal() {
