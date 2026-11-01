@@ -861,6 +861,125 @@ var MACROS_DATA = [
     "full_content": "O1006 (FRESADO DE ROSCAS RH - CLIMB MILLING CCW - MULTI-PASADA RADIAL)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 64.0   (DIAMETRO NOMINAL FIN DE LA ROSCA)\n#2 = 20.0   (DIAMETRO DE LA FRESA DE ROSCAR)\n#3 = 30.0   (PROFUNDIDAD TOTAL DE LA ROSCA - Z FINAL POSITIVO)\n#4 = 2.0    (PASO DE LA ROSCA / PITCH - EJ: 2.0mm)\n#5 = 1.0    (NUMERO DE VUELTAS: 1=FRESA MULTIPASO, VARIAS=FRESA UN FILO)\n#6 = 120.0  (Vc - VELOCIDAD DE CORTE EN m/min)\n#7 = 4.0    (NUMERO DE INSERTOS O LABIOS)\n#8 = 0.05   (fz - AVANCE POR INSERTO EN mm/rev)\n#9 = 50.0   (PLANO DE SEGURIDAD RETROCESO R)\n#10 = 0.0   (COORDENADA X DEL CENTRO DEL AGUJERO)\n#11 = 0.0   (COORDENADA Y DEL CENTRO DEL AGUJERO)\n#12 = 10     (NUMERO DE PASADAS RADIALES: 1=PASADA UNICA DIRECTA AL DIAMETRO FINAL)\n#13 = 0.02   (PROFUNDIDAD RADIAL POR PASADA EN mm)\n(========================================)\n\n(--- COMPROBACIONES DE SEGURIDAD BASICAS ---)\nIF [#2 GE #1] GOTO 9001\nIF [#4 LE 0] GOTO 9002\nIF [#5 LT 1.0] GOTO 9003\nIF [#12 LT 1] GOTO 9004\nIF [#13 LE 0] GOTO 9005\n\n(--- CALCULOS DE PARAMETROS DE CORTE ---)\n#100 = ROUND[[#6 * 1000] / [3.1416 * #2]] (CALCULO DE RPM)\n#101 = ROUND[#100 * #7 * #8] (AVANCE LINEAL NOMINAL F)\n\n(--- CALCULOS GEOMETRICOS DE LA TRAYECTORIA ---)\n#102 = [#1 - #2] / 2 (RADIO EFECTIVO FINAL DE LA TRAYECTORIA DEL CENTRO HTA)\n\n(--- DEFINICION DE COORDENADAS Z ---)\n#104 = -#3 (Z FINAL ABSOLUTO EN EL FONDO DE LA ROSCA)\n#105 = #4 / 2 (ASCENSO EN Z DURANTE LA MEDIA VUELTA DE ENTRADA/SALIDA)\n\n(--- ENCABEZADO DE MAQUINA Y POSICIONAMIENTO ---)\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nG00 X#10 Y#11 (POSICIONAMIENTO EN EL CENTRO EXACTO DEL AGUJERO)\nG43 H#20 Z#9 (*** VERIFICAR CORRECTOR DE ALTURA H ***)\nS#100 M03\nM08\n\n(--- ACERCAMIENTO RAPIDO ---)\nG00 Z2.0 (ACERCAMIENTO HASTA 2MM POR ENCIMA DEL MATERIAL)\n\n(========================================)\n(    BUCLE EXTERNO DE PASADAS RADIALES   )\n(========================================)\n#120 = 1 (CONTADOR DE PASADA RADIAL ACTUAL - INICIA EN PASADA 1)\n\nN50 (--- INICIO BUCLE RADIAL ---)\nIF [#120 GT #12] GOTO 999\n\n(CALCULO DEL RADIO EFECTIVO PARA ESTA PASADA RADIAL)\n(PASADA 1 = radio mas pequeno, ULTIMA PASADA = radio final #102)\n#121 = #102 - [[#12 - #120] * #13]\nIF [#121 LE 0] THEN #121 = #13 (SEGURIDAD: RADIO MINIMO IGUAL A UNA PROFUNDIDAD)\n\n(RADIO DE LOS ARCOS DE ENTRADA/SALIDA TANGENCIAL PARA ESTA PASADA)\n#122 = #121 / 2\n\n(AVANCE COMPENSADO PARA INTERPOLACION CIRCULAR INTERNA EN ESTE RADIO)\n#106 = ROUND[#101 * #121 / [#1 / 2]]\n\n(BAJADA CONTROLADA POR EL CENTRO AL FONDO DE LA ROSCA)\nG01 Z#104 F[#101 / 2]\n\n(--- ARCO TANGENCIAL DE ENTRADA DE 180 GRADOS ---)\nG03 X[#10 + #121] Y#11 Z[#104 + #105] I[#122] J0. F#106\n\n(--- INICIALIZACION DEL BUCLE HELICOIDAL ---)\n#110 = 0 (CONTADOR DE VUELTAS)\n#111 = #104 + #105 (COORDENADA Z ACTUAL DESPUES DE LA ENTRADA)\n\nN100 (--- BUCLE HELICOIDAL PRINCIPAL ---)\nIF [#110 GE #5] GOTO 200 (SI COMPLETO LAS VUELTAS, SALTA A LA SALIDA)\n#111 = #111 + #4 (CALCULA EL Z PARA LA SIGUIENTE VUELTA SUMANDO UN PASO)\n\n(INTERPOLACION HELICOIDAL DE 360 GRADOS)\nG03 X[#10 + #121] Y#11 Z#111 I-[#121] J0. F#106\n\n#110 = #110 + 1 (INCREMENTA EL CONTADOR)\nGOTO 100 (REPITE EL BUCLE)\n\nN200 (--- FIN DEL BUCLE HELICOIDAL ---)\n\n(--- ARCO TANGENCIAL DE SALIDA DE 180 GRADOS ---)\n(CINEMATICA SEGURA: LA HERRAMIENTA VUELVE AL CENTRO ANTES DE SUBIR Z)\n#111 = #111 + #105 (CALCULA EL ASCENSO Z PARA LA SALIDA TANGENCIAL)\nG03 X#10 Y#11 Z#111 I-[#122] J0. F#106\n\n(RETRACCION AL PLANO RAPIDO PARA PREPARAR SIGUIENTE PASADA RADIAL)\nG00 Z2.0\n\n#120 = #120 + 1 (INCREMENTA CONTADOR DE PASADA RADIAL)\nGOTO 50 (REGRESA AL INICIO DEL BUCLE RADIAL)\n\nN999 (--- FIN DE MECANIZADO ---)\nG00 Z#9 (RETIRADA FINAL AL PLANO SEGURO)\nM09\nM05\nG28 G91 Z0.\nG90\nM30\n\n(--- ALARMAS Y ERRORES ---)\nN9001 #3000=1 (ERROR: FRESA MAYOR O IGUAL QUE EL DIAMETRO DE ROSCA)\nN9002 #3000=2 (ERROR: PASO DE ROSCA DEBE SER MAYOR A CERO)\nN9003 #3000=3 (ERROR: EL NUMERO DE VUELTAS DEBE SER MINIMO 1)\nN9004 #3000=4 (ERROR: NUMERO DE PASADAS RADIALES DEBE SER MINIMO 1)\nN9005 #3000=5 (ERROR: PROFUNDIDAD RADIAL POR PASADA DEBE SER MAYOR A CERO)\n"
   },
   {
+    "filename": "Patron Lineal de Agujeros en Angulo.nc",
+    "title": "O1009 (PATRON LINEAL DE AGUJEROS EN ANGULO V1)",
+    "variables": [
+      {
+        "num": 20,
+        "value": 1.0,
+        "comment": "NUMERO DE HERRAMIENTA",
+        "line_idx": 4,
+        "original_line": "#20 = 1     (NUMERO DE HERRAMIENTA)"
+      },
+      {
+        "num": 1,
+        "value": 3.0,
+        "comment": "NUMERO TOTAL DE AGUJEROS",
+        "line_idx": 6,
+        "original_line": "#1 = 3      (NUMERO TOTAL DE AGUJEROS)"
+      },
+      {
+        "num": 2,
+        "value": 40.0,
+        "comment": "DISTANCIA PASO ENTRE AGUJEROS",
+        "line_idx": 7,
+        "original_line": "#2 = 40.0   (DISTANCIA PASO ENTRE AGUJEROS)"
+      },
+      {
+        "num": 3,
+        "value": 25.0,
+        "comment": "ANGULO DE INCLINACION RESPECTO AL EJE X EN GRADOS",
+        "line_idx": 8,
+        "original_line": "#3 = 25.0   (ANGULO DE INCLINACION RESPECTO AL EJE X EN GRADOS)"
+      },
+      {
+        "num": 4,
+        "value": 10.0,
+        "comment": "DIAMETRO DE LA BROCA",
+        "line_idx": 9,
+        "original_line": "#4 = 10.0   (DIAMETRO DE LA BROCA)"
+      },
+      {
+        "num": 5,
+        "value": 2500.0,
+        "comment": "RPM",
+        "line_idx": 10,
+        "original_line": "#5 = 2500   (RPM)"
+      },
+      {
+        "num": 6,
+        "value": 300.0,
+        "comment": "AVANCE F",
+        "line_idx": 11,
+        "original_line": "#6 = 300.0  (AVANCE F)"
+      },
+      {
+        "num": 7,
+        "value": 20.0,
+        "comment": "PROFUNDIDAD Z TOTAL",
+        "line_idx": 12,
+        "original_line": "#7 = 20.0   (PROFUNDIDAD Z TOTAL)"
+      },
+      {
+        "num": 8,
+        "value": 1.0,
+        "comment": "ESTRATEGIA: 0=DIRECTO, 1=PICOTEO",
+        "line_idx": 13,
+        "original_line": "#8 = 1      (ESTRATEGIA: 0=DIRECTO, 1=PICOTEO)"
+      },
+      {
+        "num": 9,
+        "value": 5.0,
+        "comment": "PASO PICOTEO",
+        "line_idx": 14,
+        "original_line": "#9 = 5.0    (PASO PICOTEO)"
+      },
+      {
+        "num": 10,
+        "value": 5.0,
+        "comment": "SEGURIDAD SOBRE PIEZA",
+        "line_idx": 15,
+        "original_line": "#10 = 5.0   (SEGURIDAD SOBRE PIEZA)"
+      },
+      {
+        "num": 11,
+        "value": 0.0,
+        "comment": "PUNTO INICIAL X",
+        "line_idx": 16,
+        "original_line": "#11 = 0.0   (PUNTO INICIAL X)"
+      },
+      {
+        "num": 12,
+        "value": 0.0,
+        "comment": "PUNTO INICIAL Y",
+        "line_idx": 17,
+        "original_line": "#12 = 0.0   (PUNTO INICIAL Y)"
+      },
+      {
+        "num": 13,
+        "value": 0.0,
+        "comment": "Z INICIAL SUPERFICIE",
+        "line_idx": 18,
+        "original_line": "#13 = 0.0   (Z INICIAL SUPERFICIE)"
+      },
+      {
+        "num": 14,
+        "value": 1.0,
+        "comment": "AGUJERO DE INICIO",
+        "line_idx": 19,
+        "original_line": "#14 = 1.0   (AGUJERO DE INICIO)"
+      },
+      {
+        "num": 15,
+        "value": 3.0,
+        "comment": "AGUJERO FINAL - EJ: 3 HACE HASTA EL ULTIMO",
+        "line_idx": 20,
+        "original_line": "#15 = 3.0   (AGUJERO FINAL - EJ: 3 HACE HASTA EL ULTIMO)"
+      }
+    ],
+    "full_content": "O1009 (PATRON LINEAL DE AGUJEROS EN ANGULO V1)\n\n(========================================)\n(--- VARIABLES DE ENTRADA DEL OPERARIO ---)\n#20 = 1     (NUMERO DE HERRAMIENTA)\n(========================================)\n#1 = 3      (NUMERO TOTAL DE AGUJEROS)\n#2 = 40.0   (DISTANCIA PASO ENTRE AGUJEROS)\n#3 = 25.0   (ANGULO DE INCLINACION RESPECTO AL EJE X EN GRADOS)\n#4 = 10.0   (DIAMETRO DE LA BROCA)\n#5 = 2500   (RPM)\n#6 = 300.0  (AVANCE F)\n#7 = 20.0   (PROFUNDIDAD Z TOTAL)\n#8 = 1      (ESTRATEGIA: 0=DIRECTO, 1=PICOTEO)\n#9 = 5.0    (PASO PICOTEO)\n#10 = 5.0   (SEGURIDAD SOBRE PIEZA)\n#11 = 0.0   (PUNTO INICIAL X)\n#12 = 0.0   (PUNTO INICIAL Y)\n#13 = 0.0   (Z INICIAL SUPERFICIE)\n#14 = 1.0   (AGUJERO DE INICIO)\n#15 = 3.0   (AGUJERO FINAL - EJ: 3 HACE HASTA EL ULTIMO)\n(========================================)\n\n(--- COMPROBACIONES Y AJUSTES DE RANGO ---)\nIF [#1 LT 1] GOTO 9001\nIF [#14 LT 1] GOTO 9006\nIF [#15 GT #1] THEN #15 = #1\nIF [#14 GT #15] GOTO 9007\nIF [#2 LE 0] GOTO 9002\n\n(--- CALCULOS AUXILIARES ---)\n#104 = #13 - #7 (FONDO Z DE TALADRADO)\n#109 = #13 + #10 (PLANO DE SEGURIDAD RETRACT)\n\n(--- INICIALIZACION DEL CONTADOR ---)\n#110 = #14 - 1 (INDICE ACTUAL BASE CERO)\n#117 = #15     (INDICE LIMITE FINAL)\n\nT#20 M06 (LLAMAR HERRAMIENTA)\nG90 G54 G17 G40 G80 G49\nS#5 M03\nM08\n\nN10 (--- BUCLE PRINCIPAL DE PERFORADO LINEAL ---)\nIF [#110 GE #117] GOTO 999\n\n(CALCULO DE COORDENADAS X E Y INCLINADAS)\n#118 = #110 * #2\n#112 = #11 + [#118 * COS[#3]]\n#113 = #12 + [#118 * SIN[#3]]\n\nG00 X#112 Y#113\nG43 H#20 Z#109\n\n(SELECCION DE ESTRATEGIA: DIRECTO O PICOTEO)\nIF [#8 EQ 1] GOTO 50\n\n(ESTRATEGIA DIRECTA: G01 HASTA FONDO Z)\nG01 Z#104 F#6\nG00 Z#109\nGOTO 100\n\nN50 (ESTRATEGIA CON PICOTEO PECK DRILLING)\n#106 = #13\nN55\n#107 = #106 - #9\nIF [#107 LT #104] THEN #107 = #104\nG00 Z[#106 + 1.0]\nG01 Z#107 F#6\nG00 Z#109\n#106 = #107\nIF [#106 GT #104] GOTO 55\n\nN100\n#110 = #110 + 1\nGOTO 10\n\nN999\nG00 Z[#109 + 50.0]\nM09 M05\nG28 G91 Z0.\nG90\nM30\n\n(--- ALARMAS DE CONTROL CNC ---)\nN9001 #3000=1 (ERROR: TOTAL AGUJEROS < 1)\nN9002 #3000=2 (ERROR: PASO ENTRE AGUJEROS <= 0)\nN9006 #3000=6 (ERROR: AGUJERO INICIO < 1)\nN9007 #3000=7 (ERROR: AGUJERO INICIO > AGUJERO FINAL)\n"
+  },
+  {
     "filename": "Patron Rectangular Perimetral de Agujeros.nc",
     "title": "O1008 (PATRON RECTANGULAR PERIMETRAL DE AGUJEROS V2)",
     "variables": [
