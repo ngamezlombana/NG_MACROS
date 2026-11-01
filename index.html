@@ -131,7 +131,7 @@
             </button>
             <button onclick="showLicenseInfo(event)" class="px-2.5 py-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors" title="Información de uso y licencia" aria-label="Información de licencia">
                 <span class="material-symbols-outlined text-[16px]">verified_user</span>
-                <span class="hidden lg:inline">Licencia</span>
+                <span id="licenseHeaderLabel" class="hidden lg:inline">Licencia</span>
             </button>
             <button onclick="triggerEmergencyStop()" class="px-2.5 py-1.5 bg-error-container hover:bg-red-700 text-white rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors shadow-sm ml-1" title="Parada de emergencia" aria-label="Parada de emergencia">
                 <span class="material-symbols-outlined text-[16px]">emergency</span>
@@ -144,7 +144,7 @@
     <div class="hidden">
         <span id="feedOverrideValue">100%</span>
         <div id="licenseStatusCard">
-            <span id="licenseStatusValue">Modo local abierto</span>
+            <span id="licenseStatusValue">Sin licencia</span>
         </div>
     </div>
 
@@ -152,6 +152,18 @@
     <!-- ÁREA DE CONTENIDO PRINCIPAL (FULL WIDTH)   -->
     <!-- ========================================== -->
     <main id="mainContent" class="flex-1 pt-16 pb-8 min-h-screen">
+
+        <div id="licenseBanner" class="hidden no-print max-w-6xl mx-auto mt-4 px-4 w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-secondary/40 bg-secondary/10 px-4 py-3">
+                <p class="text-xs text-on-surface-variant">
+                    <strong class="text-secondary">Modo demo:</strong>
+                    necesitas una licencia válida para generar, copiar o descargar código G.
+                </p>
+                <button onclick="showLicenseInfo(event)" class="self-start sm:self-auto px-3 py-1.5 bg-secondary text-on-secondary rounded-lg text-[11px] font-bold uppercase tracking-wider">
+                    Activar licencia
+                </button>
+            </div>
+        </div>
 
         <!-- ========================================================= -->
         <!-- VISTA 1: PANTALLAZO INICIAL // 2 OPCIONES (FRESADO/PERFORADO) -->
@@ -300,11 +312,11 @@
 
                 <!-- Botones de Acción: Copiar, Descargar y SIMULACIÓN -->
                 <div class="flex items-center gap-2">
-                    <button onclick="copyGCode()" id="btnCopyGCodeEditor" class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                    <button onclick="copyGCode()" id="btnCopyGCodeEditor" data-license-required class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
                         <span class="material-symbols-outlined text-[16px]">content_copy</span>
                         <span id="btnCopyText">Copiar Código G</span>
                     </button>
-                    <button onclick="downloadGCode()" class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                    <button onclick="downloadGCode()" id="btnDownloadGCodeEditor" data-license-required class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
                         <span class="material-symbols-outlined text-[16px]">download</span>
                         <span>Descargar .NC</span>
                     </button>
@@ -422,8 +434,8 @@
                             <option value="caller">Llamada G65 (recomendada)</option>
                             <option value="expanded">Macro expandida en línea</option>
                         </select>
-                        <button onclick="copyGCode()" class="px-2.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 rounded font-bold uppercase">Copiar</button>
-                        <button onclick="downloadGCode()" class="px-2.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded font-bold uppercase">Descargar .NC</button>
+                        <button onclick="copyGCode()" id="btnCopyGCodePanel" data-license-required class="px-2.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 rounded font-bold uppercase">Copiar</button>
+                        <button onclick="downloadGCode()" id="btnDownloadGCodePanel" data-license-required class="px-2.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded font-bold uppercase">Descargar .NC</button>
                     </div>
                 </div>
                 <pre id="gcodePreview" class="max-h-80 overflow-auto bg-surface-container-lowest p-4 text-[11px] leading-relaxed font-code-terminal text-on-surface-variant whitespace-pre" aria-label="Vista previa del código G generado">Configura una macro para ver el código G.</pre>
@@ -536,11 +548,11 @@
                 <!-- Contador de Puntos y Exportación -->
                 <div class="flex items-center gap-3">
                     <span class="font-code-terminal text-xs text-on-surface-variant bg-surface-container-lowest px-3 py-1.5 rounded border border-outline-variant/30" id="simLineCounter">Puntos: 0 / 0</span>
-                    <button onclick="copyGCode()" class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                    <button onclick="copyGCode()" id="btnCopyGCodeSim" data-license-required class="px-3 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
                         <span class="material-symbols-outlined text-[15px]">content_copy</span>
                         <span>Copiar G-Code</span>
                     </button>
-                    <button onclick="downloadGCode()" class="px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
+                    <button onclick="downloadGCode()" id="btnDownloadGCodeSim" data-license-required class="px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors">
                         <span class="material-symbols-outlined text-[15px]">download</span>
                         <span>.NC</span>
                     </button>
@@ -652,29 +664,40 @@
     </main>
 
     <!-- ========================================================= -->
-    <!-- MODAL INFORMATIVO DE LICENCIA (MODO LOCAL ABIERTO)        -->
+    <!-- MODAL DE LICENCIA (TOKEN FIRMADO CON VENCIMIENTO)         -->
     <!-- ========================================================= -->
     <div id="licenseModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-surface-container-lowest/90 backdrop-blur-xl" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="licenseModalTitle" onclick="if(event.target===this) closeLicenseModal()">
-        <div class="bg-surface-container-high border border-outline-variant/40 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl flex flex-col gap-4">
+        <div class="bg-surface-container-high border border-outline-variant/40 rounded-2xl p-6 max-w-xl w-full mx-4 shadow-2xl flex flex-col gap-4">
             <div class="flex items-center justify-between pb-3 border-b border-outline-variant/20">
                 <div class="flex items-center gap-3 text-secondary">
                     <span class="material-symbols-outlined text-3xl">verified_user</span>
                     <div>
-                        <h3 id="licenseModalTitle" class="text-lg font-black text-on-surface uppercase">Modo Local Abierto</h3>
-                        <p class="text-[11px] text-on-surface-variant font-code-terminal">NG_MACROS CNC Studio v4.4</p>
+                        <h3 id="licenseModalTitle" class="text-lg font-black text-on-surface uppercase">Licencia requerida</h3>
+                        <p id="licenseModalSubtitle" class="text-[11px] text-on-surface-variant font-code-terminal">NG_MACROS CNC Studio v4.4</p>
                     </div>
                 </div>
                 <button onclick="closeLicenseModal()" class="text-on-surface-variant hover:text-on-surface" aria-label="Cerrar información de licencia">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <div class="text-xs text-on-surface-variant leading-relaxed flex flex-col gap-3">
-                <p>Esta aplicación funciona <strong class="text-on-surface">100% en tu navegador y sin conexión</strong>. No hay claves, tokens, cuentas ni telemetría: no se bloquea el acceso y tus parámetros permanecen en este equipo.</p>
-                <p>Los programas generados son borradores de ingeniería. <strong class="text-error">Verifica siempre la sintaxis, los límites, el cero pieza, el corrector de herramienta y la simulación en el control CNC antes de mecanizar.</strong></p>
-                <p>Copyright © 2026 Ingeniero Nestor Gamez. Código distribuido bajo licencia MIT; las macros y la documentación se ofrecen “tal cual”, sin garantía de aptitud para un mecanizado concreto.</p>
+
+            <div id="licenseModalBody" class="text-xs text-on-surface-variant leading-relaxed flex flex-col gap-3"></div>
+
+            <p id="licenseModalMessage" class="text-[11px] min-h-[1rem]" role="status" aria-live="polite"></p>
+
+            <div id="licenseActivationForm" class="flex flex-col gap-2">
+                <label for="licenseKeyInput" class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Token de licencia</label>
+                <textarea id="licenseKeyInput" rows="3" spellcheck="false" autocomplete="off" class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-3 text-[11px] font-code-terminal text-on-surface resize-y focus:outline-none focus:border-primary" placeholder="Pega aquí el token o abre el enlace que recibiste."></textarea>
+                <button onclick="activateLicense()" class="self-start px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">key</span>
+                    Activar licencia
+                </button>
             </div>
-            <div class="flex justify-end pt-2 border-t border-outline-variant/20">
-                <button id="licenseCloseBtn" onclick="closeLicenseModal()" class="px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md">Entendido</button>
+
+            <div class="flex flex-wrap justify-end gap-2 pt-2 border-t border-outline-variant/20">
+                <button id="licenseCopyLinkBtn" onclick="copyLicenseLink()" class="hidden px-4 py-2 bg-surface-container-lowest hover:bg-surface-container-high text-on-surface border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider">Copiar enlace</button>
+                <button id="licenseClearBtn" onclick="clearStoredLicense()" class="hidden px-4 py-2 bg-surface-container-lowest hover:bg-error-container/30 text-on-surface-variant border border-outline-variant/30 rounded-lg text-xs font-bold uppercase tracking-wider">Quitar licencia</button>
+                <button id="licenseCloseBtn" onclick="closeLicenseModal()" class="px-5 py-2.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md">Cerrar</button>
             </div>
         </div>
     </div>
@@ -700,29 +723,370 @@
     }
 
 /* ========================================================= */
-    /* 2. MODO LOCAL ABIERTO (SIN DRM NI TELEMETRÍA)             */
+    /* 2. LICENCIAS FIRMADAS (ECDSA P-256)                       */
     /* ========================================================= */
-    // La aplicación no valida claves en el cliente. Si en el futuro se
-    // necesita licenciamiento real, debe implementarse en un backend y
-    // nunca con un hash o una clave maestra embebida en el HTML.
-    function checkLicensing() {
-        const licenseVal = document.getElementById('licenseStatusValue');
-        if (licenseVal) licenseVal.textContent = 'Modo local abierto';
+    // La app solo contiene la clave PÚBLICA. La clave privada vive fuera
+    // del repositorio (tools/license-private-key.json, ignorada por Git).
+    // Una licencia es un token firmado con fecha de vencimiento. Esto evita
+    // compartir una clave maestra en el HTML, aunque al ser una app estática
+    // no sustituye a una validación en servidor para entornos hostiles.
+    const LICENSE_PUBLIC_KEY = {"kty":"EC","crv":"P-256","x":"mtNMGEQ7bnxT38ZTbWfKHfm_bWcK0fzCG4OX2b0vLSQ","y":"XN8jwgOrPk2gZqTnoMn2N9A30l_qbZmKaZ81uV9wxXI","ext":true};
+    const LICENSE_APP_ID = 'ng-macros';
+    const LICENSE_VERSION = 1;
+    const LICENSE_STORAGE_KEY = 'ng_license_token_v1';
+    const LICENSE_LAST_SEEN_KEY = 'ng_license_last_seen_v1';
+
+    const licenseState = {
+        checked: false,
+        valid: false,
+        token: '',
+        payload: null,
+        daysLeft: 0,
+        error: 'No hay una licencia activa en este equipo.',
+        expired: false
+    };
+
+    function licenseB64UrlToBytes(value) {
+        const base64 = String(value).replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+        const binary = atob(padded);
+        return Uint8Array.from(binary, ch => ch.charCodeAt(0));
+    }
+
+    function licenseFormatDate(unixSeconds) {
+        return new Date(unixSeconds * 1000).toLocaleDateString('es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+    }
+
+    function licenseFormatDateTime(unixSeconds) {
+        return new Date(unixSeconds * 1000).toLocaleString('es-ES', {
+            dateStyle: 'medium', timeStyle: 'short'
+        });
+    }
+
+    function getStoredLicenseToken() {
+        try { return localStorage.getItem(LICENSE_STORAGE_KEY) || ''; } catch (e) { return ''; }
+    }
+
+    function getLicenseTokenFromUrl() {
+        try {
+            const params = new URLSearchParams(location.search);
+            return params.get('lic') || params.get('license') || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function removeLicenseTokenFromUrl() {
+        try {
+            const url = new URL(location.href);
+            if (!url.searchParams.has('lic') && !url.searchParams.has('license')) return;
+            url.searchParams.delete('lic');
+            url.searchParams.delete('license');
+            history.replaceState(null, '', url.pathname + url.search + url.hash);
+        } catch (e) {
+            // file:// puede bloquear replaceState; no es crítico.
+        }
+    }
+
+    async function verifyLicenseToken(token) {
+        const reject = (error, payload = null, expired = false) => ({
+            valid: false, error, payload, daysLeft: 0, expired
+        });
+
+        if (!window.crypto || !window.crypto.subtle) {
+            return reject('Este navegador no puede verificar licencias. Usa HTTPS o localhost con un navegador moderno.');
+        }
+        if (typeof token !== 'string' || token.trim() === '') {
+            return reject('No se recibió ninguna licencia.');
+        }
+
+        const parts = token.trim().split('.');
+        if (parts.length !== 2 || !parts[0] || !parts[1]) {
+            return reject('El formato de la licencia no es válido.');
+        }
+
+        let payload;
+        try {
+            payload = JSON.parse(new TextDecoder().decode(licenseB64UrlToBytes(parts[0])));
+        } catch (e) {
+            return reject('El contenido de la licencia no se pudo leer.');
+        }
+        if (!payload || typeof payload !== 'object') {
+            return reject('El contenido de la licencia no es válido.');
+        }
+
+        let signatureValid = false;
+        try {
+            const key = await crypto.subtle.importKey(
+                'jwk', LICENSE_PUBLIC_KEY,
+                { name: 'ECDSA', namedCurve: 'P-256' },
+                false, ['verify']
+            );
+            signatureValid = await crypto.subtle.verify(
+                { name: 'ECDSA', hash: 'SHA-256' },
+                key,
+                licenseB64UrlToBytes(parts[1]),
+                new TextEncoder().encode(parts[0])
+            );
+        } catch (e) {
+            return reject('No se pudo comprobar la firma de la licencia.', payload);
+        }
+
+        if (!signatureValid) return reject('La firma de la licencia no es válida.', payload);
+        if (payload.v !== LICENSE_VERSION || payload.app !== LICENSE_APP_ID) {
+            return reject('La licencia no corresponde a esta aplicación.', payload);
+        }
+        if (!Number.isFinite(payload.iat) || !Number.isFinite(payload.exp) || payload.exp <= payload.iat) {
+            return reject('Las fechas de la licencia no son válidas.', payload);
+        }
+
+        const now = Date.now();
+        if (payload.iat * 1000 > now + 5 * 60 * 1000) {
+            return reject('La licencia todavía no es válida. Revisa la fecha del equipo.', payload);
+        }
+        if (payload.exp * 1000 <= now) {
+            return {
+                valid: false,
+                error: `La licencia venció el ${licenseFormatDate(payload.exp)}.`,
+                payload,
+                daysLeft: 0,
+                expired: true
+            };
+        }
+
+        return {
+            valid: true,
+            error: '',
+            payload,
+            daysLeft: Math.max(1, Math.ceil((payload.exp * 1000 - now) / 86400000))
+        };
+    }
+
+    function setLicenseState(result, token = '') {
+        licenseState.checked = true;
+        licenseState.valid = !!result.valid;
+        licenseState.token = token || '';
+        licenseState.payload = result.payload || null;
+        licenseState.daysLeft = result.daysLeft || 0;
+        licenseState.error = result.error || (result.valid ? '' : 'Licencia no válida.');
+        licenseState.expired = !!result.expired;
+    }
+
+    async function checkLicensing() {
+        const urlToken = getLicenseTokenFromUrl();
+        const storedToken = getStoredLicenseToken();
+        let token = urlToken || storedToken;
+        let result = token
+            ? await verifyLicenseToken(token)
+            : { valid: false, error: 'No hay una licencia activa en este equipo.', daysLeft: 0 };
+
+        // Si el enlace trae una licencia inválida pero el equipo tiene una
+        // licencia guardada válida, no se bloquea al usuario.
+        if (urlToken && !result.valid && storedToken && storedToken !== urlToken) {
+            const storedResult = await verifyLicenseToken(storedToken);
+            if (storedResult.valid) {
+                token = storedToken;
+                result = storedResult;
+            }
+        }
+
+        if (result.valid) {
+            const now = Date.now();
+            let lastSeen = 0;
+            try { lastSeen = Number(localStorage.getItem(LICENSE_LAST_SEEN_KEY) || 0); } catch (e) {}
+            if (lastSeen && now + 5 * 60 * 1000 < lastSeen) {
+                result = {
+                    valid: false,
+                    error: 'Se detectó un cambio de reloj hacia atrás. Vuelve a activar la licencia.',
+                    payload: result.payload,
+                    daysLeft: 0
+                };
+            } else {
+                try {
+                    localStorage.setItem(LICENSE_STORAGE_KEY, token);
+                    localStorage.setItem(LICENSE_LAST_SEEN_KEY, String(now));
+                } catch (e) {}
+            }
+        }
+
+        setLicenseState(result, token);
+        removeLicenseTokenFromUrl();
+        applyLicenseUI();
+        return licenseState;
+    }
+
+    function licenseIsValid() {
+        return licenseState.checked && licenseState.valid;
+    }
+
+    function licenseDisplayText() {
+        if (licenseState.valid) {
+            return `${licenseState.daysLeft} ${licenseState.daysLeft === 1 ? 'día' : 'días'}`;
+        }
+        if (licenseState.expired) return 'Vencida';
+        return 'Activar';
+    }
+
+    function renderLicenseModal() {
+        const title = document.getElementById('licenseModalTitle');
+        const subtitle = document.getElementById('licenseModalSubtitle');
+        const body = document.getElementById('licenseModalBody');
+        const form = document.getElementById('licenseActivationForm');
+        const copyBtn = document.getElementById('licenseCopyLinkBtn');
+        const clearBtn = document.getElementById('licenseClearBtn');
+        const closeBtn = document.getElementById('licenseCloseBtn');
+        if (!title || !body) return;
+
+        if (licenseState.valid && licenseState.payload) {
+            const p = licenseState.payload;
+            title.textContent = 'Licencia activa';
+            if (subtitle) subtitle.textContent = 'NG_MACROS CNC Studio v4.4';
+            body.innerHTML = `
+                <p>La licencia de este equipo es válida.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                    <div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/20">
+                        <span class="block text-[10px] uppercase tracking-wider text-on-surface-variant">Cliente</span>
+                        <strong class="text-on-surface">${escapeHtml(p.sub || 'Cliente')}</strong>
+                    </div>
+                    <div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/20">
+                        <span class="block text-[10px] uppercase tracking-wider text-on-surface-variant">Plan</span>
+                        <strong class="text-on-surface">${escapeHtml(p.plan || 'pro')}</strong>
+                    </div>
+                    <div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/20">
+                        <span class="block text-[10px] uppercase tracking-wider text-on-surface-variant">Vence</span>
+                        <strong class="text-on-surface">${licenseFormatDate(p.exp)}</strong>
+                    </div>
+                    <div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/20">
+                        <span class="block text-[10px] uppercase tracking-wider text-on-surface-variant">Días restantes</span>
+                        <strong class="text-primary">${licenseState.daysLeft}</strong>
+                    </div>
+                </div>
+                <p class="text-[11px] text-on-surface-variant">Puedes copiar el enlace con esta licencia para abrir la app en otro equipo. El enlace caduca en la fecha indicada.</p>
+            `;
+            if (form) form.classList.add('hidden');
+            if (copyBtn) copyBtn.classList.remove('hidden');
+            if (clearBtn) clearBtn.classList.remove('hidden');
+            if (closeBtn) closeBtn.textContent = 'Entendido';
+        } else {
+            title.textContent = licenseState.expired ? 'Licencia vencida' : 'Licencia requerida';
+            if (subtitle) subtitle.textContent = 'NG_MACROS CNC Studio v4.4';
+            body.innerHTML = `
+                <p class="text-error font-semibold">${escapeHtml(licenseState.error || 'Activa una licencia para continuar.')}</p>
+                <p>Puedes explorar la interfaz y la simulación en modo demo, pero necesitas una licencia válida para generar, copiar o descargar código G.</p>
+                <p class="text-[11px] text-on-surface-variant">Abre el enlace que recibiste o pega aquí el token de licencia.</p>
+            `;
+            if (form) form.classList.remove('hidden');
+            if (copyBtn) copyBtn.classList.add('hidden');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (closeBtn) closeBtn.textContent = 'Cerrar';
+        }
+
+        const statusVal = document.getElementById('licenseStatusValue');
+        if (statusVal) {
+            statusVal.textContent = licenseState.valid
+                ? `Licencia activa hasta ${licenseFormatDate(licenseState.payload.exp)}`
+                : (licenseState.error || 'Sin licencia');
+        }
+    }
+
+    function updateLicenseActionState() {
+        const enabled = licenseIsValid();
+        document.querySelectorAll('[data-license-required]').forEach(el => {
+            el.disabled = !enabled;
+            el.classList.toggle('opacity-40', !enabled);
+            el.classList.toggle('cursor-not-allowed', !enabled);
+            el.setAttribute('aria-disabled', String(!enabled));
+        });
+        const label = document.getElementById('licenseHeaderLabel');
+        if (label) label.textContent = licenseDisplayText();
+        const banner = document.getElementById('licenseBanner');
+        if (banner) banner.classList.toggle('hidden', enabled);
+    }
+
+    function applyLicenseUI() {
+        renderLicenseModal();
+        updateLicenseActionState();
+        if (activeMacro) updateGCodeOutput();
+        if (currentView === 'simulador') renderSimTerminal();
     }
 
     function showLicenseInfo(e) {
         if (e) e.preventDefault();
         const modal = document.getElementById('licenseModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            const btn = document.getElementById('licenseCloseBtn');
-            if (btn) btn.focus();
-        }
+        if (!modal) return;
+        renderLicenseModal();
+        modal.style.display = 'flex';
+        const target = licenseState.valid
+            ? document.getElementById('licenseCloseBtn')
+            : document.getElementById('licenseKeyInput');
+        if (target) target.focus();
     }
 
     function closeLicenseModal() {
         const modal = document.getElementById('licenseModal');
         if (modal) modal.style.display = 'none';
+    }
+
+    function setLicenseMessage(message, isError = false) {
+        const el = document.getElementById('licenseModalMessage');
+        if (!el) return;
+        el.textContent = message || '';
+        el.classList.toggle('text-error', !!isError);
+        el.classList.toggle('text-primary', !isError);
+    }
+
+    async function activateLicense() {
+        const input = document.getElementById('licenseKeyInput');
+        const token = (input ? input.value : '').trim();
+        if (!token) {
+            setLicenseMessage('Pega el token de licencia que recibiste.', true);
+            return;
+        }
+
+        const result = await verifyLicenseToken(token);
+        if (!result.valid) {
+            setLicenseState(result, token);
+            setLicenseMessage(result.error, true);
+            applyLicenseUI();
+            return;
+        }
+
+        const now = Date.now();
+        try {
+            localStorage.setItem(LICENSE_STORAGE_KEY, token);
+            localStorage.setItem(LICENSE_LAST_SEEN_KEY, String(now));
+        } catch (e) {}
+        setLicenseState(result, token);
+        setLicenseMessage(`Licencia activada. Quedan ${result.daysLeft} días.`);
+        if (input) input.value = '';
+        applyLicenseUI();
+    }
+
+    function clearStoredLicense() {
+        try {
+            localStorage.removeItem(LICENSE_STORAGE_KEY);
+            localStorage.removeItem(LICENSE_LAST_SEEN_KEY);
+        } catch (e) {}
+        setLicenseState({ valid: false, error: 'No hay una licencia activa en este equipo.', daysLeft: 0 }, '');
+        setLicenseMessage('Licencia eliminada de este equipo.', false);
+        applyLicenseUI();
+    }
+
+    async function copyLicenseLink() {
+        if (!licenseState.token) {
+            setLicenseMessage('No hay una licencia activa para copiar.', true);
+            return;
+        }
+        const base = location.href.split('#')[0].split('?')[0];
+        const link = `${base}?lic=${encodeURIComponent(licenseState.token)}${location.hash || ''}`;
+        try {
+            await copyTextToClipboard(link);
+            setLicenseMessage('Enlace de licencia copiado al portapapeles.', false);
+        } catch (e) {
+            setLicenseMessage('No se pudo copiar el enlace. Selecciona el token manualmente.', true);
+        }
     }
 
     /* 3. ESTADO GENERAL, CATEGORÍAS Y NAVEGACIÓN LIMPIA        */
@@ -1375,10 +1739,32 @@
         return gcodeMode === 'expanded' ? buildExpandedGCode() : buildCallerGCode();
     }
 
+    function getGCodeForDisplay() {
+        if (!licenseIsValid()) {
+            return [
+                '// LICENCIA REQUERIDA',
+                '// Activa una licencia para generar, copiar o descargar el código G.',
+                '// La interfaz, el CAD y la simulación siguen disponibles en modo demo.',
+                '// Tus parámetros permanecen guardados en este equipo.'
+            ].join('\n');
+        }
+        return buildGCodeString();
+    }
+
+    function requireLicense() {
+        if (licenseIsValid()) return true;
+        showLicenseInfo();
+        return false;
+    }
+
     function updateGCodeOutput() {
         const preview = document.getElementById('gcodePreview');
         if (!preview) return;
-        preview.textContent = activeMacro ? buildGCodeString() : 'Configura una macro para ver el código G.';
+        if (!activeMacro) {
+            preview.textContent = 'Configura una macro para ver el código G.';
+            return;
+        }
+        preview.textContent = getGCodeForDisplay();
     }
 
     function syncOutputControls() {
@@ -1422,6 +1808,7 @@
 
     function copyGCode() {
         if (!activeMacro) return;
+        if (!requireLicense()) return;
         copyTextToClipboard(buildGCodeString()).then(() => {
             const btnText = document.getElementById('btnCopyText');
             if (btnText) {
@@ -1434,6 +1821,7 @@
 
     function downloadGCode() {
         if (!activeMacro) return;
+        if (!requireLicense()) return;
         const gcode = buildGCodeString();
         const blob = new Blob([gcode], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -3749,7 +4137,7 @@
         if (!term) return;
         term.innerHTML = '';
 
-        const codeStr = buildGCodeString();
+        const codeStr = getGCodeForDisplay();
         const lines = codeStr.split('\n');
 
         lines.slice(0, 80).forEach((l, idx) => {
@@ -4066,8 +4454,8 @@
     /* ========================================================= */
     /* 9. INICIALIZACIÓN DE LA APLICACIÓN                        */
     /* ========================================================= */
-    document.addEventListener('DOMContentLoaded', () => {
-        checkLicensing();
+    document.addEventListener('DOMContentLoaded', async () => {
+        await checkLicensing();
         syncOutputControls();
 
         const data = getMacros();
@@ -4082,6 +4470,35 @@
             const preview = document.getElementById('gcodePreview');
             if (preview) preview.textContent = 'No se pudieron cargar las macros. Ejecuta python3 parse_macros.py y recarga.';
         }
+
+        // Sin licencia se abre el modo demo y el modal de activación.
+        if (!licenseState.valid) showLicenseInfo();
+
+        // Si la app queda abierta más allá del vencimiento, se bloquea la
+        // exportación y se actualiza el contador de días.
+        setInterval(() => {
+            if (!licenseState.valid || !licenseState.payload) return;
+            const now = Date.now();
+            if (now >= licenseState.payload.exp * 1000) {
+                const expiredPayload = licenseState.payload;
+                setLicenseState({
+                    valid: false,
+                    error: `La licencia venció el ${licenseFormatDate(expiredPayload.exp)}.`,
+                    payload: expiredPayload,
+                    daysLeft: 0,
+                    expired: true
+                }, licenseState.token);
+                applyLicenseUI();
+                showLicenseInfo();
+                return;
+            }
+            try { localStorage.setItem(LICENSE_LAST_SEEN_KEY, String(now)); } catch (e) {}
+            const daysLeft = Math.max(1, Math.ceil((licenseState.payload.exp * 1000 - now) / 86400000));
+            if (daysLeft !== licenseState.daysLeft) {
+                licenseState.daysLeft = daysLeft;
+                applyLicenseUI();
+            }
+        }, 60000);
 
         let resizeTimer = null;
         window.addEventListener('resize', () => {

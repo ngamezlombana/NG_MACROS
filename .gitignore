@@ -20,3 +20,8 @@ venv/
 # Archivos locales de trabajo (no forman parte de la app)
 *.local
 *.tmp
+
+# Licencias: la clave privada NUNCA se publica
+tools/license-private-key.json
+licenses/
+*.lic

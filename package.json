@@ -10,7 +10,10 @@
     "parse": "python3 parse_macros.py",
     "test": "node --test tests/*.test.mjs",
     "check": "npm run parse && npm test",
-    "serve": "python3 -m http.server 8080"
+    "serve": "python3 -m http.server 8080",
+    "license:keygen": "node tools/license-generator.mjs keygen",
+    "license:issue": "node tools/license-generator.mjs issue",
+    "license:verify": "node tools/license-generator.mjs verify"
   },
   "engines": {
     "node": ">=20"

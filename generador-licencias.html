@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Generador de licencias · NG_MACROS</title>
+<style>
+  :root {
+    --bg: #070e1d;
+    --panel: #101c30;
+    --panel-2: #0b1628;
+    --line: #26364d;
+    --text: #e5eefb;
+    --muted: #94a3b8;
+    --primary: #4cd7f6;
+    --primary-ink: #04121c;
+    --secondary: #f59e0b;
+    --error: #f87171;
+    --ok: #34d399;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top right, #12273f 0, var(--bg) 45%);
+    color: var(--text);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 28px 20px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { margin: 0; font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: .02em; }
+  h2 { margin: 0 0 12px; font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: var(--primary); }
+  .sub { color: var(--muted); font-size: .9rem; margin: 6px 0 0; }
+  main { padding: 22px 20px 60px; }
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .panel {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.25);
+  }
+  .panel.wide { grid-column: 1 / -1; }
+  label { display: block; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 10px 0 5px; }
+  input, select, textarea, button { font: inherit; }
+  input[type=text], input[type=number], input[type=url], select, textarea {
+    width: 100%;
+    background: #07111f;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(76,215,246,.12); }
+  textarea { resize: vertical; min-height: 82px; font-family: var(--mono); font-size: .78rem; }
+  textarea.token { min-height: 120px; }
+  .row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  button {
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 800;
+    font-size: .76rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    transition: .15s ease;
+  }
+  button.primary { background: var(--primary); color: var(--primary-ink); }
+  button.primary:hover { filter: brightness(1.08); }
+  button.secondary { background: rgba(245,158,11,.14); color: var(--secondary); border-color: rgba(245,158,11,.4); }
+  button.secondary:hover { background: rgba(245,158,11,.22); }
+  button.ghost { background: #0a1626; color: var(--text); border-color: var(--line); }
+  button.ghost:hover { border-color: var(--primary); }
+  button.danger { background: rgba(248,113,113,.12); color: var(--error); border-color: rgba(248,113,113,.4); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .hint { color: var(--muted); font-size: .78rem; margin: 8px 0 0; }
+  .warn {
+    border: 1px solid rgba(245,158,11,.45);
+    background: rgba(245,158,11,.1);
+    color: #fde68a;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: .84rem;
+    margin: 0 0 18px;
+  }
+  .status { min-height: 1.2em; font-size: .8rem; margin-top: 10px; font-family: var(--mono); }
+  .status.ok { color: var(--ok); }
+  .status.error { color: var(--error); }
+  .mono { font-family: var(--mono); }
+  .file-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; }
+  .file-row input[type=file] { color: var(--muted); font-size: .78rem; max-width: 100%; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: .7rem; color: var(--muted); }
+  .pill b { color: var(--text); }
+  footer { border-top: 1px solid var(--line); padding: 18px 20px 36px; color: var(--muted); font-size: .78rem; }
+  code { font-family: var(--mono); color: var(--primary); }
+  ul { margin: 8px 0 0 18px; padding: 0; }
+  li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Generador de licencias · NG_MACROS</h1>
+    <p class="sub">Firma licencias ECDSA P-256 con fecha de vencimiento y crea el enlace para compartir.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="warn">
+    <strong>La clave privada es el secreto más importante.</strong>
+    No la subas a GitHub, no la envíes por chat y guarda una copia de seguridad.
+    Si la pierdes, no podrás emitir nuevas licencias; si se filtra, cualquiera podrá generarlas.
+    Esta página funciona en tu navegador: la clave privada no se envía a ningún servidor.
+  </p>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>1. Clave privada</h2>
+      <p class="hint">Carga <code>tools/license-private-key.json</code> o pega su contenido. También puedes crear un par nuevo.</p>
+      <div class="file-row">
+        <input id="privateKeyFile" type="file" accept=".json,application/json"/>
+        <button class="ghost" type="button" onclick="loadPrivateFromFile()">Cargar archivo</button>
+      </div>
+      <label for="privateKeyInput">JWK privada</label>
+      <textarea id="privateKeyInput" class="token" spellcheck="false" placeholder='{"kty":"EC","crv":"P-256","x":"...","y":"...","d":"..."}'></textarea>
+      <div class="actions">
+        <button class="secondary" type="button" onclick="generateKeyPair()">Generar par nuevo</button>
+        <button class="ghost" type="button" onclick="clearPrivate()">Limpiar</button>
+      </div>
+      <p id="privateStatus" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>2. Datos de la licencia</h2>
+      <div class="row">
+        <div>
+          <label for="licenseSub">Cliente / referencia</label>
+          <input id="licenseSub" type="text" value="Taller / Cliente" autocomplete="off"/>
+        </div>
+        <div>
+          <label for="licenseDays">Días de validez</label>
+          <input id="licenseDays" type="number" value="30" min="1" max="3650" step="1"/>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="licensePlan">Plan</label>
+          <select id="licensePlan">
+            <option value="pro">pro</option>
+            <option value="trial">trial</option>
+            <option value="demo">demo</option>
+            <option value="taller">taller</option>
+          </select>
+        </div>
+        <div>
+          <label for="licenseBase">URL base de la app</label>
+          <input id="licenseBase" type="text" autocomplete="off"/>
+        </div>
+      </div>
+      <p class="hint">El enlace tendrá la forma <span class="mono">https://tu-sitio/index.html?lic=TOKEN</span>.</p>
+      <div class="actions">
+        <button class="primary" type="button" onclick="generateLicense()">Generar licencia y enlace</button>
+      </div>
+      <p id="generateStatus" class="status"></p>
+    </section>
+
+    <section class="panel wide">
+      <h2>3. Resultado</h2>
+      <div class="row">
+        <div>
+          <label>Token de licencia</label>
+          <textarea id="tokenOutput" class="token" readonly placeholder="Aquí aparecerá el token firmado."></textarea>
+        </div>
+        <div>
+          <label>Enlace para compartir</label>
+          <textarea id="linkOutput" class="token" readonly placeholder="Aquí aparecerá el enlace con la licencia."></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="ghost" type="button" onclick="copyToken()">Copiar token</button>
+        <button class="ghost" type="button" onclick="copyLink()">Copiar enlace</button>
+        <button class="ghost" type="button" onclick="downloadLicense()">Descargar .lic</button>
+      </div>
+      <p id="outputInfo" class="hint"></p>
+    </section>
+
+    <section class="panel wide">
+      <h2>4. Verificar una licencia</h2>
+      <p class="hint">Pega un token y la clave pública del proyecto. La verificación se hace sin conexión.</p>
+      <label for="tokenToVerify">Token</label>
+      <textarea id="tokenToVerify" class="token" spellcheck="false" placeholder="eyJ..."></textarea>
+      <div class="row">
+        <div>
+          <label for="publicKeyInput">JWK pública</label>
+          <textarea id="publicKeyInput" spellcheck="false" placeholder='{"kty":"EC","crv":"P-256","x":"...","y":"...","ext":true}'></textarea>
+        </div>
+        <div>
+          <label>Archivo de clave pública</label>
+          <div class="file-row">
+            <input id="publicKeyFile" type="file" accept=".json,application/json"/>
+            <button class="ghost" type="button" onclick="loadPublicFromFile()">Cargar archivo</button>
+          </div>
+          <button class="ghost" type="button" onclick="loadProjectPublicKey()" style="margin-top:10px">Cargar clave pública del proyecto</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" type="button" onclick="verifyCurrentLicense()">Verificar</button>
+      </div>
+      <p id="verifyStatus" class="status"></p>
+    </section>
+
+    <section class="panel wide">
+      <h2>Cómo usarlo</h2>
+      <ul>
+        <li>Ejecuta una vez <code>node tools/license-generator.mjs keygen</code> si aún no tienes claves.</li>
+        <li>La clave pública ya está embebida en <code>index.html</code>. Si generas un par nuevo, actualiza <code>LICENSE_PUBLIC_KEY</code>.</li>
+        <li>Genera la licencia, copia el enlace y envíalo al cliente. Al abrirlo, la app guarda la licencia en el navegador.</li>
+        <li>La licencia caduca automáticamente en la fecha indicada. El cliente puede seguir usando la app en modo demo, pero no exportar G-code.</li>
+        <li>Para renovar, genera un token nuevo y comparte un enlace nuevo.</li>
+        <li>Esto es una app estática: la firma y la fecha se verifican en el navegador. Un usuario con conocimientos técnicos podría modificar el HTML o el reloj. Para una protección fuerte hace falta validación en servidor.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">NG_MACROS · Ingeniero Nestor Gamez · Herramienta local, sin telemetría.</div>
+</footer>
+
+<script>
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+const ECDSA_ALG = { name: 'ECDSA', namedCurve: 'P-256' };
+const ECDSA_SIGN_ALG = { name: 'ECDSA', hash: 'SHA-256' };
+const APP_ID = 'ng-macros';
+const LICENSE_VERSION = 1;
+
+function b64urlEncode(input) {
+  const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function b64urlDecode(value) {
+  const base64 = String(value).replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+  const binary = atob(padded);
+  return Uint8Array.from(binary, ch => ch.charCodeAt(0));
+}
+
+function publicJwkForEmbedding(jwk) {
+  if (!jwk || jwk.kty !== 'EC' || jwk.crv !== 'P-256' || !jwk.x || !jwk.y) {
+    throw new Error('La clave pública no es una JWK EC P-256 válida.');
+  }
+  return { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y, ext: true };
+}
+
+function readJwk(text, label) {
+  let value;
+  try {
+    value = JSON.parse(text);
+  } catch (e) {
+    throw new Error(`El JSON de la ${label} no es válido.`);
+  }
+  if (!value || value.kty !== 'EC' || value.crv !== 'P-256') {
+    throw new Error(`La ${label} no es una JWK EC P-256.`);
+  }
+  return value;
+}
+
+function setStatus(id, message, kind = '') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = message || '';
+  el.className = `status ${kind}`.trim();
+}
+
+function defaultBaseUrl() {
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    return new URL('index.html', location.href).href;
+  }
+  return 'https://TU-SITIO/NG_MACROS/index.html';
+}
+
+function init() {
+  document.getElementById('licenseBase').value = defaultBaseUrl();
+}
+
+async function readFileAsText(file) {
+  return await file.text();
+}
+
+async function loadPrivateFromFile() {
+  const file = document.getElementById('privateKeyFile').files[0];
+  if (!file) {
+    setStatus('privateStatus', 'Selecciona primero un archivo de clave privada.', 'error');
+    return;
+  }
+  try {
+    document.getElementById('privateKeyInput').value = (await readFileAsText(file)).trim();
+    readJwk(document.getElementById('privateKeyInput').value, 'clave privada');
+    setStatus('privateStatus', `Clave privada cargada: ${file.name}`, 'ok');
+  } catch (e) {
+    setStatus('privateStatus', e.message, 'error');
+  }
+}
+
+async function loadPublicFromFile() {
+  const file = document.getElementById('publicKeyFile').files[0];
+  if (!file) {
+    setStatus('verifyStatus', 'Selecciona primero un archivo de clave pública.', 'error');
+    return;
+  }
+  try {
+    document.getElementById('publicKeyInput').value = (await readFileAsText(file)).trim();
+    readJwk(document.getElementById('publicKeyInput').value, 'clave pública');
+    setStatus('verifyStatus', `Clave pública cargada: ${file.name}`, 'ok');
+  } catch (e) {
+    setStatus('verifyStatus', e.message, 'error');
+  }
+}
+
+async function loadProjectPublicKey() {
+  try {
+    const response = await fetch('tools/license-public-key.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    document.getElementById('publicKeyInput').value = text.trim();
+    readJwk(text, 'clave pública');
+    setStatus('verifyStatus', 'Clave pública del proyecto cargada.', 'ok');
+  } catch (e) {
+    setStatus('verifyStatus', 'No se pudo cargar tools/license-public-key.json. Ábrelo por HTTP o selecciona el archivo.', 'error');
+  }
+}
+
+function clearPrivate() {
+  document.getElementById('privateKeyInput').value = '';
+  document.getElementById('privateKeyFile').value = '';
+  setStatus('privateStatus', 'Clave privada eliminada de esta página.', '');
+}
+
+async function generateKeyPair() {
+  try {
+    const keyPair = await crypto.subtle.generateKey(ECDSA_ALG, true, ['sign', 'verify']);
+    const privateJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+    const publicJwk = publicJwkForEmbedding(await crypto.subtle.exportKey('jwk', keyPair.publicKey));
+
+    downloadJson('license-private-key.json', privateJwk);
+    downloadJson('license-public-key.json', publicJwk);
+    document.getElementById('privateKeyInput').value = JSON.stringify(privateJwk, null, 2);
+    document.getElementById('publicKeyInput').value = JSON.stringify(publicJwk, null, 2);
+
+    setStatus('privateStatus', 'Par nuevo generado. Se descargaron la clave privada y la pública. Actualiza LICENSE_PUBLIC_KEY en index.html.', 'ok');
+  } catch (e) {
+    setStatus('privateStatus', `No se pudo generar el par: ${e.message}`, 'error');
+  }
+}
+
+function downloadJson(filename, value) {
+  downloadBlob(filename, JSON.stringify(value, null, 2) + '\n', 'application/json');
+}
+
+function downloadBlob(filename, content, type = 'text/plain') {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function createPayload({ sub, days, plan, now = Date.now() }) {
+  const numericDays = Number(days);
+  if (!Number.isFinite(numericDays) || numericDays <= 0) {
+    throw new Error('Los días deben ser un número mayor que cero.');
+  }
+  const issuedAt = Math.floor(now / 1000);
+  return {
+    v: LICENSE_VERSION,
+    app: APP_ID,
+    sub: String(sub || 'Cliente').trim().slice(0, 120),
+    plan: String(plan || 'pro').trim().slice(0, 32),
+    iat: issuedAt,
+    exp: issuedAt + Math.round(numericDays * 86400),
+    jti: crypto.randomUUID()
+  };
+}
+
+async function signLicense(privateJwk, payload) {
+  if (!privateJwk || privateJwk.kty !== 'EC' || !privateJwk.d) {
+    throw new Error('La clave privada no es una JWK EC válida.');
+  }
+  const key = await crypto.subtle.importKey('jwk', privateJwk, ECDSA_ALG, false, ['sign']);
+  const payloadB64 = b64urlEncode(textEncoder.encode(JSON.stringify(payload)));
+  const signature = await crypto.subtle.sign(ECDSA_SIGN_ALG, key, textEncoder.encode(payloadB64));
+  return `${payloadB64}.${b64urlEncode(new Uint8Array(signature))}`;
+}
+
+async function generateLicense() {
+  const privateText = document.getElementById('privateKeyInput').value.trim();
+  if (!privateText) {
+    setStatus('generateStatus', 'Carga o pega primero la clave privada.', 'error');
+    return;
+  }
+
+  try {
+    const privateJwk = readJwk(privateText, 'clave privada');
+    const payload = createPayload({
+      sub: document.getElementById('licenseSub').value,
+      days: document.getElementById('licenseDays').value,
+      plan: document.getElementById('licensePlan').value
+    });
+    const token = await signLicense(privateJwk, payload);
+    const base = document.getElementById('licenseBase').value.trim() || defaultBaseUrl();
+    const separator = base.includes('?') ? '&' : '?';
+    const link = `${base}${separator}lic=${encodeURIComponent(token)}`;
+
+    document.getElementById('tokenOutput').value = token;
+    document.getElementById('linkOutput').value = link;
+    document.getElementById('outputInfo').textContent =
+      `Cliente: ${payload.sub} · Plan: ${payload.plan} · Vence: ${new Date(payload.exp * 1000).toLocaleString('es-ES')}`;
+    setStatus('generateStatus', 'Licencia generada correctamente.', 'ok');
+  } catch (e) {
+    setStatus('generateStatus', e.message, 'error');
+  }
+}
+
+async function verifyCurrentLicense() {
+  const token = document.getElementById('tokenToVerify').value.trim();
+  const publicText = document.getElementById('publicKeyInput').value.trim();
+  if (!token) {
+    setStatus('verifyStatus', 'Pega un token para verificar.', 'error');
+    return;
+  }
+  if (!publicText) {
+    setStatus('verifyStatus', 'Carga o pega la clave pública.', 'error');
+    return;
+  }
+
+  try {
+    const publicJwk = readJwk(publicText, 'clave pública');
+    const parts = token.split('.');
+    if (parts.length !== 2) throw new Error('El formato del token no es válido.');
+    const payload = JSON.parse(textDecoder.decode(b64urlDecode(parts[0])));
+    const key = await crypto.subtle.importKey('jwk', publicJwk, ECDSA_ALG, false, ['verify']);
+    const validSignature = await crypto.subtle.verify(
+      ECDSA_SIGN_ALG, key, b64urlDecode(parts[1]), textEncoder.encode(parts[0])
+    );
+    if (!validSignature) throw new Error('La firma no es válida.');
+    if (payload.v !== LICENSE_VERSION || payload.app !== APP_ID) throw new Error('La licencia no corresponde a NG_MACROS.');
+    if (payload.exp * 1000 <= Date.now()) throw new Error(`La licencia venció el ${new Date(payload.exp * 1000).toLocaleDateString('es-ES')}.`);
+    const daysLeft = Math.max(1, Math.ceil((payload.exp * 1000 - Date.now()) / 86400000));
+    setStatus('verifyStatus', `Licencia válida · ${payload.sub || 'Cliente'} · quedan ${daysLeft} días · vence ${new Date(payload.exp * 1000).toLocaleDateString('es-ES')}.`, 'ok');
+  } catch (e) {
+    setStatus('verifyStatus', e.message, 'error');
+  }
+}
+
+async function copyText(value, statusId) {
+  if (!value) {
+    setStatus(statusId, 'No hay nada que copiar.', 'error');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(value);
+    setStatus(statusId, 'Copiado al portapapeles.', 'ok');
+  } catch (e) {
+    setStatus(statusId, 'No se pudo copiar. Selecciona el texto manualmente.', 'error');
+  }
+}
+
+function copyToken() {
+  copyText(document.getElementById('tokenOutput').value, 'outputInfo');
+}
+
+function copyLink() {
+  copyText(document.getElementById('linkOutput').value, 'outputInfo');
+}
+
+function downloadLicense() {
+  const token = document.getElementById('tokenOutput').value.trim();
+  if (!token) {
+    setStatus('outputInfo', 'Genera primero una licencia.', 'error');
+    return;
+  }
+  downloadBlob('ng-macros.lic', token + '\n');
+  setStatus('outputInfo', 'Archivo .lic descargado.', 'ok');
+}
+
+init();
+</script>
+</body>
+</html>

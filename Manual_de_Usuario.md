@@ -2,7 +2,7 @@
 
 **Autor:** Ingeniero Nestor Gamez
 
-**Licencia:** MIT (ver `LICENSE`)
+**Licencia del código:** MIT (ver `LICENSE`) · **Uso de la app distribuida:** licencia firmada por días
 
 **Aplicación:** `index.html` (HTML + JavaScript, sin backend)
 
@@ -21,10 +21,11 @@
 9. [Almacén de herramientas](#9-almacén-de-herramientas)
 10. [Hoja de taller](#10-hoja-de-taller)
 11. [Uso sin conexión e instalación](#11-uso-sin-conexión-e-instalación)
-12. [Datos guardados en el navegador](#12-datos-guardados-en-el-navegador)
-13. [Estructura y desarrollo](#13-estructura-y-desarrollo)
-14. [Solución de problemas](#14-solución-de-problemas)
-15. [Licencia y descargo de responsabilidad](#15-licencia-y-descargo-de-responsabilidad)
+12. [Licencias y activación](#12-licencias-y-activación)
+13. [Datos guardados en el navegador](#13-datos-guardados-en-el-navegador)
+14. [Estructura y desarrollo](#14-estructura-y-desarrollo)
+15. [Solución de problemas](#15-solución-de-problemas)
+16. [Licencia y descargo de responsabilidad](#16-licencia-y-descargo-de-responsabilidad)
 
 ---
 
@@ -107,8 +108,9 @@ Los parámetros se guardan automáticamente por macro en el navegador. El botón
 
 - **Logo:** vuelve al inicio.
 - **Navegación:** Inicio, Librería, Hoja de taller.
-- **Licencia:** abre el modal informativo. La aplicación está en modo local abierto: no hay
-  claves, tokens ni bloqueo.
+- **Licencia:** muestra el estado de la licencia y, si no hay una activa, abre el diálogo para
+  pegar el token o cargar el enlace. Sin licencia válida la app queda en modo demo y no permite
+  exportar G-code.
 - **E-STOP:** parada de emergencia visual de la simulación. No actúa sobre una máquina real.
 
 ### 4.2 Vista de ciclo
@@ -641,7 +643,55 @@ service worker elimina las cachés antiguas.
 
 ---
 
-## 12. Datos guardados en el navegador
+## 12. Licencias y activación
+
+La app distribuida requiere una **licencia firmada por días**. Sin licencia válida se abre en
+**modo demo**: la interfaz, el CAD y la simulación funcionan, pero no se puede generar, copiar
+ni descargar G-code.
+
+### 12.1 Activar una licencia
+
+1. Abre el enlace que recibiste, con la forma `https://tu-sitio/index.html?lic=TOKEN`.
+2. La app verifica la firma y guarda la licencia en ese navegador.
+3. El botón **Licencia** de la cabecera muestra los días restantes y la fecha de vencimiento.
+
+Si prefieres pegar el token manualmente, abre **Licencia** y pega el token en el campo
+**Token de licencia**. También puedes usar **Copiar enlace** para trasladar la licencia a otro
+equipo y **Quitar licencia** para borrarla de este navegador.
+
+### 12.2 Generar licencias
+
+La clave privada es un secreto: vive en `tools/license-private-key.json`, está excluida de Git
+y **nunca debe publicarse**. Guarda una copia de seguridad.
+
+```bash
+# Solo la primera vez: crea el par de claves
+node tools/license-generator.mjs keygen
+
+# Licencia de 30 días con enlace listo para compartir
+node tools/license-generator.mjs issue --days 30 --sub "Taller Pérez" \
+  --base "https://ngamezlombana.github.io/NG_MACROS/index.html" \
+  --out licenses/taller-perez.json
+
+# Comprobar un token
+node tools/license-generator.mjs verify --token "eyJ..."
+```
+
+También existe `generador-licencias.html`: ábrelo por HTTP, carga la clave privada y genera el
+token y el enlace desde el navegador. No se enlaza desde la app y no debe publicarse junto con
+la clave privada.
+
+### 12.3 Vencimiento y renovación
+
+- La licencia caduca automáticamente en la fecha indicada; la app vuelve al modo demo.
+- Para renovar, emite un token nuevo y comparte un enlace nuevo.
+- Si el reloj del equipo se atrasa, la app detecta el cambio y pide reactivar la licencia.
+- La comprobación es local. Al ser una app estática, alguien con conocimientos técnicos podría
+  modificar el HTML o el reloj; para protección fuerte hace falta un servidor de validación.
+
+---
+
+## 13. Datos guardados en el navegador
 
 | Clave | Contenido |
 |---|---|
@@ -650,13 +700,15 @@ service worker elimina las cachés antiguas.
 | `ng_gcode_mode` | Modo de salida (`caller` / `expanded`) |
 | `ng_gcode_g21` | Inclusión de `G21` |
 | `ng_gcode_g54` | Inclusión de `G54` |
+| `ng_license_token_v1` | Token de licencia activo |
+| `ng_license_last_seen_v1` | Última marca de tiempo para detectar cambios de reloj |
 
 Los datos son locales al navegador y al perfil. No se envían a ningún servidor. Para
 borrarlos, usa la configuración del navegador o el botón **Restablecer** de cada macro.
 
 ---
 
-## 13. Estructura y desarrollo
+## 14. Estructura y desarrollo
 
 ```
 index.html                 SPA completa (UI, CAD, simulación, generador)
@@ -664,21 +716,26 @@ macros_data.js             Datos generados; no editar a mano
 parse_macros.py            Metadatos y parser de los .nc
 O81xx_*.nc                 Macros Fanuc Custom Macro B
 vendor/                    Assets locales (Tailwind, Three.js, fuentes)
+tools/                     Generador de licencias (CLI y núcleo ECDSA)
+generador-licencias.html   Generador/verificador visual de licencias
 tests/                     Pruebas automáticas
 manifest.json              PWA
 service-worker.js          Caché offline
 ```
 
-### 13.1 Comandos
+### 14.1 Comandos
 
 ```bash
 python3 parse_macros.py          # regenerar macros_data.js
 node --test tests/*.test.mjs     # pruebas
 npm run check                    # parser + pruebas
 python3 -m http.server 8080      # servidor local
+npm run license:keygen           # crear par de claves (solo la primera vez)
+npm run license:issue -- --days 30 --sub "Cliente"
+npm run license:verify -- --token "eyJ..."
 ```
 
-### 13.2 Añadir o modificar una macro
+### 14.2 Añadir o modificar una macro
 
 1. Edita el archivo `.nc`.
 2. Añade o ajusta sus metadatos en `METADATA` de `parse_macros.py`.
@@ -688,7 +745,7 @@ python3 -m http.server 8080      # servidor local
 
 ---
 
-## 14. Solución de problemas
+## 15. Solución de problemas
 
 ### La página se ve sin estilos
 
@@ -715,6 +772,19 @@ funcionando.
 Recarga con `Ctrl+F5`. Si cambiaste el service worker, cierra todas las pestañas de la app y
 vuelve a abrirla.
 
+### Aparece el modo demo y no puedo exportar G-code
+
+Es el comportamiento normal sin licencia. Abre el enlace `?lic=...` o el botón **Licencia** y
+pega el token. Si ya tenías una licencia, pulsa **Quitar licencia** y vuelve a activarla.
+
+### La licencia no se activa
+
+- Comprueba que el enlace incluye el token completo, sin cortes ni espacios.
+- La app debe abrirse por `https://` o `localhost`; algunos navegadores limitan WebCrypto en
+  `file://`.
+- Revisa la fecha del equipo: una fecha muy adelantada invalida la licencia.
+- Si el token es de otro cliente o de otra versión de la app, la firma no coincidirá.
+
 ### El código G no compila en el control
 
 - Verifica que la macro esté cargada como subprograma en modo `G65`.
@@ -725,9 +795,12 @@ vuelve a abrirla.
 
 ---
 
-## 15. Licencia y descargo de responsabilidad
+## 16. Licencia y descargo de responsabilidad
 
-Código distribuido bajo licencia **MIT**. Consulta el archivo `LICENSE`.
+El código fuente se distribuye bajo licencia **MIT** (consulta el archivo `LICENSE`). El uso de
+la aplicación distribuida está sujeto a la licencia por días descrita en este manual. Consulta
+la sección [Licencias y activación](#12-licencias-y-activación) para emitir, activar y renovar
+licencias.
 
 Las macros, la documentación y el código G generado se ofrecen **“tal cual”**, sin garantía
 de comerciabilidad ni de aptitud para un mecanizado concreto. El autor no se hace

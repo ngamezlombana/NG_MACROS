@@ -3,10 +3,11 @@
 Aplicación web local para **configurar, validar, simular y generar código G** de 11 macros
 Fanuc **Custom Macro B** orientadas a taladrado, cajeras y ranuras.
 
-No requiere servidor, cuenta, clave ni conexión a Internet: todo se ejecuta en el navegador
-y los assets están incluidos en el repositorio.
+No requiere servidor, cuenta ni conexión a Internet: todo se ejecuta en el navegador
+y los assets están incluidos en el repositorio. La generación y exportación de G-code
+requiere una licencia válida; sin ella la app funciona en modo demo.
 
-**Versión:** 4.4.0 · **Licencia:** MIT
+**Versión:** 4.4.0 · **Código:** MIT · **Uso de la app distribuida:** licencia firmada por días
 
 ---
 
@@ -21,7 +22,9 @@ y los assets están incluidos en el repositorio.
 - **Persistencia local** de parámetros por macro y del almacén de herramientas.
 - **Hoja de taller** imprimible con herramienta, husillo, avance y tiempo estimado.
 - **Funciona sin conexión** mediante service worker y assets locales.
-- **Sin telemetría ni DRM**: modo local abierto, información de licencia en un modal.
+- **Licencias firmadas por días** con enlace compartible (`?lic=...`), sin backend ni telemetría.
+- **Modo demo** sin licencia: la interfaz, el CAD y la simulación siguen disponibles, pero la
+  exportación de G-code queda bloqueada.
 
 ## Inicio rápido
 
@@ -118,7 +121,9 @@ principal autónomo y más fácil de auditar, a costa de un archivo más largo.
 ├── vendor/                    # Tailwind, Three.js, OrbitControls y fuentes locales
 ├── icon.svg / manifest.json   # PWA instalable
 ├── service-worker.js          # Caché del app shell para uso offline
-├── tests/                     # Pruebas de datos, .nc, HTML y generador
+├── tools/                     # Generador de licencias (CLI y núcleo ECDSA)
+├── generador-licencias.html   # Generador/verificador de licencias en el navegador
+├── tests/                     # Pruebas de datos, .nc, HTML, licencias y generador
 ├── Manual_de_Usuario.md       # Manual completo
 └── stitch_ng_macros_.../      # Mockups de diseño originales (no se usan en runtime)
 ```
@@ -139,12 +144,80 @@ Las pruebas comprueban:
 - Consistencia entre los `.nc`, `macros_data.js` y las categorías.
 - Estructura Fanuc de cada archivo (dos `%`, `M99`, alarmas, saltos existentes).
 - Sintaxis del JavaScript embebido en `index.html`.
-- Ausencia de CDNs y de secretos de licencia.
+- Ausencia de CDNs y de material secreto de licencia en el HTML.
 - Existencia de todos los IDs usados por `getElementById`.
 - Manifest, icono y app shell del service worker.
 - Salida de los modos `G65` y macro expandida.
+- Firma, vencimiento y rechazo de licencias manipuladas, vencidas o de otra app.
+- Flujo completo del CLI de licencias (`keygen`, `issue`, `verify`).
 
 El flujo de CI está en `.github/workflows/ci.yml`.
+
+## Licencias
+
+La app distribuida usa **licencias firmadas con ECDSA P-256**. Una licencia es un token con
+cliente, plan, fecha de emisión y fecha de vencimiento. El enlace para compartir tiene la forma:
+
+```
+https://tu-sitio/index.html?lic=TOKEN
+```
+
+Al abrir el enlace, la app verifica la firma, guarda el token en `localStorage` y limpia el
+parámetro de la barra de direcciones. Sin licencia válida se abre el **modo demo**: se puede
+explorar la interfaz, el CAD y la simulación, pero no generar, copiar ni descargar G-code.
+
+### Claves
+
+- La **clave pública** está embebida en `index.html` (`LICENSE_PUBLIC_KEY`).
+- La **clave privada** vive en `tools/license-private-key.json` y está excluida por `.gitignore`.
+  **Nunca la subas al repositorio, a un chat o a una nube pública.**
+- Haz una copia de seguridad de la clave privada. Si la pierdes, no podrás emitir licencias
+  nuevas; si se filtra, cualquiera podrá firmarlas.
+- Si generas un par nuevo, actualiza `LICENSE_PUBLIC_KEY` en `index.html` y vuelve a emitir
+  las licencias.
+
+### Generar una licencia
+
+Con Node.js 20+:
+
+```bash
+# Solo la primera vez
+node tools/license-generator.mjs keygen
+
+# Emitir una licencia de 30 días y obtener el enlace
+node tools/license-generator.mjs issue \
+  --days 30 \
+  --sub "Taller Pérez" \
+  --base "https://ngamezlombana.github.io/NG_MACROS/index.html" \
+  --out licenses/taller-perez.json
+
+# Verificar un token
+node tools/license-generator.mjs verify --token "eyJ..."
+```
+
+También puedes usar el generador visual: abre `generador-licencias.html` por HTTP, carga
+`tools/license-private-key.json`, indica los días y la URL base, y copia el enlace. El archivo
+`generador-licencias.html` no se enlaza desde la app y **no debe publicarse junto con la clave
+privada**. Si publicas el generador, cualquiera que obtenga la clave privada podrá emitir
+licencias.
+
+### Renovar y caducar
+
+- Para renovar, emite un token nuevo y comparte un enlace nuevo.
+- Al vencer, la app vuelve al modo demo automáticamente y bloquea la exportación.
+- La comprobación es local: si el reloj del equipo se atrasa, la app detecta el cambio y pide
+  reactivar la licencia.
+- `localStorage` guarda el token en `ng_license_token_v1`. El botón **Quitar licencia** lo borra
+  de ese equipo.
+
+### Limitaciones de seguridad
+
+Al ser una aplicación estática, la verificación ocurre en el navegador. Un usuario con
+conocimientos técnicos podría modificar el HTML, el JavaScript o el reloj del sistema para
+saltarse el bloqueo. Las licencias firmadas impiden falsificar tokens y permiten caducidad real,
+pero **no sustituyen una validación en servidor** si necesitas protección fuerte. El código
+fuente se publica bajo MIT; la licencia de uso protege la distribución de la app, no impide
+que alguien reutilice el código.
 
 ## Seguridad
 
