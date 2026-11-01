@@ -1074,6 +1074,14 @@
         switchView('ciclo');
     }
 
+    function selectMacroById(id) {
+        const data = getMacros();
+        const idx = data.findIndex(m => m.id === id);
+        if (idx !== -1) {
+            selectMacroAndEdit(idx);
+        }
+    }
+
     function openSimulation() {
         buildSimulationPoints();
         const timeStr = calculateEstimatedCycleTime();
@@ -1113,6 +1121,50 @@
         if (timeEl) timeEl.textContent = timeStr;
     }
 
+    function classifyMacroVariable(macro, v) {
+        const comm = ((v.comment || '') + ' ' + (v.full_comment || '')).toUpperCase();
+        const letter = v.letter || ('#' + v.num);
+        const mid = macro ? macro.id : '';
+
+        // 1. Velocidad de Giro del Husillo (RPM) -> Grupo 2
+        if (comm.includes('RPM') || comm.includes('HUSILLO') || comm.includes('GIRO') || (letter === 'S' && mid !== 'O8104') || (letter === 'B' && mid === 'O8104')) {
+            return { group: 2, unit: 'RPM', color: 'secondary' };
+        }
+
+        // 2. Diámetro de Broca / Fresa / Corrector -> Grupo 2
+        if (comm.includes('BROCA') || comm.includes('FRESA') || comm.includes('HERRAMIENTA') || comm.includes('CORRECTOR') || letter === 'T' || (letter === 'D' && mid === 'O8110')) {
+            return { group: 2, unit: 'mm', color: 'secondary' };
+        }
+
+        // 3. Avance de Corte / Taladrado -> Grupo 2
+        if (comm.includes('AVANCE') || comm.includes('FEED') || letter === 'F') {
+            return { group: 2, unit: 'mm/min', color: 'secondary' };
+        }
+
+        // 4. Plano de Retroceso y Seguridad en Z -> Grupo 3
+        if (comm.includes('PLANO') || comm.includes('RETROCESO') || comm.includes('SEGURIDAD') || (letter === 'B' && (mid === 'O8110' || mid === 'O8108')) || (letter === 'R' && mid !== 'O8110' && mid !== 'O8108')) {
+            return { group: 3, unit: 'mm', color: 'tertiary' };
+        }
+
+        // 5. Profundidad Total, Picoteo y Paso en Z -> Grupo 3
+        if (comm.includes('PROFUNDIDAD') || comm.includes('PICOTEO') || comm.includes('PASO EN Z') || letter === 'Z' || letter === 'K' || letter === 'C' || letter === 'E' || (letter === 'D' && mid === 'O8109')) {
+            return { group: 3, unit: 'mm', color: 'tertiary' };
+        }
+
+        // 6. Ángulos de Inclinación / Orientación -> Grupo 1
+        if (comm.includes('ANGULO') || comm.includes('INCLINACION') || comm.includes('ORIENTACION') || letter === 'A') {
+            return { group: 1, unit: '°', color: 'primary' };
+        }
+
+        // 7. Cantidades y Conteo de Agujeros -> Grupo 1
+        if ((comm.includes('CANTIDAD') || comm.includes('TOTAL DE AGUJEROS') || comm.includes('NUMERO') || comm.includes('AGUJERO INICIAL') || letter === 'H' || letter === 'U' || letter === 'V' || (letter === 'S' && mid === 'O8104')) && mid !== 'O8110') {
+            return { group: 1, unit: 'U', color: 'primary' };
+        }
+
+        // 8. Cotas Geométricas Predeterminadas (Coordenadas X/Y, Diámetros, Pasos) -> Grupo 1
+        return { group: 1, unit: 'mm', color: 'primary' };
+    }
+
     function renderMacroParameterGroups() {
         if (!activeMacro) return;
         const g1 = document.getElementById('macroGroup1Inputs');
@@ -1125,29 +1177,19 @@
         g3.innerHTML = '';
 
         activeMacro.variables.forEach(v => {
-            const comm = (v.comment || '').toUpperCase();
-            const letter = v.letter || ('#' + v.num);
+            const cls = classifyMacroVariable(activeMacro, v);
             let targetGroup = g1;
-            let unit = 'mm';
+            let badgeBg = "bg-primary/20 text-primary";
+            let borderFocus = "focus-within:border-primary";
 
-            if (comm.includes('AVANCE') || comm.includes('FEED') || letter === 'F') {
+            if (cls.group === 2) {
                 targetGroup = g2;
-                unit = 'mm/min';
-            } else if (comm.includes('HERRAMIENTA') || comm.includes('CORRECTOR') || comm.includes('FRESA') || letter === 'T' || (letter === 'D' && activeMacro.id === 'O8110')) {
-                targetGroup = g2;
-                unit = 'mm';
-            } else if (comm.includes('ANGULO') || comm.includes('INCLINACION') || letter === 'A') {
-                targetGroup = g1;
-                unit = '°';
-            } else if (comm.includes('CANTIDAD') || comm.includes('TOTAL DE AGUJEROS') || comm.includes('NUMERO') || letter === 'H' || letter === 'U' || letter === 'V' || letter === 'S') {
-                targetGroup = g1;
-                unit = 'U';
-            } else if (comm.includes('PROFUNDIDAD') || comm.includes('PASO EN Z') || letter === 'Z' || letter === 'K' || letter === 'C') {
+                badgeBg = "bg-secondary/20 text-secondary";
+                borderFocus = "focus-within:border-secondary";
+            } else if (cls.group === 3) {
                 targetGroup = g3;
-                unit = 'mm';
-            } else {
-                targetGroup = g1;
-                unit = 'mm';
+                badgeBg = "bg-tertiary/20 text-tertiary";
+                borderFocus = "focus-within:border-tertiary";
             }
 
             const inputDiv = document.createElement('div');
@@ -1156,13 +1198,13 @@
                 <label class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider truncate" title="${v.comment}">
                     ${v.comment || ('Variable #' + v.num)}
                 </label>
-                <div class="flex items-stretch bg-surface-container-lowest rounded-lg overflow-hidden border border-outline-variant/30 focus-within:border-primary shadow-inner">
-                    <span class="px-2.5 py-1.5 bg-surface-container-high text-primary font-code-terminal text-xs font-bold flex items-center shrink-0 gap-1.5 border-r border-outline-variant/20">
-                        <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary font-black text-[11px]">${v.letter || 'VAR'}</span>
+                <div class="flex items-stretch bg-surface-container-lowest rounded-lg overflow-hidden border border-outline-variant/30 ${borderFocus} shadow-inner">
+                    <span class="px-2.5 py-1.5 bg-surface-container-high font-code-terminal text-xs font-bold flex items-center shrink-0 gap-1.5 border-r border-outline-variant/20">
+                        <span class="px-1.5 py-0.5 rounded ${badgeBg} font-black text-[11px]">${v.letter || 'VAR'}</span>
                         <span class="text-[10px] text-on-surface-variant font-mono">#${v.num}</span>
                     </span>
                     <input type="number" step="any" value="${v.value}" oninput="updateVariableValue(${v.num}, this.value)" class="w-full bg-transparent px-3 py-1.5 font-dro-display text-sm text-on-surface outline-none tabular-nums"/>
-                    <span class="px-2.5 py-1.5 bg-surface-container-low text-on-surface-variant font-code-terminal text-[11px] flex items-center shrink-0 font-bold border-l border-outline-variant/20">${unit}</span>
+                    <span class="px-2.5 py-1.5 bg-surface-container-low text-on-surface-variant font-code-terminal text-[11px] flex items-center shrink-0 font-bold border-l border-outline-variant/20">${cls.unit}</span>
                 </div>
             `;
             targetGroup.appendChild(inputDiv);
@@ -1188,22 +1230,34 @@
 
     function calculateCuttingParameters() {
         if (!activeMacro) return;
-        let d = 0, f = 300;
+        let toolDia = 10.0;
+        let feedRate = 250.0;
+        let spindleRpm = 1200.0;
+
         activeMacro.variables.forEach(v => {
             const l = v.letter;
-            if (l === 'T' || (l === 'D' && activeMacro.id === 'O8110')) {
-                d = (parseFloat(v.value) || 5) * 2;
+            const comm = (v.comment || '').toUpperCase();
+            const val = parseFloat(v.value);
+
+            // Spindle speed
+            if (comm.includes('RPM') || comm.includes('HUSILLO') || (l === 'S' && activeMacro.id !== 'O8104') || (l === 'B' && activeMacro.id === 'O8104')) {
+                if (!isNaN(val) && val > 0) spindleRpm = val;
             }
-            if (l === 'F') {
-                f = parseFloat(v.value) || 300;
+            // Tool diameter
+            if (comm.includes('BROCA') || comm.includes('FRESA') || comm.includes('HERRAMIENTA') || comm.includes('CORRECTOR') || l === 'T' || (l === 'D' && activeMacro.id === 'O8110')) {
+                if (!isNaN(val) && val > 0) toolDia = val;
+            }
+            // Feedrate
+            if (comm.includes('AVANCE') || comm.includes('FEED') || l === 'F') {
+                if (!isNaN(val) && val > 0) feedRate = val;
             }
         });
 
-        if (d <= 0) d = 12.0;
-        const rpm = 1200;
-        const calcVc = (Math.PI * d * rpm) / 1000;
+        const calcVc = (Math.PI * toolDia * spindleRpm) / 1000.0;
         const badge = document.getElementById('calculatedVcBadge');
-        if (badge) badge.textContent = `Vc: ${calcVc.toFixed(1)} m/min (F: ${f} mm/min)`;
+        if (badge) {
+            badge.textContent = `Vc: ${calcVc.toFixed(1)} m/min | S: ${Math.round(spindleRpm)} RPM | F: ${Math.round(feedRate)} mm/min`;
+        }
     }
 
     /* CÁLCULO PRECISO DEL TIEMPO DE EJECUCIÓN DEL CICLO */
@@ -1422,7 +1476,7 @@
         const angleDeg = getMacroVar(1, 30);
         const step = Math.max(1, getMacroVar(17, 25));
         const numHoles = Math.max(1, Math.round(getMacroVar(11, 5)));
-        const drillDiam = 10;
+        const drillDiam = Math.max(1, getMacroVar(20, 10));
 
         const angleRad = (angleDeg * Math.PI) / 180;
         const totalDist = (numHoles - 1) * step;
@@ -1541,7 +1595,7 @@
         const numV = Math.max(2, Math.round(getMacroVar(22, 4)));
         const stepI = Math.max(1, getMacroVar(4, 25));
         const stepJ = Math.max(1, getMacroVar(5, 20));
-        const drillDiam = 10;
+        const drillDiam = Math.max(1, getMacroVar(20, 10));
 
         const totalW = (numU - 1) * stepI;
         const totalH = (numV - 1) * stepJ;
@@ -1609,7 +1663,7 @@
         const numHoles = Math.max(1, Math.round(getMacroVar(11, 8)));
         const startAngle = getMacroVar(1, 0);
         const startHole = Math.max(1, Math.round(getMacroVar(19, 1)));
-        const drillDiam = 12;
+        const drillDiam = Math.max(1, getMacroVar(20, 12));
 
         const stockDiam = pcd + drillDiam * 3.5;
         const scale = (Math.min(w, h) * 0.72) / stockDiam;
@@ -1687,7 +1741,7 @@
         const numHoles = Math.max(1, Math.round(getMacroVar(11, 6)));
         const startAngle = getMacroVar(1, 15);
         const stepAngle = getMacroVar(4, 30);
-        const drillDiam = 10;
+        const drillDiam = Math.max(1, getMacroVar(20, 10));
 
         const scale = (Math.min(w, h) * 0.68) / (arcDiam + 30);
         const ox = cx + centerX * scale;
@@ -1754,7 +1808,8 @@
     /* 5. CAD O8106: DESBASTE DE CAJERA CIRCULAR */
     function drawCadO8106(ctx, w, h, cx, cy) {
         const diam = Math.max(10, getMacroVar(7, 80));
-        const toolRad = Math.max(0.5, getMacroVar(20, 5));
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
+        const toolRad = toolDiam / 2;
         const stepW = Math.max(1, getMacroVar(23, 6));
         const depth = Math.abs(getMacroVar(26, 15));
         const stepZ = Math.max(0.5, getMacroVar(6, 3));
@@ -1807,7 +1862,8 @@
     /* 6. CAD O8107: ACABADO DE CAJERA CIRCULAR */
     function drawCadO8107(ctx, w, h, cx, cy) {
         const diam = Math.max(10, getMacroVar(23, 80));
-        const toolRad = Math.max(0.5, getMacroVar(20, 5));
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
+        const toolRad = toolDiam / 2;
         const depth = Math.abs(getMacroVar(26, 15));
 
         const scale = (Math.min(w, h) * 0.72) / (diam + 20);
@@ -1868,7 +1924,8 @@
     /* 7. CAD O8111: CICLO DE CORTE CIRCULAR G13 */
     function drawCadO8111(ctx, w, h, cx, cy) {
         const diam = Math.max(10, getMacroVar(7, 60));
-        const toolRad = Math.max(0.5, getMacroVar(20, 6));
+        const toolDiam = Math.max(1, getMacroVar(20, 12));
+        const toolRad = toolDiam / 2;
 
         const scale = (Math.min(w, h) * 0.72) / (diam + 20);
         const rPocket = (diam / 2) * scale;
@@ -1924,7 +1981,8 @@
         const lenY = Math.max(10, getMacroVar(11, 60));
         const depth = Math.abs(getMacroVar(26, 12));
         const cornerR = Math.max(1, getMacroVar(18, 10));
-        const toolRad = Math.max(0.5, getMacroVar(7, 5));
+        const toolDiam = Math.max(1, getMacroVar(7, 10));
+        const toolRad = toolDiam / 2;
 
         const scale = Math.min((w - 140) / (lenX + 20), (h - 140) / (lenY + 20));
         const rw = lenX * scale;
@@ -1969,7 +2027,8 @@
         const angleDeg = getMacroVar(1, 25);
         const distD = Math.max(5, getMacroVar(7, 60));
         const slotR = Math.max(1, getMacroVar(18, 10));
-        const toolRad = Math.max(0.5, getMacroVar(20, 5));
+        const toolDiam = Math.max(1, getMacroVar(20, 10));
+        const toolRad = toolDiam / 2;
 
         const angleRad = (angleDeg * Math.PI) / 180;
         const scale = Math.min((w - 140) / (distD + slotR * 4), (h - 140) / (distD + slotR * 4));
@@ -2025,7 +2084,7 @@
         const pcd = Math.max(10, getMacroVar(23, 90));
         const totalDepth = Math.abs(getMacroVar(7, 10));
         const stepZ = Math.max(0.2, getMacroVar(3, 2));
-        const slotWidth = 10;
+        const slotWidth = Math.max(1, getMacroVar(20, 10));
 
         const scale = (Math.min(w, h) * 0.72) / (pcd + 30);
         const rPcd = (pcd / 2) * scale;
@@ -2076,17 +2135,41 @@
 
     /* VISTA DE PERFIL Z (CORTE TRANSVERSAL) */
     function drawCadSectionView(ctx, w, h, cx, cy) {
-        let depth = 15;
-        let stepZ = 3;
+        let depth = 20;
+        let stepZ = 5;
+        let safeZ = 2.0;
         const type = getMacroType();
 
-        if (type === 'O8106') { depth = Math.abs(getMacroVar(26, 15)); stepZ = Math.abs(getMacroVar(6, 3)); }
-        else if (type === 'O8107' || type === 'O8110') { depth = Math.abs(getMacroVar(26, 15)); stepZ = depth; }
-        else if (type === 'O8108') { depth = Math.abs(getMacroVar(26, 6)); stepZ = depth; }
-        else if (type === 'O8109') { depth = Math.abs(getMacroVar(7, 10)); stepZ = Math.abs(getMacroVar(3, 2)); }
-        else { depth = 18; stepZ = 3; }
-
-        const safeZ = 5.0;
+        if (type === 'O8109') {
+            depth = Math.abs(getMacroVar(7, 10)); // D
+            stepZ = Math.abs(getMacroVar(3, 2));  // C
+            safeZ = Math.abs(getMacroVar(18, 2.0)); // R
+        } else if (type === 'O8106') {
+            depth = Math.abs(getMacroVar(26, 15)); // Z
+            stepZ = Math.abs(getMacroVar(6, 3));   // K
+            safeZ = Math.abs(getMacroVar(18, 2.0)); // R
+        } else if (type === 'O8107') {
+            depth = Math.abs(getMacroVar(26, 15));
+            stepZ = depth;
+            safeZ = Math.abs(getMacroVar(18, 2.0));
+        } else if (type === 'O8111') {
+            depth = Math.abs(getMacroVar(26, 12));
+            stepZ = depth;
+            safeZ = Math.abs(getMacroVar(18, 2.0));
+        } else if (type === 'O8110') {
+            depth = Math.abs(getMacroVar(26, 12));
+            stepZ = depth;
+            safeZ = Math.abs(getMacroVar(2, 2.0)); // B
+        } else if (type === 'O8108') {
+            depth = Math.abs(getMacroVar(26, 6));
+            stepZ = depth;
+            safeZ = Math.abs(getMacroVar(2, 2.0)); // B
+        } else {
+            // Hole macros: O8101, O8103, O8104, O8105
+            depth = Math.abs(getMacroVar(26, 20)); // Z
+            safeZ = Math.abs(getMacroVar(18, 2.0)); // R
+            stepZ = Math.abs(getMacroVar(8, 5.0)); // E (peck)
+        }
         const totalSpan = depth + safeZ + 15;
         const scale = (h * 0.58) / totalSpan;
 
@@ -2349,7 +2432,9 @@
         const ang = getMacroVar(1, 30) * Math.PI / 180;
         const stepQ = Math.max(1, getMacroVar(17, 25));
         const numHoles = Math.max(1, Math.round(getMacroVar(11, 5)));
-        const depth = 15.0;
+        const depth = Math.abs(getMacroVar(26, 20.0));
+        const safeR = getMacroVar(18, 2.0);
+        const peckE = Math.max(0.5, getMacroVar(8, 5.0));
 
         simPoints.push({ x: x0, y: y0, z: 25, type: 'G0' });
 
@@ -2357,13 +2442,13 @@
             const hx = x0 + i * stepQ * Math.cos(ang);
             const hy = y0 + i * stepQ * Math.sin(ang);
 
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
-            for (let z = -3; z >= -depth; z -= 3) {
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
+            for (let z = safeR - peckE; z > -depth; z -= peckE) {
                 simPoints.push({ x: hx, y: hy, z: z, type: 'G1' });
-                simPoints.push({ x: hx, y: hy, z: Math.min(2.0, z + 1.0), type: 'G0' });
+                simPoints.push({ x: hx, y: hy, z: Math.min(safeR, z + 1.0), type: 'G0' });
             }
             simPoints.push({ x: hx, y: hy, z: -depth, type: 'G1' });
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
         }
         simPoints.push({ x: simPoints[simPoints.length-1].x, y: simPoints[simPoints.length-1].y, z: 25.0, type: 'G0' });
     }
@@ -2375,14 +2460,20 @@
         const numV = Math.max(2, Math.round(getMacroVar(22, 4)));
         const stepI = Math.max(1, getMacroVar(4, 25));
         const stepJ = Math.max(1, getMacroVar(5, 20));
-        const depth = 15.0;
+        const depth = Math.abs(getMacroVar(26, 18.0));
+        const safeR = getMacroVar(18, 2.0);
+        const peckE = Math.max(0.5, getMacroVar(8, 5.0));
 
         simPoints.push({ x: x0, y: y0, z: 25, type: 'G0' });
 
         function drillHole(hx, hy) {
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
+            for (let z = safeR - peckE; z > -depth; z -= peckE) {
+                simPoints.push({ x: hx, y: hy, z: z, type: 'G1' });
+                simPoints.push({ x: hx, y: hy, z: Math.min(safeR, z + 1.0), type: 'G0' });
+            }
             simPoints.push({ x: hx, y: hy, z: -depth, type: 'G1' });
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
         }
 
         for (let i = 0; i < numU; i++) drillHole(x0 + i * stepI, y0);
@@ -2400,7 +2491,9 @@
         const numHoles = Math.max(1, Math.round(getMacroVar(11, 8)));
         const startAng = getMacroVar(1, 0) * Math.PI / 180;
         const startHole = Math.max(1, Math.round(getMacroVar(19, 1)));
-        const depth = 18.0;
+        const depth = Math.abs(getMacroVar(26, 25.0));
+        const safeR = getMacroVar(18, 3.0);
+        const peckE = Math.max(0.5, getMacroVar(8, 6.0));
 
         simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
 
@@ -2409,9 +2502,13 @@
             const hx = cx + rad * Math.cos(a);
             const hy = cy + rad * Math.sin(a);
 
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
+            for (let z = safeR - peckE; z > -depth; z -= peckE) {
+                simPoints.push({ x: hx, y: hy, z: z, type: 'G1' });
+                simPoints.push({ x: hx, y: hy, z: Math.min(safeR, z + 1.0), type: 'G0' });
+            }
             simPoints.push({ x: hx, y: hy, z: -depth, type: 'G1' });
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
         }
         simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
     }
@@ -2423,7 +2520,9 @@
         const numHoles = Math.max(1, Math.round(getMacroVar(11, 6)));
         const startAng = getMacroVar(1, 15) * Math.PI / 180;
         const stepAng = getMacroVar(4, 30) * Math.PI / 180;
-        const depth = 15.0;
+        const depth = Math.abs(getMacroVar(26, 20.0));
+        const safeR = getMacroVar(18, 2.0);
+        const peckE = Math.max(0.5, getMacroVar(8, 5.0));
 
         simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
 
@@ -2432,9 +2531,13 @@
             const hx = cx + rad * Math.cos(a);
             const hy = cy + rad * Math.sin(a);
 
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
+            for (let z = safeR - peckE; z > -depth; z -= peckE) {
+                simPoints.push({ x: hx, y: hy, z: z, type: 'G1' });
+                simPoints.push({ x: hx, y: hy, z: Math.min(safeR, z + 1.0), type: 'G0' });
+            }
             simPoints.push({ x: hx, y: hy, z: -depth, type: 'G1' });
-            simPoints.push({ x: hx, y: hy, z: 2.0, type: 'G0' });
+            simPoints.push({ x: hx, y: hy, z: safeR, type: 'G0' });
         }
         simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
     }
@@ -2446,11 +2549,12 @@
         const pocketRad = getMacroVar(7, 80) / 2;
         const stepZ = Math.max(0.5, getMacroVar(6, 3));
         const stepW = Math.max(1, getMacroVar(23, 6));
-        const toolRad = Math.max(0.5, getMacroVar(20, 5));
+        const toolRad = Math.max(0.5, getMacroVar(20, 10) / 2);
+        const safeR = getMacroVar(18, 2.0);
         const maxR = pocketRad - toolRad;
 
         simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
-        simPoints.push({ x: cx, y: cy, z: 2.0, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
 
         let curZ = 0;
         while (curZ < totalDepth) {
@@ -2482,12 +2586,13 @@
         const cy = getMacroVar(25, 0);
         const totalDepth = Math.abs(getMacroVar(26, 15));
         const pocketRad = getMacroVar(23, 80) / 2;
-        const toolRad = Math.max(0.5, getMacroVar(20, 5));
+        const toolRad = Math.max(0.5, getMacroVar(20, 10) / 2);
+        const safeR = getMacroVar(18, 2.0);
         const cutRad = pocketRad - toolRad;
         const leadRad = cutRad / 2;
 
         simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
-        simPoints.push({ x: cx, y: cy, z: 2.0, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
         simPoints.push({ x: cx, y: cy, z: -totalDepth, type: 'G1' });
 
         for (let a = -Math.PI; a <= 0; a += 0.2) {
@@ -2507,30 +2612,33 @@
     }
 
     function buildSimO8111() {
+        const cx = getMacroVar(24, 0);
+        const cy = getMacroVar(25, 0);
         const pocketRad = getMacroVar(7, 60) / 2;
-        const toolRad = Math.max(0.5, getMacroVar(20, 6));
+        const toolRad = Math.max(0.5, getMacroVar(20, 12) / 2);
+        const safeR = getMacroVar(18, 2.0);
         const cutRad = pocketRad - toolRad;
         const leadRad = cutRad / 2;
-        const depth = 12.0;
+        const depth = Math.abs(getMacroVar(26, 12.0));
 
-        simPoints.push({ x: 0, y: 0, z: 25, type: 'G0' });
-        simPoints.push({ x: 0, y: 0, z: 2.0, type: 'G0' });
-        simPoints.push({ x: 0, y: 0, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
 
         for (let a = -Math.PI; a <= 0; a += 0.2) {
-            simPoints.push({ x: leadRad + leadRad * Math.cos(a), y: leadRad * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx + leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
         for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.15) {
-            simPoints.push({ x: cutRad * Math.cos(a), y: cutRad * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx + cutRad * Math.cos(a), y: cy + cutRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
         for (let a = 0; a <= Math.PI; a += 0.2) {
-            simPoints.push({ x: cutRad - leadRad + leadRad * Math.cos(a), y: leadRad * Math.sin(a), z: -depth, type: 'G1' });
+            simPoints.push({ x: cx + cutRad - leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
-        simPoints.push({ x: 0, y: 0, z: -depth, type: 'G1' });
-        simPoints.push({ x: 0, y: 0, z: 25.0, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
     }
 
     function buildSimO8110() {
@@ -2538,14 +2646,15 @@
         const lenY = Math.max(10, getMacroVar(11, 60));
         const depth = Math.abs(getMacroVar(26, 12));
         const cornerR = Math.max(1, getMacroVar(18, 10));
-        const toolRad = Math.max(0.5, getMacroVar(7, 5));
+        const toolRad = Math.max(0.5, getMacroVar(7, 10) / 2);
+        const safeB = getMacroVar(2, 2.0);
 
         const halfX = lenX / 2 - toolRad;
         const halfY = lenY / 2 - toolRad;
         const effR = Math.max(1, cornerR - toolRad);
 
         simPoints.push({ x: 0, y: 0, z: 25, type: 'G0' });
-        simPoints.push({ x: 0, y: 0, z: 2.0, type: 'G0' });
+        simPoints.push({ x: 0, y: 0, z: safeB, type: 'G0' });
         simPoints.push({ x: 0, y: 0, z: -depth, type: 'G1' });
 
         simPoints.push({ x: 0, y: -halfY, z: -depth, type: 'G1' });
@@ -2577,12 +2686,13 @@
         const ang = getMacroVar(1, 25) * Math.PI / 180;
         const distD = Math.max(5, getMacroVar(7, 60));
         const slotR = Math.max(1, getMacroVar(18, 10));
+        const safeB = getMacroVar(2, 2.0);
 
         const x1 = x0 + distD * Math.cos(ang);
         const y1 = y0 + distD * Math.sin(ang);
 
         simPoints.push({ x: x0, y: y0, z: 25, type: 'G0' });
-        simPoints.push({ x: x0, y: y0, z: 2.0, type: 'G0' });
+        simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
         simPoints.push({ x: x0, y: y0, z: -depth, type: 'G1' });
 
         simPoints.push({ x: x1, y: y1, z: -depth, type: 'G1' });
@@ -2612,9 +2722,10 @@
         const rad = getMacroVar(23, 90) / 2;
         const totalDepth = Math.abs(getMacroVar(7, 10));
         const stepZ = Math.max(0.2, getMacroVar(3, 2));
+        const safeR = getMacroVar(18, 2.0);
 
         simPoints.push({ x: cx + rad, y: cy, z: 25, type: 'G0' });
-        simPoints.push({ x: cx + rad, y: cy, z: 2.0, type: 'G0' });
+        simPoints.push({ x: cx + rad, y: cy, z: safeR, type: 'G0' });
 
         let curZ = 0;
         while (curZ < totalDepth) {

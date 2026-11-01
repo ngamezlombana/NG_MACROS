@@ -16,7 +16,7 @@ METADATA = {
         "subtitle": "Serie lineal equidistante orientada a cualquier ángulo polar",
         "icon": "linear_scale",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8101 X[#24] Y[#25] A[#1] Q[#17] H[#11]"
+        "g65_template": "G65 P8101 X[#24] Y[#25] A[#1] Q[#17] H[#11] T[#20] F[#9] S[#19] Z[#26] R[#18] E[#8]"
     },
     "O8103": {
         "id": "O8103",
@@ -27,7 +27,7 @@ METADATA = {
         "subtitle": "Perímetro rectangular de 4 lados con prevención de sobretaladrado en esquinas",
         "icon": "crop_free",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8103 X[#24] Y[#25] U[#21] V[#22] I[#4] J[#5]"
+        "g65_template": "G65 P8103 X[#24] Y[#25] U[#21] V[#22] I[#4] J[#5] T[#20] F[#9] S[#19] Z[#26] R[#18] E[#8]"
     },
     "O8104": {
         "id": "O8104",
@@ -38,7 +38,7 @@ METADATA = {
         "subtitle": "Círculo de barrenado paramétrico con ángulo inicial y selección de orificio de inicio",
         "icon": "donut_large",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8104 X[#24] Y[#25] W[#23] H[#11] A[#1] S[#19]"
+        "g65_template": "G65 P8104 X[#24] Y[#25] W[#23] H[#11] A[#1] S[#19] T[#20] F[#9] B[#2] Z[#26] R[#18] E[#8]"
     },
     "O8105": {
         "id": "O8105",
@@ -49,7 +49,7 @@ METADATA = {
         "subtitle": "Barrenado en segmento circular con paso angular uniforme",
         "icon": "timelapse",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8105 X[#24] Y[#25] W[#23] H[#11] A[#1] I[#4]"
+        "g65_template": "G65 P8105 X[#24] Y[#25] W[#23] H[#11] A[#1] I[#4] T[#20] F[#9] S[#19] Z[#26] R[#18] E[#8]"
     },
     "O8106": {
         "id": "O8106",
@@ -60,7 +60,7 @@ METADATA = {
         "subtitle": "Vaciado concéntrico con control de pasadas Z y paso lateral W",
         "icon": "radio_button_checked",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8106 X[#24] Y[#25] Z[#26] D[#7] K[#6] W[#23] T[#20] F[#9]"
+        "g65_template": "G65 P8106 X[#24] Y[#25] D[#7] W[#23] T[#20] F[#9] S[#19] Z[#26] K[#6] R[#18]"
     },
     "O8107": {
         "id": "O8107",
@@ -71,7 +71,7 @@ METADATA = {
         "subtitle": "Perfilado tangencial suave con compensación G41 y salida en arco",
         "icon": "track_changes",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8107 X[#24] Y[#25] Z[#26] W[#23] T[#20] F[#9]"
+        "g65_template": "G65 P8107 X[#24] Y[#25] W[#23] T[#20] F[#9] S[#19] Z[#26] R[#18]"
     },
     "O8111": {
         "id": "O8111",
@@ -82,7 +82,7 @@ METADATA = {
         "subtitle": "Emulación canónica Fanuc G13 / O9013 en fresado ascendente (climb milling)",
         "icon": "all_inclusive",
         "book_chapter": "Capítulo 21 - Peter Smid",
-        "g65_template": "G65 P8111 D[#7] T[#20] F[#9]"
+        "g65_template": "G65 P8111 X[#24] Y[#25] D[#7] T[#20] F[#9] S[#19] Z[#26] R[#18]"
     },
     "O8110": {
         "id": "O8110",
@@ -93,7 +93,7 @@ METADATA = {
         "subtitle": "Perfilado rectangular con radios de esquina R y entrada/salida tangencial",
         "icon": "crop_portrait",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8110 W[#23] H[#11] Z[#26] R[#18] D[#7] F[#9]"
+        "g65_template": "G65 P8110 W[#23] H[#11] R[#18] D[#7] F[#9] S[#19] Z[#26] B[#2]"
     },
     "O8108": {
         "id": "O8108",
@@ -104,7 +104,7 @@ METADATA = {
         "subtitle": "Ranurado orientado a cualquier ángulo polar con arcos extremos de radio R",
         "icon": "linear_scale",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8108 X[#24] Y[#25] Z[#26] A[#1] D[#7] R[#18] T[#20] F[#9]"
+        "g65_template": "G65 P8108 X[#24] Y[#25] A[#1] D[#7] R[#18] T[#20] F[#9] S[#19] Z[#26] B[#2]"
     },
     "O8109": {
         "id": "O8109",
@@ -115,7 +115,7 @@ METADATA = {
         "subtitle": "Canal anular circular concéntrico con control de pasadas en Z",
         "icon": "motion_photos_on",
         "book_chapter": "Capítulo 20 - Peter Smid",
-        "g65_template": "G65 P8109 X[#24] Y[#25] W[#23] D[#7] C[#3] F[#9]"
+        "g65_template": "G65 P8109 X[#24] Y[#25] W[#23] T[#20] F[#9] S[#19] D[#7] C[#3] R[#18]"
     }
 }
 
