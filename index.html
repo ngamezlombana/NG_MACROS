@@ -94,7 +94,7 @@
                 <span class="material-symbols-outlined text-primary text-2xl group-hover:rotate-45 transition-transform duration-300">precision_manufacturing</span>
                 <div>
                     <span class="text-xs font-black tracking-widest text-on-surface uppercase group-hover:text-primary transition-colors block">NG_MACROS</span>
-                    <span class="text-[9px] font-code-terminal text-primary font-bold tracking-wider block">CNC STUDIO v4.4</span>
+                    <span class="text-[9px] font-code-terminal text-primary font-bold tracking-wider block">CNC STUDIO v4.4.3</span>
                 </div>
             </button>
         </div>
@@ -4752,7 +4752,19 @@
 
         // Registro del service worker para uso sin conexión (solo http/https).
         if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-            navigator.serviceWorker.register('service-worker.js').catch(err => {
+            navigator.serviceWorker.register('service-worker.js').then(reg => {
+                try { reg.update(); } catch (e) {}
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                });
+            }).catch(err => {
                 console.warn('Service worker no registrado:', err.message);
             });
         }
