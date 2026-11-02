@@ -431,8 +431,9 @@
                             G54
                         </label>
                         <select id="gcodeModeSelect" onchange="setGCodeMode(this.value)" class="bg-surface-container-lowest text-on-surface text-xs font-code-terminal px-2.5 py-1.5 rounded border border-outline-variant/30 outline-none" aria-label="Modo de salida G-Code">
-                            <option value="caller">Llamada G65 (recomendada)</option>
-                            <option value="expanded">Macro expandida en línea</option>
+                            <option value="grbl">G-Code Estándar ISO / GRBL / UGS (Sin variables)</option>
+                            <option value="caller">Llamada G65 (Fanuc / Haas industrial)</option>
+                            <option value="expanded">Macro Fanuc en línea (#variables, IF, WHILE)</option>
                         </select>
                         <button onclick="copyGCode()" id="btnCopyGCodePanel" data-license-required class="px-2.5 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 rounded font-bold uppercase">Copiar</button>
                         <button onclick="downloadGCode()" id="btnDownloadGCodePanel" data-license-required class="px-2.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded font-bold uppercase">Descargar .NC</button>
@@ -1645,11 +1646,11 @@
         updateValidationBanner();
     }
 
-    function calculateCuttingParameters() {
-        if (!activeMacro) return;
+    function getCuttingValues() {
         let toolDia = 10.0;
         let feedRate = 250.0;
         let spindleRpm = 1200.0;
+        if (!activeMacro || !activeMacro.variables) return { toolDia, feedRate, spindleRpm };
 
         activeMacro.variables.forEach(v => {
             const l = v.letter;
@@ -1669,7 +1670,12 @@
                 if (!isNaN(val) && val > 0) feedRate = val;
             }
         });
+        return { toolDia, feedRate, spindleRpm };
+    }
 
+    function calculateCuttingParameters() {
+        if (!activeMacro) return;
+        const { toolDia, feedRate, spindleRpm } = getCuttingValues();
         const calcVc = (Math.PI * toolDia * spindleRpm) / 1000.0;
         const badge = document.getElementById('calculatedVcBadge');
         if (badge) {
@@ -1750,6 +1756,7 @@
     }
 
     /* CÁLCULO PRECISO DEL TIEMPO DE EJECUCIÓN DEL CICLO */
+    let simPoints = [];
     function calculateEstimatedCycleTime() {
         if (!simPoints || simPoints.length < 2) return "00m 00s";
         let feedRate = 300.0;
@@ -1800,14 +1807,15 @@
         return parseFloat(n.toFixed(4)).toString();
     }
 
-    function buildProgramHeader(programId, modeLabel) {
+    function buildProgramHeader(programId, modeLabel, dialectOverride) {
         const out = [];
         out.push('%');
         out.push(`${programId} (NG_MACROS - ${modeLabel})`);
         out.push('(================================================)');
         out.push(`( ARCHIVO: ${activeMacro.filename} )`);
         out.push(`( AUTOR: ${activeMacro.book_chapter || 'Ingeniero Nestor Gamez'} )`);
-        out.push(`( CONTROL: ${cncDialect.toUpperCase()} | GENERADO POR NG_MACROS v4.4 )`);
+        const dialect = dialectOverride || cncDialect.toUpperCase();
+        out.push(`( CONTROL: ${dialect} | GENERADO POR NG_MACROS v4.4 )`);
         out.push('(================================================)');
         out.push('( PARAMETROS CONFIGURADOS: )');
         activeMacro.variables.forEach(v => {
@@ -1883,8 +1891,85 @@
         return out.join('\n');
     }
 
+    function buildIsoGrblGCode() {
+        if (typeof buildSimulationPoints === 'function') {
+            buildSimulationPoints();
+        }
+        const cut = (typeof getCuttingValues === 'function') ? getCuttingValues() : { toolDia: 10, feedRate: 250, spindleRpm: 1200 };
+        const feed = cut.feedRate || 250.0;
+        const rpm = Math.round(cut.spindleRpm || 1200.0);
+
+        const out = buildProgramHeader(activeMacro.id, 'G-CODE ESTANDAR ISO / GRBL / UGS', 'GRBL / UGS / CANDLE / ISO ESTANDAR');
+        out.push('( MODO ISO ESTANDAR / GRBL: Trayectoria expandida pura sin variables ni ciclos enlatados. )');
+        out.push('( Compatible al 100% con Universal Gcode Sender, Candle, GRBL, bCNC, Mach3 y simuladores. )');
+        out.push('');
+        out.push('( ARRANQUE DE HUSILLO Y REFRIGERANTE )');
+        out.push(`S${rpm} M03 (HUSILLO A ${rpm} RPM EN SENTIDO HORARIO)`);
+        out.push('M08 (REFRIGERANTE ACTIVADO)');
+        out.push('G04 P1.5 (PAUSA PARA ALCANZAR REVOLUCIONES)');
+        out.push('');
+        out.push('( TRAYECTORIA DE MECANIZADO EXPANDIDA )');
+
+        let curX = null;
+        let curY = null;
+        let curZ = null;
+        let curMode = null;
+        let feedEmitted = false;
+
+        const pts = (typeof simPoints !== 'undefined' && Array.isArray(simPoints)) ? simPoints : [];
+        const formatCoord = n => {
+            const num = Number(n);
+            if (!isFinite(num)) return '0.000';
+            return num.toFixed(3);
+        };
+
+        for (let i = 0; i < pts.length; i++) {
+            const p = pts[i];
+            const targetX = Number(Number(p.x).toFixed(3));
+            const targetY = Number(Number(p.y).toFixed(3));
+            const targetZ = Number(Number(p.z).toFixed(3));
+
+            const diffX = curX === null || Math.abs(targetX - curX) >= 0.0005;
+            const diffY = curY === null || Math.abs(targetY - curY) >= 0.0005;
+            const diffZ = curZ === null || Math.abs(targetZ - curZ) >= 0.0005;
+
+            if (!diffX && !diffY && !diffZ) continue;
+
+            const modeStr = (p.type === 'G1' || p.type === 'G01') ? 'G01' : 'G00';
+            const switchedToG1 = (modeStr === 'G01' && curMode !== 'G01');
+            let block = '';
+
+            if (modeStr !== curMode) {
+                block += modeStr;
+                curMode = modeStr;
+            }
+
+            if (diffX) { block += (block ? ' ' : '') + 'X' + formatCoord(targetX); curX = targetX; }
+            if (diffY) { block += (block ? ' ' : '') + 'Y' + formatCoord(targetY); curY = targetY; }
+            if (diffZ) { block += (block ? ' ' : '') + 'Z' + formatCoord(targetZ); curZ = targetZ; }
+
+            if (modeStr === 'G01' && (!feedEmitted || switchedToG1)) {
+                block += ` F${formatCNCValue(feed)}`;
+                feedEmitted = true;
+            }
+
+            out.push(block);
+        }
+
+        out.push('');
+        out.push('( RETIRO SEGURO Y PARADA )');
+        out.push('G90 G00 Z25.000 (RETORNO A PLANO SEGURO Z)');
+        out.push('M05 (APAGAR HUSILLO)');
+        out.push('M09 (APAGAR REFRIGERANTE)');
+        out.push('G90 G00 X0.000 Y0.000 (RETORNO A ORIGEN XY)');
+        out.push('M30 (FIN DE PROGRAMA)');
+        out.push('%');
+        return out.join('\n');
+    }
+
     function buildGCodeString() {
         if (!activeMacro) return '';
+        if (gcodeMode === 'grbl') return buildIsoGrblGCode();
         return gcodeMode === 'expanded' ? buildExpandedGCode() : buildCallerGCode();
     }
 
@@ -1926,7 +2011,7 @@
     }
 
     function setGCodeMode(mode) {
-        gcodeMode = (mode === 'expanded') ? 'expanded' : 'caller';
+        gcodeMode = (mode === 'expanded' || mode === 'grbl') ? mode : 'caller';
         try { localStorage.setItem('ng_gcode_mode', gcodeMode); } catch (e) {}
         updateGCodeOutput();
     }
@@ -1975,7 +2060,9 @@
         const blob = new Blob([gcode], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        const suffix = gcodeMode === 'expanded' ? '_expandida' : '_g65';
+        let suffix = '_g65';
+        if (gcodeMode === 'expanded') suffix = '_expandida';
+        else if (gcodeMode === 'grbl') suffix = '_grbl';
         link.href = url;
         link.download = (activeMacro.filename || 'programa_cnc.nc').replace(/\.nc$/i, suffix + '.nc');
         document.body.appendChild(link);
@@ -3052,7 +3139,7 @@
     let simIsRunning = false;
     let simStepIdx = 0;
     let simSpeed = 1.0;
-    let simPoints = [];
+    simPoints = [];
     let animationFrameId = null;
 
     let threeControls = null;

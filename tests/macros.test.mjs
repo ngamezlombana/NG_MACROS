@@ -40,14 +40,37 @@ function extractFunction(source, name) {
 
 function buildGenerator(mode) {
   const html = read('index.html');
-  const names = ['formatCNCValue', 'buildProgramHeader', 'buildCallerGCode', 'buildExpandedGCode', 'buildGCodeString'];
+  const names = [
+    'formatCNCValue',
+    'buildProgramHeader',
+    'buildCallerGCode',
+    'buildExpandedGCode',
+    'buildIsoGrblGCode',
+    'buildGCodeString',
+    'getCuttingValues',
+    'getMacroVar',
+    'getMacroType',
+    'buildSimulationPoints',
+    'buildSimO8101',
+    'buildSimO8103',
+    'buildSimO8104',
+    'buildSimO8105',
+    'buildSimO8106',
+    'buildSimO8107',
+    'buildSimO8111',
+    'buildSimO8110',
+    'buildSimO8112',
+    'buildSimO8108',
+    'buildSimO8109'
+  ];
   const code = names.map(n => extractFunction(html, n)).join('\n\n');
   const context = {
     activeMacro: null,
     cncDialect: 'fanuc',
     gcodeMode: mode,
     outputOptions: { g21: true, g54: true },
-    Number, isFinite, parseFloat, parseInt, console
+    simPoints: [],
+    Number, isFinite, parseFloat, parseInt, console, Math
   };
   vm.createContext(context);
   vm.runInContext(code, context);
@@ -206,4 +229,51 @@ test('generador expandido inserta parámetros y elimina M99/O', () => {
   assert.ok(gcode.includes('GOTO9999'), 'Se perdió el salto a fin de programa');
   assert.ok(gcode.includes('M30'), 'Falta M30');
   assert.ok(gcode.trimEnd().endsWith('%'), 'El programa no termina con %');
+});
+
+test('generador GRBL/ISO produce código sin variables ni ciclos', () => {
+  const sandbox = loadMacroData();
+  const macro = JSON.parse(JSON.stringify(sandbox.MACROS_DATA.find(m => m.id === 'O8101')));
+  const ctx = buildGenerator('grbl');
+  ctx.activeMacro = macro;
+
+  const gcode = ctx.buildGCodeString();
+  assert.ok(gcode.startsWith('%\n'), 'El programa no inicia con %');
+  assert.ok(gcode.trimEnd().endsWith('%'), 'El programa no termina con %');
+  assert.ok(gcode.includes('G21'), 'Falta G21');
+  assert.ok(gcode.includes('G90'), 'Falta G90');
+  assert.ok(gcode.includes('G54'), 'Falta G54');
+  assert.ok(gcode.includes('M03'), 'Falta arranque de husillo M03');
+  assert.ok(gcode.includes('M30'), 'Falta M30');
+
+  const nonCommentLines = gcode.split('\n').filter(l => !l.trim().startsWith('('));
+  assert.ok(!nonCommentLines.some(l => /#\d+/.test(l)), 'El modo GRBL no debe contener variables # fuera de comentarios');
+  assert.ok(!nonCommentLines.some(l => /\bIF\b/i.test(l)), 'El modo GRBL no debe contener IF');
+  assert.ok(!nonCommentLines.some(l => /\bWHILE\b/i.test(l)), 'El modo GRBL no debe contener WHILE');
+  assert.ok(!nonCommentLines.some(l => /\bGOTO\b/i.test(l)), 'El modo GRBL no debe contener GOTO');
+  assert.ok(!nonCommentLines.some(l => /\bG83\b/i.test(l)), 'El modo GRBL no debe contener ciclos enlatados G83');
+  assert.ok(!nonCommentLines.some(l => /\bG65\b/i.test(l)), 'El modo GRBL no debe contener G65');
+  assert.ok(!nonCommentLines.some(l => /\bM99\b/i.test(l)), 'El modo GRBL no debe contener M99');
+
+  assert.ok(nonCommentLines.some(l => /\bG01\b/.test(l) || /\bG1\b/.test(l)), 'Faltan movimientos G01');
+  assert.ok(nonCommentLines.some(l => /F\d+/.test(l)), 'Falta el avance F');
+  assert.ok(gcode.includes('X50.000 Y30.000'), 'Falta la primera posición de agujero');
+  assert.ok(gcode.includes('X136.603 Y80.000'), 'Falta la última posición de agujero');
+});
+
+test('generador GRBL/ISO soporta las 11 macros sin errores de sintaxis', () => {
+  const sandbox = loadMacroData();
+  const ctx = buildGenerator('grbl');
+  for (const m of sandbox.MACROS_DATA) {
+    ctx.activeMacro = JSON.parse(JSON.stringify(m));
+    const gcode = ctx.buildGCodeString();
+    assert.ok(gcode.length > 100, `${m.id} generó código vacío`);
+    assert.ok(gcode.startsWith('%\n'), `${m.id} no inicia con %`);
+    assert.ok(gcode.trimEnd().endsWith('%'), `${m.id} no termina con %`);
+    const nonComment = gcode.split('\n').filter(l => !l.trim().startsWith('('));
+    assert.ok(!nonComment.some(l => /#\d+/.test(l)), `${m.id} contiene #`);
+    assert.ok(!nonComment.some(l => /\bIF\b/i.test(l)), `${m.id} contiene IF`);
+    assert.ok(!nonComment.some(l => /\bG83\b/i.test(l)), `${m.id} contiene G83`);
+    assert.ok(nonComment.some(l => /\bG01\b/.test(l) || /\bG1\b/.test(l)), `${m.id} sin G01`);
+  }
 });
