@@ -94,7 +94,7 @@
                 <span class="material-symbols-outlined text-primary text-2xl group-hover:rotate-45 transition-transform duration-300">precision_manufacturing</span>
                 <div>
                     <span class="text-xs font-black tracking-widest text-on-surface uppercase group-hover:text-primary transition-colors block">NG_MACROS</span>
-                    <span class="text-[9px] font-code-terminal text-primary font-bold tracking-wider block">CNC STUDIO v4.4.3</span>
+                    <span class="text-[9px] font-code-terminal text-primary font-bold tracking-wider block">CNC STUDIO v4.4.4</span>
                 </div>
             </button>
         </div>
@@ -1817,11 +1817,13 @@
         const dialect = dialectOverride || cncDialect.toUpperCase();
         out.push(`( CONTROL: ${dialect} | GENERADO POR NG_MACROS v4.4 )`);
         out.push('(================================================)');
-        out.push('( PARAMETROS CONFIGURADOS: )');
-        activeMacro.variables.forEach(v => {
-            out.push(`(   ${v.letter || ('#' + v.num)} [#${v.num}] = ${formatCNCValue(v.value)} // ${v.comment} )`);
-        });
-        out.push('(================================================)');
+        if (modeLabel !== 'MACRO EXPANDIDA EN LINEA') {
+            out.push('( PARAMETROS CONFIGURADOS: )');
+            activeMacro.variables.forEach(v => {
+                out.push(`(   ${v.letter || ('#' + v.num)} [#${v.num}] = ${formatCNCValue(v.value)} // ${v.comment} )`);
+            });
+            out.push('(================================================)');
+        }
         out.push('');
         if (outputOptions.g21) out.push('G21 (SISTEMA METRICO MILIMETROS)');
         out.push('G90 G94 G17 (ABSOLUTO, AVANCE POR MINUTO, PLANO XY)');
@@ -1843,6 +1845,7 @@
         out.push('M09 (APAGAR REFRIGERANTE)');
         out.push('G91 G28 Z0.0 (RETORNO SEGURO A HOME Z)');
         out.push('G91 G28 X0.0 Y0.0 (RETORNO SEGURO A HOME XY)');
+        out.push('G90 (DEJA CONTROL EN ABSOLUTO)');
         out.push('M30 (FIN DE PROGRAMA)');
         out.push('%');
         return out.join('\n');
@@ -1886,6 +1889,7 @@
         out.push('M09 (APAGAR REFRIGERANTE)');
         out.push('G91 G28 Z0.0 (RETORNO SEGURO A HOME Z)');
         out.push('G91 G28 X0.0 Y0.0 (RETORNO SEGURO A HOME XY)');
+        out.push('G90 (DEJA CONTROL EN ABSOLUTO)');
         out.push('M30 (FIN DE PROGRAMA)');
         out.push('%');
         return out.join('\n');

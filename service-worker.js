@@ -3,7 +3,7 @@
  * network-first con fallback a caché para navegación.
  * Sube CACHE_VERSION al cambiar assets para invalidar la caché anterior.
  */
-const CACHE_VERSION = 'ng-macros-v4.4.3';
+const CACHE_VERSION = 'ng-macros-v4.4.4';
 const APP_SHELL = [
   './',
   './index.html',
