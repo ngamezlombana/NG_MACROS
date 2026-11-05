@@ -276,10 +276,38 @@ test('generador GRBL/ISO soporta las 11 macros sin errores de sintaxis', () => {
     assert.ok(gcode.length > 100, `${m.id} generó código vacío`);
     assert.ok(gcode.startsWith('%\n'), `${m.id} no inicia con %`);
     assert.ok(gcode.trimEnd().endsWith('%'), `${m.id} no termina con %`);
+    assert.ok(gcode.includes('Ingeniero Nestor Gamez'), `${m.id} sin autor Ingeniero Nestor Gamez`);
     const nonComment = gcode.split('\n').filter(l => !l.trim().startsWith('('));
     assert.ok(!nonComment.some(l => /#\d+/.test(l)), `${m.id} contiene #`);
     assert.ok(!nonComment.some(l => /\bIF\b/i.test(l)), `${m.id} contiene IF`);
     assert.ok(!nonComment.some(l => /\bG83\b/i.test(l)), `${m.id} contiene G83`);
     assert.ok(nonComment.some(l => /\bG01\b/.test(l) || /\bG1\b/.test(l)), `${m.id} sin G01`);
+  }
+});
+
+test('los generadores G65 y Expandido soportan las 11 macros con autor y estructura Fanuc', () => {
+  const sandbox = loadMacroData();
+  const callerCtx = buildGenerator('caller');
+  const expCtx = buildGenerator('expanded');
+
+  for (const m of sandbox.MACROS_DATA) {
+    const macroCopy = JSON.parse(JSON.stringify(m));
+
+    // G65 Caller
+    callerCtx.activeMacro = macroCopy;
+    const callerCode = callerCtx.buildGCodeString();
+    assert.ok(callerCode.includes('Ingeniero Nestor Gamez'), `${m.id} G65 sin autor Ingeniero Nestor Gamez`);
+    assert.ok(callerCode.includes(`G65 P${m.id.replace(/^O/i, '')}`), `${m.id} G65 sin llamada correcta`);
+    assert.ok(callerCode.includes('G91 G28 Z0.0'), `${m.id} G65 sin retorno seguro Z`);
+    assert.ok(callerCode.includes('M30'), `${m.id} G65 sin M30`);
+
+    // Expanded Fanuc
+    expCtx.activeMacro = macroCopy;
+    const expCode = expCtx.buildGCodeString();
+    assert.ok(expCode.includes('Ingeniero Nestor Gamez'), `${m.id} Expandido sin autor Ingeniero Nestor Gamez`);
+    assert.ok(!/\bTHEN\b/i.test(expCode), `${m.id} Expandido contiene THEN inválido`);
+    assert.ok(!/#(3[4-9]|[4-9]\d)\b/.test(expCode), `${m.id} Expandido contiene variables > #33`);
+    assert.ok(expCode.includes('G91 G28 Z0.0'), `${m.id} Expandido sin retorno seguro Z`);
+    assert.ok(expCode.includes('M30'), `${m.id} Expandido sin M30`);
   }
 });

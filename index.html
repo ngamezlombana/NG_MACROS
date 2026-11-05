@@ -3810,7 +3810,9 @@
                 }
             }
 
-            // Retorno al plano de seguridad
+            // Despegue vertical en Z y retorno al plano de seguridad
+            const lastP = simPoints[simPoints.length - 1];
+            simPoints.push({ x: lastP.x, y: lastP.y, z: safeB, type: 'G0' });
             simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
         }
 
