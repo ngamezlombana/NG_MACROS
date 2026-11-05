@@ -3578,11 +3578,22 @@
         const maxR = Math.max(0.5, pocketRad - toolRad);
 
         simPoints.push({ x: cx, y: cy, z: 25, type: 'G0' });
-        simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
 
         let curZ = 0;
         while (curZ < totalDepth) {
+            const prevZ = curZ;
             curZ = Math.min(totalDepth, curZ + stepZ);
+
+            // Retorno en rápido al centro a plano de seguridad
+            simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
+
+            // Aproximación en rápido hasta 1mm antes del material
+            const approachZ = prevZ > 0 ? -(prevZ - 1.0) : safeR;
+            if (approachZ < safeR) {
+                simPoints.push({ x: cx, y: cy, z: approachZ, type: 'G0' });
+            }
+
+            // Penetración en corte con avance controlado
             simPoints.push({ x: cx, y: cy, z: -curZ, type: 'G1' });
 
             let r = stepW;
@@ -3599,8 +3610,8 @@
                 simPoints.push({ x: cx + maxR * Math.cos(a), y: cy + maxR * Math.sin(a), z: -curZ, type: 'G1' });
             }
 
+            // Despegue inmediato en rápido a plano de seguridad
             simPoints.push({ x: cx + maxR, y: cy, z: safeR, type: 'G0' });
-            simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
         }
 
         simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
@@ -3734,10 +3745,19 @@
 
         let currentZ = 0;
         while (currentZ < depth) {
+            const prevZ = currentZ;
             currentZ = Math.min(depth, currentZ + stepZ);
 
-            // Posicionamiento en el centro y descenso en Z
+            // Posicionamiento en el centro en plano de seguridad
             simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
+
+            // Aproximación en rápido hasta 1mm antes del material
+            const approachZ = prevZ > 0 ? -(prevZ - 1.0) : safeB;
+            if (approachZ < safeB) {
+                simPoints.push({ x: cx, y: cy, z: approachZ, type: 'G0' });
+            }
+
+            // Descenso en Z con avance controlado
             simPoints.push({ x: cx, y: cy, z: -currentZ, type: 'G1' });
 
             // Bucles concéntricos de desbaste desde el centro hacia afuera
@@ -3810,10 +3830,9 @@
                 }
             }
 
-            // Despegue vertical en Z y retorno al plano de seguridad
+            // Despegue inmediato en rápido a plano de seguridad
             const lastP = simPoints[simPoints.length - 1];
             simPoints.push({ x: lastP.x, y: lastP.y, z: safeB, type: 'G0' });
-            simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
         }
 
         // Salida final superior
@@ -3846,17 +3865,29 @@
 
         let curZ = 0;
         while (curZ < totalDepth) {
+            const prevZ = curZ;
             curZ = Math.min(totalDepth, curZ + stepK);
 
-            // Posicionamiento en centro inicial y penetración
+            // Posicionamiento en centro inicial sobre plano de seguridad
             simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
+
+            // Aproximación en rápido hasta 1mm antes del material
+            const approachZ = prevZ > 0 ? -(prevZ - 1.0) : safeB;
+            if (approachZ < safeB) {
+                simPoints.push({ x: x0, y: y0, z: approachZ, type: 'G0' });
+            }
+
+            // Penetración en Z con avance controlado
             simPoints.push({ x: x0, y: y0, z: -curZ, type: 'G1' });
 
             // Ranurado central de apertura
             simPoints.push({ x: x1, y: y1, z: -curZ, type: 'G1' });
 
             if (maxPathR > 0) {
-                // Retorno al centro inicial por canal abierto
+                // Despegue en rápido y retorno al centro inicial por aire
+                simPoints.push({ x: x1, y: y1, z: safeB, type: 'G0' });
+                simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
+                if (approachZ < safeB) simPoints.push({ x: x0, y: y0, z: approachZ, type: 'G0' });
                 simPoints.push({ x: x0, y: y0, z: -curZ, type: 'G1' });
 
                 for (let pass = 1; pass <= passes; pass++) {
@@ -3891,13 +3922,11 @@
                         });
                     }
                 }
-
-                // Retorno al centro inicial
-                simPoints.push({ x: x0, y: y0, z: -curZ, type: 'G1' });
             }
 
-            // Despegue vertical en Z antes del siguiente paso
-            simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
+            // Despegue inmediato en rápido a plano de seguridad
+            const lastP = simPoints[simPoints.length - 1];
+            simPoints.push({ x: lastP.x, y: lastP.y, z: safeB, type: 'G0' });
         }
 
         simPoints.push({ x: x0, y: y0, z: 25.0, type: 'G0' });
