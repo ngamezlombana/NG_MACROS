@@ -61,13 +61,13 @@ WHILE [#33 LT #21] DO1
 END1
 
 (2. LADO DERECHO: HACIA Y+ ARRIBA)
-#34 = 1
-WHILE [#34 LT #22] DO2
+#33 = 1
+WHILE [#33 LT #22] DO1
   #31 = #24 + [[#21 - 1.0] * #4]
-  #32 = #25 + [#34 * #5]
+  #32 = #25 + [#33 * #5]
   X#31 Y#32
-  #34 = #34 + 1
-END2
+  #33 = #33 + 1
+END1
 
 (3. LADO SUPERIOR: HACIA X- IZQUIERDA)
 #33 = #21 - 2.0
@@ -79,13 +79,13 @@ WHILE [#33 GE 0] DO1
 END1
 
 (4. LADO IZQUIERDO: HACIA Y- ABAJO OMITE PRIMER AGUJERO YA TALADRADO)
-#34 = #22 - 2.0
-WHILE [#34 GE 1.0] DO2
+#33 = #22 - 2.0
+WHILE [#33 GE 1.0] DO1
   #31 = #24
-  #32 = #25 + [#34 * #5]
+  #32 = #25 + [#33 * #5]
   X#31 Y#32
-  #34 = #34 - 1.0
-END2
+  #33 = #33 - 1.0
+END1
 
 G80                   (CANCELAR CICLO FIJO)
 G90 G00 Z50.0         (SUBIR A ALTURA SEGURA)

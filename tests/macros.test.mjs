@@ -132,6 +132,7 @@ test('archivos .nc tienen estructura Fanuc segura', () => {
     assert.ok(content.startsWith('%\n'), `${file} no inicia con %`);
     assert.ok(content.trimEnd().endsWith('%'), `${file} no termina con %`);
     assert.ok(!/\bTHEN\b/i.test(content), `${file} contiene la palabra inválida THEN en sintaxis Fanuc`);
+    assert.ok(!/#(3[4-9]|[4-9]\d)\b/.test(content), `${file} usa variables fuera del rango local Fanuc (#1 a #33)`);
 
     const lines = content.split('\n').map(l => l.trim());
     assert.equal(lines.filter(l => l === '%').length, 2, `${file} debe tener exactamente dos %`);

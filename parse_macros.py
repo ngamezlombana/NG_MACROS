@@ -98,7 +98,7 @@ METADATA = {
         "title": "O8108 - Ranura Recta Angular",
         "subtitle": "Ranurado orientado a cualquier angulo polar con arcos extremos de radio R",
         "icon": "linear_scale",
-        "g65_template": "G65 P8108 X[#24] Y[#25] A[#1] D[#7] R[#18] T[#20] F[#9] S[#19] Z[#26] B[#2]"
+        "g65_template": "G65 P8108 X[#24] Y[#25] A[#1] D[#7] R[#18] T[#20] F[#9] S[#19] Z[#26] B[#2] K[#6]"
     },
     "O8109": {
         "id": "O8109",

@@ -3821,7 +3821,8 @@
     function buildSimO8108() {
         const x0 = getMacroVar(24, 30);
         const y0 = getMacroVar(25, 25);
-        const depth = Math.abs(getMacroVar(26, 6));
+        const totalDepth = Math.abs(getMacroVar(26, 6));
+        const stepK = Math.max(0.5, Math.abs(getMacroVar(6, 2.0)));
         const ang = getMacroVar(1, 25) * Math.PI / 180;
         const distD = Math.max(1, getMacroVar(7, 60));
         const slotR = Math.max(1, getMacroVar(18, 10));
@@ -3835,48 +3836,68 @@
         const radialStep = Math.max(0.5, toolDiam * 0.65);
         const passes = maxPathR > 0 ? Math.max(1, Math.ceil(maxPathR / radialStep)) : 0;
 
-        simPoints.push({ x: x0, y: y0, z: 25, type: 'G0' });
-        simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
-        simPoints.push({ x: x0, y: y0, z: -depth, type: 'G1' });
-
-        // Vector perpendicular a la ranura
+        // Vector perpendicular a la ranura (+90 deg)
         const px = -Math.sin(ang);
         const py = Math.cos(ang);
 
-        for (let pass = 1; pass <= passes; pass++) {
-            const rr = maxPathR * pass / passes;
-            const sx = x0 + px * rr;
-            const sy = y0 + py * rr;
+        simPoints.push({ x: x0, y: y0, z: 25, type: 'G0' });
 
-            // Lado superior hacia el extremo derecho
-            simPoints.push({ x: sx, y: sy, z: -depth, type: 'G1' });
-            simPoints.push({ x: x1 + px * rr, y: y1 + py * rr, z: -depth, type: 'G1' });
+        let curZ = 0;
+        while (curZ < totalDepth) {
+            curZ = Math.min(totalDepth, curZ + stepK);
 
-            // Arco extremo derecho
-            for (let a = -Math.PI / 2; a <= Math.PI / 2; a += 0.18) {
-                simPoints.push({
-                    x: x1 + rr * Math.cos(ang + a),
-                    y: y1 + rr * Math.sin(ang + a),
-                    z: -depth,
-                    type: 'G1'
-                });
+            // Posicionamiento en centro inicial y penetración
+            simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
+            simPoints.push({ x: x0, y: y0, z: -curZ, type: 'G1' });
+
+            // Ranurado central de apertura
+            simPoints.push({ x: x1, y: y1, z: -curZ, type: 'G1' });
+
+            if (maxPathR > 0) {
+                // Retorno al centro inicial por canal abierto
+                simPoints.push({ x: x0, y: y0, z: -curZ, type: 'G1' });
+
+                for (let pass = 1; pass <= passes; pass++) {
+                    const rr = maxPathR * pass / passes;
+                    const sx = x0 + px * rr;
+                    const sy = y0 + py * rr;
+
+                    // Aproximación perpendicular y lado superior
+                    simPoints.push({ x: sx, y: sy, z: -curZ, type: 'G1' });
+                    simPoints.push({ x: x1 + px * rr, y: y1 + py * rr, z: -curZ, type: 'G1' });
+
+                    // Arco extremo derecho 180 grados G02 (horario)
+                    for (let a = -Math.PI / 2; a <= Math.PI / 2; a += 0.18) {
+                        simPoints.push({
+                            x: x1 + rr * Math.cos(ang + a),
+                            y: y1 + rr * Math.sin(ang + a),
+                            z: -curZ,
+                            type: 'G1'
+                        });
+                    }
+
+                    // Lado inferior de regreso
+                    simPoints.push({ x: x0 - px * rr, y: y0 - py * rr, z: -curZ, type: 'G1' });
+
+                    // Arco extremo izquierdo 180 grados G02 (horario)
+                    for (let a = Math.PI / 2; a <= Math.PI * 1.5; a += 0.18) {
+                        simPoints.push({
+                            x: x0 + rr * Math.cos(ang + a),
+                            y: y0 + rr * Math.sin(ang + a),
+                            z: -curZ,
+                            type: 'G1'
+                        });
+                    }
+                }
+
+                // Retorno al centro inicial
+                simPoints.push({ x: x0, y: y0, z: -curZ, type: 'G1' });
             }
 
-            // Lado inferior de regreso
-            simPoints.push({ x: x0 - px * rr, y: y0 - py * rr, z: -depth, type: 'G1' });
-
-            // Arco extremo izquierdo
-            for (let a = Math.PI / 2; a <= Math.PI * 1.5; a += 0.18) {
-                simPoints.push({
-                    x: x0 + rr * Math.cos(ang + a),
-                    y: y0 + rr * Math.sin(ang + a),
-                    z: -depth,
-                    type: 'G1'
-                });
-            }
+            // Despegue vertical en Z antes del siguiente paso
+            simPoints.push({ x: x0, y: y0, z: safeB, type: 'G0' });
         }
 
-        simPoints.push({ x: x0, y: y0, z: -depth, type: 'G1' });
         simPoints.push({ x: x0, y: y0, z: 25.0, type: 'G0' });
     }
 
