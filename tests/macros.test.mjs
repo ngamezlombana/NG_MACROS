@@ -122,11 +122,16 @@ test('parse_macros.py genera datos consistentes', () => {
 test('archivos .nc tienen estructura Fanuc segura', () => {
   const ncFiles = readdirSync(ROOT).filter(f => f.toLowerCase().endsWith('.nc'));
   for (const file of ncFiles) {
-    const content = readFileSync(join(ROOT, file), 'utf8');
+    const raw = readFileSync(join(ROOT, file));
+    for (let i = 0; i < raw.length; i++) {
+      assert.ok(raw[i] <= 127, `${file} contiene bytes no ASCII (0x${raw[i].toString(16)})`);
+    }
+    const content = raw.toString('utf8');
     assert.ok(!content.includes('\r'), `${file} contiene CRLF/CR`);
     assert.ok(!content.includes('%\\n'), `${file} contiene el literal %\\n`);
     assert.ok(content.startsWith('%\n'), `${file} no inicia con %`);
     assert.ok(content.trimEnd().endsWith('%'), `${file} no termina con %`);
+    assert.ok(!/\bTHEN\b/i.test(content), `${file} contiene la palabra inválida THEN en sintaxis Fanuc`);
 
     const lines = content.split('\n').map(l => l.trim());
     assert.equal(lines.filter(l => l === '%').length, 2, `${file} debe tener exactamente dos %`);

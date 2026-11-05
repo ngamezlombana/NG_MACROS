@@ -3599,7 +3599,8 @@
                 simPoints.push({ x: cx + maxR * Math.cos(a), y: cy + maxR * Math.sin(a), z: -curZ, type: 'G1' });
             }
 
-            simPoints.push({ x: cx, y: cy, z: -curZ, type: 'G1' });
+            simPoints.push({ x: cx + maxR, y: cy, z: safeR, type: 'G0' });
+            simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
         }
 
         simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
@@ -3661,7 +3662,7 @@
             simPoints.push({ x: cx + cutRad - leadRad + leadRad * Math.cos(a), y: cy + leadRad * Math.sin(a), z: -depth, type: 'G1' });
         }
 
-        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy, z: safeR, type: 'G0' });
         simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
     }
 
@@ -3702,7 +3703,8 @@
             simPoints.push({ x: cx - halfX + effR + effR * Math.cos(a), y: cy - halfY + effR + effR * Math.sin(a), z: -depth, type: 'G1' });
         }
         simPoints.push({ x: cx, y: cy - halfY, z: -depth, type: 'G1' });
-        simPoints.push({ x: cx, y: cy, z: -depth, type: 'G1' });
+        simPoints.push({ x: cx, y: cy - halfY, z: safeB, type: 'G0' });
+        simPoints.push({ x: cx, y: cy, z: safeB, type: 'G0' });
         simPoints.push({ x: cx, y: cy, z: 25.0, type: 'G0' });
     }
 
